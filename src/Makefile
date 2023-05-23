@@ -1,2 +1,2 @@
 main:
-	gcc -o ./build/main main.c -lSDL2
+	gcc -o game main.c -lSDL2

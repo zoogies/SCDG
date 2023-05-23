@@ -1,0 +1,12 @@
+{
+  "Characters": {
+    "Van": {
+      "Affinity": 100
+    }
+  },
+  "Scenes": {
+    "most_recent": "boathouse",
+    "boathouse": "completed",
+    "arbys": "locked"
+  }
+}
