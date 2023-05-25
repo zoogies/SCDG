@@ -1,114 +1,62 @@
-// includes
 #include <stdio.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
 
-// define screen size parameters
+#include <SDL2/SDL.h>
+
+#include "engine/engine.h"
+
+// define screen size parameters,
+// game will manage these values not engine
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
 // enum defining states as integer constants
-enum State {
-    startup = 0,
-    menu = 1
-};
+// enum State {
+//     startup = 0,
+//     menu = 1
+// };
 
 // set current game state to main menu
-static int current_state = 0;
+// static int current_state = 0;
 
-int main(int argc, char* args[]) {
-    SDL_Window* window = NULL; // new window
-    SDL_Surface* screenSurface = NULL; // new surface
+// NOTE:
+// - all control loops are handled (non threaded at least) in the game file, engine is just callable interface to SDL2
 
-    // subject to change MUSIC
-    const char *startup = "resources/sfx/startup.mp3"; // load song
-    const char *song = "resources/music/menu_loop.mp3"; // load song
-    Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640); // new mixer (i have no idea how this line works)
-    Mix_Music *startupSound = Mix_LoadMUS(startup); // defining song
-    Mix_Music *music = Mix_LoadMUS(song); // defining song
+/*
+    PLANNING:
+    - this game file will control reading the game data from whatever datastructure
+      is picked, whether binary or json and act upon them
 
-    // check if SDL is displaying incorrectly
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL initialization failed: %s\n", SDL_GetError());
-    } 
-    else {
+    - when state is decoupled from input in the future there needs to be an implemented lock
+      to wait for like a scene to finish setting up before the user can skip so no spamming mouse
+      bugging the game out
+*/
 
-        TTF_Init(); // init ttf
+int main() {
+    // output game title and info
+    printf("\n\033[0;33mStardust Crusaders Dating Sim v0.0.1\033[0;37m\n");
 
-        // new window
-        window = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (window == NULL) {
-            printf("Window creation failed: %s\n", SDL_GetError()); // catch creation error
-        } 
-        else {
-            // TODO: FIX WINDOW ICON
-            // get the window icon as a surface
-            // SDL_Surface* imageSurface = IMG_Load("resources/cropped.png");
+    /*
+    Initialize engine, this will cover starting audio as well as splash screen
+    and manage all subsequent backend rendering and audio playing invoked by the game
+    */
+    printf("Attempting to initialize engine... ");
+    initEngine(SCREEN_WIDTH,SCREEN_HEIGHT);
 
-            // set window icon
-            // SDL_SetWindowIcon(window, imageSurface);
+    // game initialization code goes here
 
-            
-            // int flags = MIX_INIT_MP3;
-            // int result = 0;
-            // if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-            //     printf("Failed to init SDL\n");
-            //     exit(1);
-            // }
+    // game loop code goes here
 
-            // if (flags != (result = Mix_Init(flags))) {
-            //     printf("Could not initialize mixer (result: %d).\n", result);
-            //     printf("Mix_Init: %s\n", Mix_GetError());
-            //     exit(1);
-            // }
-
-            // get the window surface to a variable
-            screenSurface = SDL_GetWindowSurface(window);
-
-            // fill a white rectangle to the screen
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0, 0, 0));
-            
-            // TODO: font stuff
-            // const char *FONT_PATH = "resources/fonts/Nunito-Regular.ttf";
-            // const int FONT_SIZE = 24;
-            // SDL_Color textColor = {0, 0, 0, 255};
-
-            // TODO: font stuff
-            // TTF_Font* font = TTF_OpenFont(FONT_PATH,FONT_SIZE);
-            // SDL_Surface* surface = TTF_RenderText_Solid(font, "Hello, World!", textColor);
-            // SDL_Texture* texture = SDL_CreateTextureFromSurface(window, surface);
-            // SDL_Rect destinationRect = {0, 0, surface->w, surface->h};
-            // SDL_RenderCopy(window, texture, NULL, &destinationRect);
-
-            // update window surface
-            SDL_UpdateWindowSurface(window);
-
-            // play music in mixer
-            Mix_PlayMusic(startupSound, 1); // -1 value would be infinite looping
-            SDL_Delay(2550); // wait for startup sound to finish
-            Mix_PlayMusic(music, -1); // -1 value would be infinite looping
-
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-            SDL_UpdateWindowSurface(window);
-
-            SDL_Event e; // define new event
-            bool quit = false; // define quit
-            while (!quit) {
-                while (SDL_PollEvent(&e)) { // while there is a new SDL event
-                    if (e.type == SDL_QUIT) { // check if its to quit
-                        quit = true; // quit
-                    }
-                }
+    // begin event catching
+    SDL_Event e; // define new event
+    bool quit = false; // define quit
+    while(!quit) {
+        while(SDL_PollEvent(&e)){
+            if(e.type == SDL_QUIT){ // check if event is to quit
+                quit = true; // quit
             }
         }
     }
 
-    SDL_DestroyWindow(window); // destroy the window
-    Mix_FreeMusic(music); // destroy the music in mixer
-    SDL_Quit(); // quit SDL (should destroy anything else i forget)
-
-    return 0;
+    return 0; // el classico
 }
