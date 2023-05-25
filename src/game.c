@@ -10,6 +10,10 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
+// declare helper const for tracking middle coords of screen
+const int SCREEN_MIDDLE_WIDTH = SCREEN_WIDTH / 2;
+const int SCREEN_MIDDLE_HEIGHT = SCREEN_HEIGHT / 2;
+
 // enum defining states as integer constants
 // enum State {
 //     startup = 0,

@@ -8,15 +8,16 @@
 
 Mix_Chunk *chunks[MAX_CHANNELS] = { NULL };
 
-void initAudio(){
-    debugOutputComplete(); // debug: acknowledge audio initialization
+// TODO volume control
 
+void initAudio(){
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
         printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
     }
   
     Mix_AllocateChannels(MAX_CHANNELS);
+    debugOutputComplete(); // debug: acknowledge audio initialization
 }
 
 void free_audio_chunk(int channel) {
@@ -51,7 +52,7 @@ void playSound(const char *filename, int loops) {
         return; 
     }
 
-    chunks[channel] = sound;
+    chunks[channel] = sound; // TODO: this seems like it would break if previous if catch errors?
 
     // Free audio memory when channel finishes
     Mix_ChannelFinished(free_audio_chunk);

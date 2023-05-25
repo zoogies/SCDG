@@ -5,6 +5,8 @@
 #include "audio.h"
 #include "graphics.h"
 
+// TODO calculate some global for center of the screen so that subsequent processes can use it (MAYBE PUT THIS IN GRAPHICS BUT COULD BE USEFUL HERE)
+
 // NOTE:
 // - if any object or piece of memory from a file thats not the engine, store the variable in the engine and return pointers to the memory from child files so engine file can better manage it
 
@@ -23,7 +25,7 @@ void initEngine(int screenWidth, int screenHeight){
     printf("\n\033[0;33mYoyo Engine v0.0.1\033[0;37m\n"); // output engine name to terminal
 
     // debug printf
-    printf("Attempting to initialize graphics... ");
+    printf("Attempting to initialize window... ");
 
     // create new window with passed parameters
     initGraphics(screenWidth,screenHeight);
