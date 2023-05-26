@@ -11,8 +11,8 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
 // declare helper const for tracking middle coords of screen
-const int SCREEN_MIDDLE_WIDTH = SCREEN_WIDTH / 2;
-const int SCREEN_MIDDLE_HEIGHT = SCREEN_HEIGHT / 2;
+// const int SCREEN_MIDDLE_WIDTH = SCREEN_WIDTH / 2;
+// const int SCREEN_MIDDLE_HEIGHT = SCREEN_HEIGHT / 2;
 
 // enum defining states as integer constants
 // enum State {
@@ -44,7 +44,7 @@ int main() {
     Initialize engine, this will cover starting audio as well as splash screen
     and manage all subsequent backend rendering and audio playing invoked by the game
     */
-    printf("Attempting to initialize engine... ");
+    printf("Attempting to initialize engine... \t");
     initEngine(SCREEN_WIDTH,SCREEN_HEIGHT);
 
     // game initialization code goes here
@@ -60,7 +60,8 @@ int main() {
                 quit = true; // quit
             }
         }
-    }
+    } // TODO, once you are ever reading this and working on the actual game
+    // (i hope): go double check all header files
 
     return 0; // el classico
 }

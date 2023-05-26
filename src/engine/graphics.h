@@ -2,14 +2,35 @@
 #define GRAPHICS_H
 #include <SDL2/SDL_ttf.h>
 
-// function prototypes and structure declarations
+typedef struct renderObject {
+    int identifier;
+    // renderObjectType type;
+    SDL_Texture* texture;
+    SDL_Rect rect;
+    int depth;
+    struct renderObject* next;
+} renderObject;
+
+// TODO: consider having images in engine start at their center, so game has to do no calculations for finding middles of things
+void addRenderObject(int identifier, int depth, int x, int y, int width, int height, SDL_Texture *texture);
+
+void removeRenderObject(int identifier);
+
+void updateObjectRect(int identifier, SDL_Rect* newRect);
+
+void renderAll();
+
+// initialize graphics
 void initGraphics(int screenWidth,int screenHeight);
 
+void shutdownGraphics();
+
+// load a font into memory and return a pointer to it
 TTF_Font* loadFont(const char* fontPath, int fontSize);
 
-void renderText(SDL_Renderer* renderer, const char* text, TTF_Font* font, SDL_Color color, SDL_Rect* rect);
+SDL_Texture* createTextTexture(const char* text, TTF_Font* font, SDL_Color color);
 
-// shutdown all graphics elements and free all assosciated memory
-void shutdownGraphics();
+// Create a texture from image path
+SDL_Texture* createImageTexture(const char* path);
 
 #endif
