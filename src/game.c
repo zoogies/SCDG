@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 
 #include "engine/engine.h"
+#include "engine/audio.h"
+#include "engine/graphics.h"
 
 // define screen size parameters,
 // game will manage these values not engine
@@ -50,6 +52,15 @@ int main() {
     // game initialization code goes here
 
     // game loop code goes here
+    playSound("resources/music/menu_loop.mp3",-1); // eventually needs channel parameter
+
+    // TODO reformat graphics code to take in a passed struct instead of vice versa
+    SDL_Color colorWhite = {255, 255, 255};
+    addRenderObject(0,0,0,0,1280,720,createImageTexture("resources/images/people720.png"));
+    addRenderObject(1,1,0,0,800,150,createTextTexture("Stardust Dating Sim",loadFont("resources/fonts/Nunito-Regular.ttf", 500),colorWhite));
+
+    renderAll();
+
 
     // begin event catching
     SDL_Event e; // define new event

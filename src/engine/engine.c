@@ -60,8 +60,7 @@ void initEngine(int screenWidth, int screenHeight){
     renderAll();
 
     // start game code
-    // this call should actually be relayed down from game.c eventually
-    playSound("resources/music/menu_loop.mp3",-1); // eventually needs channel parameter
+    printf("\nEngine Fully Initialized.\n");
 }
 
 void shutdownEngine(){
