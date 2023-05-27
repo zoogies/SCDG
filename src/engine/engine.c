@@ -1,3 +1,10 @@
+/*
+    ENGINE TODO:
+    - engine resources (icon, fonts) need to be seperated in a sensical way from game code
+      and resources. Engine should feel more seperate and able to be converted to other projects
+    - (maybe) seperate some prinf output feedbacks into debug only
+*/
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -7,17 +14,16 @@
 
 #include "audio.h"
 #include "graphics.h"
+#include "engine.h"
 
-// NOTE:
-// - if any object or piece of memory from a file thats not the engine, store the variable in the engine and return pointers to the memory from child files so engine file can better manage it
-
-// declare helper const for tracking middle coords of screen
+// initialize the extern variables from engine.h to locate the midpoint of the screen
 int SCREEN_MIDDLE_WIDTH = 0;
 int SCREEN_MIDDLE_HEIGHT = 0;
 
-// font used by engine
+// declare font used by engine
 TTF_Font *NunitoBold = NULL;
 
+// helper function to print a positive output
 void debugOutputComplete(){
     printf("\033[0;37m"); // set color to white
     printf("(");
@@ -27,64 +33,85 @@ void debugOutputComplete(){
     printf(")\n");
 }
 
+// engine entry point, takes in the screenWidth, screenHeight and a bool flag for
+// starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug){
-    // im so tired
+
+    // initialzie our helper variables for the midpoints on both axis of
+    // the screen
     SCREEN_MIDDLE_WIDTH = screenWidth / 2;
     SCREEN_MIDDLE_HEIGHT = screenHeight / 2;
 
-    debugOutputComplete(); // debug: acknowledge engine initialization
+    // acknowledge engine initialization
+    debugOutputComplete();
 
-    printf("\n\033[0;33mYoyo Engine v0.0.1\033[0;37m\n"); // output engine name to terminal
+    // output engine name to terminal
+    printf("\n\033[0;33mYoyo Engine v0.0.1\033[0;37m\n");
 
-    // create new window with passed parameters
+    // initialize graphics systems, creating window renderer, etc
     initGraphics(screenWidth,screenHeight);
 
+    // load a font for use in engine
     NunitoBold = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
-
+    
+    // load a SDL_Color(s) for use in engine debug displays and startup
     SDL_Color colorYellow = {255, 255, 0};
+    SDL_Color colorWhite = {255, 255, 255};
+
+    // if we are in debug mode
     if(debug){
+        // display in console
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
+        // add
         renderText(999,0,-10,125,50,"fps: ",NunitoBold, colorYellow);
     }
 
-    // debug printf
+    // debug output
     printf("Attempting to initialize audio... \t");
 
     // startup audio systems
-    initAudio(); // setup engine audio
+    initAudio();
 
-    // part of init process is pause on engine splash for X amount of time then free back to game
-    // code to show engine splash render below
-    
+    /*
+        Part of the engine startup which isnt configurable by the game is displaying
+        a splash screen with the engine title and logo for 2550ms and playing a
+        startup noise
+    */
     playSound("resources/sfx/startup.mp3",0); // play startup sound
 
-    SDL_Color colorWhite = {255, 255, 255};  // White // TODO move mee im too tired
-
-    // add two engine specific renderObjects here
+    // create startup logo and title and save their id# into memory to destroy them after startup
     const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
     const int engineTitle = renderText(0,(SCREEN_MIDDLE_WIDTH - 250),(SCREEN_MIDDLE_HEIGHT - 300),500,150,"yoyo engine",NunitoBold,colorWhite);
 
-    renderAll(); // render everything in linked list storage
+    // render everything in engine queue
+    renderAll(); 
 
-    SDL_Delay(2550); // baked in delay to boot to game (THIS IS BAD BAD BAD BAD)
+    // pause on engine splash for 2550ms (TODO: consider alternatives)
+    SDL_Delay(2550); 
     
-    removeRenderObject(engineLogo); // remove engine logo
-    removeRenderObject(engineTitle); // remove engine title
+    // remove the engine logo and title from engine renderer queue
+    removeRenderObject(engineLogo);
+    removeRenderObject(engineTitle);
 
+    // render everything in engine queue after splash asset removal
     renderAll();
 
-    // start game code
+    // debug output
     printf("\n\033[0;35mEngine Fully Initialized.\033[0;37m\n\n");
-}
+} // control is now resumed by the game
 
+// function that shuts down all engine subsystems and components ()
 void shutdownEngine(){
     // shutdown graphics
     shutdownGraphics();
+    printf("\033[0;31mShut down graphics.\033[0;37m\n");
 
     // shutdown audio
     shutdownAudio();
+    printf("\033[0;31mShut down audio.\033[0;37m\n");
 
     // quit SDL (should destroy anything else i forget)
     SDL_Quit();
+    printf("\033[0;31mShut down SDL.\033[0;37m\n");
 }

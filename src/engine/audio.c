@@ -61,6 +61,8 @@ void playSound(const char *filename, int loops) {
 void shutdownAudio(){
     // Halt all playing channels
     Mix_HaltChannel(-1);
+    printf("\033[0;31mHalted playing channels.\033[0;37m\n");
+
 
     // Free all audio chunks in the chunks array
     for (int i = 0; i < MAX_CHANNELS; i++) {
@@ -72,4 +74,6 @@ void shutdownAudio(){
 
     // Close the audio system
     Mix_CloseAudio();
+    printf("\033[0;31mMixer closed.\033[0;37m\n");
+
 }

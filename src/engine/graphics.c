@@ -240,7 +240,7 @@ void initGraphics(int screenWidth,int screenHeight){
     printf("Attempting to initialize IMG... \t");
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
         SDL_Log("IMG_Init error: %s", IMG_GetError());
-        return 1;
+        exit(1);
     }
     debugOutputComplete();
 
@@ -248,7 +248,7 @@ void initGraphics(int screenWidth,int screenHeight){
     SDL_Surface *iconSurface = IMG_Load("resources/images/icon.png");
     if (iconSurface == NULL) {
         SDL_Log("IMG_Load error: %s", IMG_GetError());
-        return 1;
+        exit(1);
     }
     SDL_SetWindowIcon(window, iconSurface);
     SDL_FreeSurface(iconSurface);
@@ -262,7 +262,14 @@ void shutdownGraphics(){
     // shutdown all graphics and free all relevent memory
     // TTF_CloseFont(font); TODO
     TTF_Quit();
+    printf("\033[0;31mShut down TFT.\033[0;37m\n");
     IMG_Quit();
+    printf("\033[0;31mShut down IMG.\033[0;37m\n");
+
     SDL_DestroyRenderer(renderer);
+    printf("\033[0;31mRenderer destroyed.\033[0;37m\n");
+
     SDL_DestroyWindow(window);
+    printf("\033[0;31mWindow destroyed.\033[0;37m\n");
+
 }
