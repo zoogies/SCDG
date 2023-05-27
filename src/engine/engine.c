@@ -45,7 +45,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
     if(debug){
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
-        addRenderObject(99,99,0,-10,100,50,createTextTexture("fps",NunitoBold,colorYellow));
+        renderText(999,0,-10,125,50,"fps: ",NunitoBold, colorYellow);
     }
 
     // debug printf
@@ -62,15 +62,15 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
     SDL_Color colorWhite = {255, 255, 255};  // White // TODO move mee im too tired
 
     // add two engine specific renderObjects here
-    addRenderObject(0,0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,createImageTexture("resources/images/enginelogo.png"));
-    addRenderObject(1,0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 300),400,150,createTextTexture("yoyo engine", NunitoBold, colorWhite)); // TODO fix font
+    const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
+    const int engineTitle = renderText(0,(SCREEN_MIDDLE_WIDTH - 250),(SCREEN_MIDDLE_HEIGHT - 300),500,150,"yoyo engine",NunitoBold,colorWhite);
 
     renderAll(); // render everything in linked list storage
 
     SDL_Delay(2550); // baked in delay to boot to game (THIS IS BAD BAD BAD BAD)
     
-    removeRenderObject(0); // remove engine logo
-    removeRenderObject(1); // remove engine title
+    removeRenderObject(engineLogo); // remove engine logo
+    removeRenderObject(engineTitle); // remove engine title
 
     renderAll();
 

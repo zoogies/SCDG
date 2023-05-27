@@ -50,8 +50,9 @@ int main(int argc, char *argv[]) {
 
     // TODO reformat graphics code to take in a passed struct instead of vice versa
     SDL_Color colorWhite = {255, 255, 255};
-    addRenderObject(0,0,0,0,1280,720,createImageTexture("resources/images/people720.png"));
-    addRenderObject(1,1,0,0,800,150,createTextTexture("Stardust Dating Sim",loadFont("resources/fonts/Nunito-Regular.ttf", 500),colorWhite));
+    TTF_Font *f = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
+    //addRenderObject(0, renderType_Image,0,0,0,1280,720,createImageTexture("resources/images/people720.png"),NULL,NULL);
+    //addRenderObject(1, renderType_Text, 1,0,0,800,150,createTextTexture("Stardust Dating Sim",f,colorWhite);
 
     renderAll();
 
