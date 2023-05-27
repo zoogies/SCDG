@@ -16,7 +16,7 @@ void addRenderObject(int identifier, int depth, int x, int y, int width, int hei
 
 void removeRenderObject(int identifier);
 
-void updateObjectRect(int identifier, SDL_Rect* newRect);
+renderObject* getRenderObject(int identifier);
 
 void renderAll();
 

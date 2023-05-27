@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 #include "audio.h"
 #include "graphics.h"
@@ -12,6 +15,9 @@
 int SCREEN_MIDDLE_WIDTH = 0;
 int SCREEN_MIDDLE_HEIGHT = 0;
 
+// font used by engine
+TTF_Font *NunitoBold = NULL;
+
 void debugOutputComplete(){
     printf("\033[0;37m"); // set color to white
     printf("(");
@@ -21,7 +27,7 @@ void debugOutputComplete(){
     printf(")\n");
 }
 
-void initEngine(int screenWidth, int screenHeight){
+void initEngine(int screenWidth, int screenHeight, bool debug){
     // im so tired
     SCREEN_MIDDLE_WIDTH = screenWidth / 2;
     SCREEN_MIDDLE_HEIGHT = screenHeight / 2;
@@ -32,6 +38,15 @@ void initEngine(int screenWidth, int screenHeight){
 
     // create new window with passed parameters
     initGraphics(screenWidth,screenHeight);
+
+    NunitoBold = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
+
+    SDL_Color colorYellow = {255, 255, 0};
+    if(debug){
+        printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
+        
+        addRenderObject(99,99,0,-10,100,50,createTextTexture("fps",NunitoBold,colorYellow));
+    }
 
     // debug printf
     printf("Attempting to initialize audio... \t");
@@ -48,7 +63,7 @@ void initEngine(int screenWidth, int screenHeight){
 
     // add two engine specific renderObjects here
     addRenderObject(0,0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,createImageTexture("resources/images/enginelogo.png"));
-    addRenderObject(1,0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 300),400,150,createTextTexture("yoyo engine", loadFont("resources/fonts/Nunito-Bold.ttf", 500), colorWhite)); // TODO fix font
+    addRenderObject(1,0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 300),400,150,createTextTexture("yoyo engine", NunitoBold, colorWhite)); // TODO fix font
 
     renderAll(); // render everything in linked list storage
 
@@ -60,7 +75,7 @@ void initEngine(int screenWidth, int screenHeight){
     renderAll();
 
     // start game code
-    printf("\nEngine Fully Initialized.\n");
+    printf("\n\033[0;35mEngine Fully Initialized.\033[0;37m\n\n");
 }
 
 void shutdownEngine(){

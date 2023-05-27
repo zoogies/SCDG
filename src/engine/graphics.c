@@ -36,10 +36,18 @@ SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 SDL_Renderer* renderer = NULL;
 renderObject* renderListHead = NULL;
+SDL_Color colorYellow = {255, 255, 0};
+
+// FIXME TODO THIS IS BAD BAD BAD BAD BAD
+TTF_Font *fpsFont = NULL; // this one
+int fpsUpdateTime = 0;
+int frameCounter = 0;
+int fps = 0;
+int startTime = 0;
 
 // TODO: consider having images in engine start at their center, so game has to do no calculations for finding middles of things
 void addRenderObject(int identifier, int depth, int x, int y, int width, int height, SDL_Texture *texture) {
-    printf("Attempting to add render object [id %d]\t",identifier);
+    printf("Attempting to add render object [\033[0;33mid %d\033[0;37m]\t",identifier);
     SDL_Rect rect = {x, y, width, height};
 
     renderObject *obj = (renderObject *)malloc(sizeof(renderObject));
@@ -64,6 +72,7 @@ void addRenderObject(int identifier, int depth, int x, int y, int width, int hei
 }
 
 void removeRenderObject(int identifier) {
+    // printf("\nAttempting to remove render object [id %d]\t",identifier);
     if (renderListHead == NULL) {
         return;
     }
@@ -86,31 +95,18 @@ void removeRenderObject(int identifier) {
         SDL_DestroyTexture(toDelete->texture);
         free(toDelete);
     }
+    // debugOutputComplete(); // TODO investigate this never resolving
 }
 
-void updateObjectRect(int identifier, SDL_Rect* newRect) {
+renderObject* getRenderObject(int identifier) {
     renderObject* current = renderListHead;
     while (current != NULL) {
         if (current->identifier == identifier) {
-            current->rect = *newRect;
-            break;
+            return current;
         }
         current = current->next;
     }
-}
-
-void renderAll() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set background color to black (R, G, B, A)
-    SDL_RenderClear(renderer); // Clear the window with the set background color
-
-    renderObject* current = renderListHead;
-    while (current != NULL) {
-        SDL_RenderCopy(renderer, current->texture, NULL, &(current->rect));
-        current = current->next;
-    }
-    SDL_RenderPresent(renderer);  // Update the window to show the rendered text
-
-    SDL_UpdateWindowSurface(window);
+    return NULL;
 }
 
 // load a font into memory and return a pointer to it
@@ -162,6 +158,40 @@ SDL_Texture* createImageTexture(const char* path) {
     return texture;
 }
 
+void renderAll() {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set background color to black (R, G, B, A)
+    SDL_RenderClear(renderer); // Clear the window with the set background color
+
+    renderObject* current = renderListHead;
+    while (current != NULL) {
+        if(current->identifier == 99){
+
+            char str[25];
+
+            // Insert the number into the string
+            sprintf(str, "fps: %d", fps);
+
+            frameCounter++;
+            if (SDL_GetTicks() - fpsUpdateTime >= 250) {
+                fpsUpdateTime = SDL_GetTicks();
+                fps = frameCounter * 4;
+                frameCounter = 0;
+
+                // printf("FPS: %d\n", fps);
+            }
+
+            current->texture = createTextTexture(str,fpsFont,colorYellow);
+        }
+
+        SDL_RenderCopy(renderer, current->texture, NULL, &(current->rect));
+        current = current->next;
+    }
+
+    SDL_RenderPresent(renderer);  // Update the window to show the rendered text
+
+    SDL_UpdateWindowSurface(window);
+}
+
 // initialize graphics
 void initGraphics(int screenWidth,int screenHeight){
     printf("Attempting to initialize SDL... \t");
@@ -194,6 +224,11 @@ void initGraphics(int screenWidth,int screenHeight){
         printf("SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
         exit(1);
     }
+
+    fpsFont = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
+
+    startTime = SDL_GetTicks();
+
     debugOutputComplete();
 }
 
