@@ -1,8 +1,10 @@
 /*
-    ENGINE TODO:
+    TODO: ENGINE
     - engine resources (icon, fonts) need to be seperated in a sensical way from game code
       and resources. Engine should feel more seperate and able to be converted to other projects
     - (maybe) seperate some prinf output feedbacks into debug only
+    - run every file in gpt4 and ask for issues
+    - update all header files with the comment descriptions of the functions
 */
 
 #include <stdio.h>
@@ -63,8 +65,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
         // display in console
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
-        // add
-        renderText(999,0,-10,125,50,"fps: ",NunitoBold, colorYellow);
+        // add fps counter manually to render stack with a custom id
+        addRenderObject(-1, renderType_Text, 999, 0, -10, 125, 50, createTextTexture("fps: 0",NunitoBold,colorYellow), NunitoBold, colorYellow);
     }
 
     // debug output
