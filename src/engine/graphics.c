@@ -38,7 +38,7 @@ int startTime = 0;
 
 // TODO: consider having images in engine start at their center, so game has to do no calculations for finding middles of things
 void addRenderObject(int identifier, renderObjectType type, int depth, int x, int y, int width, int height, SDL_Texture *texture, TTF_Font* font, SDL_Color color) {
-    printf("Add render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
+    printf("\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     SDL_Rect rect = {x, y, width, height};
 
     renderObject *obj = (renderObject *)malloc(sizeof(renderObject));
@@ -66,7 +66,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, int x, in
 }
 
 void removeRenderObject(int identifier) {
-    printf("Remove render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
+    printf("\033[0;31mRemove\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     if (renderListHead == NULL) {
         return;
     }
@@ -235,16 +235,34 @@ void initGraphics(int screenWidth,int screenHeight){
         printf("SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
         exit(1);
     }
+    debugOutputComplete();
+
+    printf("Attempting to initialize IMG... \t");
+    if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+        SDL_Log("IMG_Init error: %s", IMG_GetError());
+        return 1;
+    }
+    debugOutputComplete();
+
+    printf("Attempting to set window icon... \t");
+    SDL_Surface *iconSurface = IMG_Load("resources/images/icon.png");
+    if (iconSurface == NULL) {
+        SDL_Log("IMG_Load error: %s", IMG_GetError());
+        return 1;
+    }
+    SDL_SetWindowIcon(window, iconSurface);
+    SDL_FreeSurface(iconSurface);
+    debugOutputComplete();
+
 
     startTime = SDL_GetTicks();
-
-    debugOutputComplete();
 }
 
 void shutdownGraphics(){
     // shutdown all graphics and free all relevent memory
     // TTF_CloseFont(font); TODO
     TTF_Quit();
+    IMG_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 }
