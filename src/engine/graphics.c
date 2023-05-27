@@ -23,6 +23,9 @@ renderObject* renderListHead = NULL;
     it seems much easier to just have a dummy color to pass to the addRenderObject
     function when we are adding a object of type image which just needs a placeholder
     for the color and font in the struct
+
+    TODO: in the future, look into passing a pointer for SDL color instead of the
+    actual struct as it should theoretically be faster, but for now i cant be asked
 */
 SDL_Color dummyColor = {0, 0, 0, 0};
 
@@ -154,13 +157,13 @@ SDL_Texture* createImageTexture(const char* path) {
 int renderText(int depth, int x,int y, int width, int height, char *text, TTF_Font *font, SDL_Color color){
     addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),font,color);
     global_id++; // increment the global ID for next object
-    return global_id -= 1; //return 1 less than after incrementation (id last item was assigned)
+    return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 int renderImage(int depth, int x, int y, int width, int height, char *path){
     addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),NULL,dummyColor);
     global_id++;
-    return global_id -= 1;
+    return global_id - 1;
 }
 
 void renderAll() {
