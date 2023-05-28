@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     */
 
     // play some main menu music on auto track looping forever
-    playSound("resources/music/menu_loop.mp3",-1); // TODO: eventually needs channel parameter
+    playSound("resources/music/menu_loop.mp3",0,-1);
 
     // declare color and font that we are using in the game
     SDL_Color colorWhite = {255, 255, 255};
@@ -55,6 +55,20 @@ int main(int argc, char *argv[]) {
     renderText(0,0,0,800,150,"Stardust Dating Sim",f,colorWhite);
     renderImage(0,0,0,1280,720,"resources/images/people720.png");
     // TODO: add to some sort of game side queue tracking objects
+
+    // TODO: implement button constructor to do dirty work of text orientation
+    //       automatically
+    renderImage(1,550,200,250,80,"resources/images/ui/button-small.png");
+    renderText(2,600,210,150,60,"Play",f,colorWhite);
+
+    // renderImage(1,550,300,250,80,"resources/images/ui/button-small.png");
+    // renderText(2,600,210,150,60,"Scenes",f,colorWhite);
+
+    // renderImage(1,550,400,250,80,"resources/images/ui/button-small.png");
+    // renderText(2,600,210,150,60,"Settings",f,colorWhite);
+
+    // renderImage(1,550,500,250,80,"resources/images/ui/button-small.png");
+    // renderText(2,600,210,150,60,"Exit",f,colorWhite);
 
     // begin event catching
     SDL_Event e; // define new event
@@ -66,6 +80,10 @@ int main(int argc, char *argv[]) {
                 quit = true; // quit
             }
             // other input handles can be created here
+            // TODO: if mouse click, run function checking if its in the bounds of
+            // any active buttons (tracked by engine in a new stack, still in renderObject
+            // stack however) and return the id of what has been clicked on so the game
+            // (which has been tracking the objects independently) can handle it
         }
         // render frame
         renderAll();

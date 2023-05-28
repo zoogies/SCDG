@@ -52,7 +52,8 @@ void free_audio_chunk(int channel) {
 }
 
 // function allowing a sound to be played on a channel by filename
-void playSound(const char *filename, int loops) {
+// param "chan" is channel
+void playSound(const char *filename, int chan, int loops) {
     // open our filename into a chunk
     Mix_Chunk *sound = Mix_LoadWAV(filename);
     
@@ -64,7 +65,7 @@ void playSound(const char *filename, int loops) {
     
     // attempt to play the chunk on the channel,
     // returns which channel it was assigned to
-    int channel = Mix_PlayChannel(-1, sound, loops); 
+    int channel = Mix_PlayChannel(chan, sound, loops); 
     
     // if playing failed (assigned channel -1)
     if (channel == -1) {
@@ -85,6 +86,11 @@ void playSound(const char *filename, int loops) {
 
     // Free audio memory when channel finishes
     Mix_ChannelFinished(free_audio_chunk);
+}
+
+// set a specific (or all channels if passed -1) volume level 0-128 
+void setVolume(int channel, int volume){
+    Mix_Volume(channel,volume); // DEBUG: SET ALL VOLUME TO ZERO
 }
 
 // shut down all audio systems and free all audio chunks

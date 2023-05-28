@@ -80,7 +80,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
         a splash screen with the engine title and logo for 2550ms and playing a
         startup noise
     */
-    playSound("resources/sfx/startup.mp3",0); // play startup sound
+    setVolume(-1,32); // TODO re evaluate how voluem is set for splash screen
+    playSound("resources/sfx/startup.mp3",0,0); // play startup sound
 
     // create startup logo and title and save their id# into memory to destroy them after startup
     const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
