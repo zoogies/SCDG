@@ -37,6 +37,13 @@ int startTime = 0;
 int fpscap = 0;
 int desiredFrameTime = 0;  
 
+// initialize some variables in engine to track screen size
+float targetAspectRatio = 16.0f / 9.0f;
+int virtualWidth = 1920;
+int virtualHeight = 1080;
+int xOffset = 0;
+int yOffset = 0;
+
 /*
     To avoid passing a pointer to an SDL color (which caused me great pain)
     it seems much easier to just have a dummy color to pass to the addRenderObject
@@ -46,12 +53,24 @@ int desiredFrameTime = 0;
 SDL_Color dummyColor = {0, 0, 0, 0};
 
 // constructor for render objects, invoked internally by renderText() and renderImage()
-void addRenderObject(int identifier, renderObjectType type, int depth, int x, int y, int width, int height, SDL_Texture *texture, TTF_Font* font, SDL_Color color) {
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *texture, TTF_Font* font, SDL_Color color, bool centered) {
     // debug output
-    printf("\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
+    printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
+    // translate our relative floats into actual screen coordinates for rendering
+    int objX = (int)(x * (float)virtualWidth);
+    int objY = (int)(y * (float)virtualHeight);
+    int objWidth = (int)(width * (float)virtualWidth);
+    int objHeight = (int)(height * (float)virtualHeight);
+
+    // modify our coordinates if we want to render at its center
+    if(centered){
+        objX = objX - (objWidth / 2);
+        objY = objY - (objHeight / 2);
+    }
+
     // create bounding rect from parameters
-    SDL_Rect rect = {x, y, width, height};
+    SDL_Rect rect = {objX, objY, objWidth, objHeight};
 
     // construct and malloc new object
     renderObject *obj = (renderObject *)malloc(sizeof(renderObject));
@@ -98,8 +117,16 @@ void addRenderObject(int identifier, renderObjectType type, int depth, int x, in
             [0]->[1]->[2]->[3]
         */
     }
+    
     // debug output
     debugOutputComplete();
+    if(centered){
+        printf("C: ");
+    }
+    else{
+        printf("R: ");
+    }
+    printf("x:%d y:%d w:%d h:%d\n\n",objX,objY,objWidth,objHeight);
 }
 
 // remove a render object from the queue by its identifier
@@ -247,15 +274,15 @@ SDL_Texture* createImageTexture(const char* path) {
 }
 
 // add text to the render queue, returns the engine assigned ID of the object
-int renderText(int depth, int x,int y, int width, int height, char *text, TTF_Font *font, SDL_Color color){
-    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),font,color);
+int renderText(int depth, float x,float y, float width, float height, char *text, TTF_Font *font, SDL_Color color, bool centered){
+    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),font,color,centered);
     global_id++; // increment the global ID for next object
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 // add an image to the render queue, returns the engine assigned ID of the object
-int renderImage(int depth, int x, int y, int width, int height, char *path){
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),NULL,dummyColor);
+int renderImage(int depth, float x, float y, float width, float height, char *path, bool centered){
+    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),NULL,dummyColor,centered);
     global_id++;
     return global_id - 1;
 }
@@ -380,6 +407,37 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
     // debug: acknowledge renderer initialization
     debugOutputComplete();
+
+    // get our current aspect ratio
+    float currentAspectRatio = (float)screenWidth / (float)screenHeight;
+
+    // if aspect ratio is too wide
+    if (currentAspectRatio >= targetAspectRatio) {
+        // set our width to be the max that can accomidate the height
+        virtualWidth = (int)(screenHeight * targetAspectRatio);
+        virtualHeight = screenHeight;
+        xOffset = (screenWidth - virtualWidth) / 2;
+    } 
+    // if aspect ratio is too tall
+    else {
+        // set our width to be the max that can fit
+        virtualWidth = screenWidth;
+        virtualHeight = screenWidth / targetAspectRatio;
+        yOffset = (screenHeight - virtualHeight) / 2;
+    }
+
+    // debug outputs
+    printf("Targeting aspect ratio: %f\n",targetAspectRatio);
+    printf("Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
+    printf("(unused) X offset: %d\n(unused) Y offset: %d\n",xOffset,yOffset);
+
+    // setup viewport with our virtual resolutions
+    SDL_Rect viewport;
+    viewport.x = xOffset;
+    viewport.y = yOffset;
+    viewport.w = virtualWidth;
+    viewport.h = virtualHeight;
+    SDL_RenderSetViewport(renderer, &viewport);
     
     // test for TTF init, alarm if failed
     printf("Attempting to initialize TTF... \t");

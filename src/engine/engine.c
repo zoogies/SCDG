@@ -39,8 +39,6 @@ void debugOutputComplete(){
 // starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
 
-    // initialzie our helper variables for the midpoints on both axis of
-    // the screen
     SCREEN_MIDDLE_WIDTH = screenWidth / 2;
     SCREEN_MIDDLE_HEIGHT = screenHeight / 2;
 
@@ -66,7 +64,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
         // add fps counter manually to render stack with a custom id
-        addRenderObject(-1, renderType_Text, 999, 0, -10, 125, 50, createTextTexture("fps: 0",NunitoBold,colorYellow), NunitoBold, colorYellow);
+        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",NunitoBold,colorYellow), NunitoBold, colorYellow,false);
     }
 
     // debug output
@@ -91,8 +89,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         playSound("resources/sfx/startup.mp3",0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
-        const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
-        const int engineTitle = renderText(0,(SCREEN_MIDDLE_WIDTH - 250),(SCREEN_MIDDLE_HEIGHT - 300),500,150,"yoyo engine",NunitoBold,colorWhite);
+        const int engineLogo = renderImage(0,.5f,.5f,.35f,.4f,"resources/images/enginelogo.png",true);
+        const int engineTitle = renderText(0,.5f,.3f,.3f,.1f,"yoyo engine",NunitoBold,colorWhite,true);
 
         // render everything in engine queue
         renderAll(); 

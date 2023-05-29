@@ -17,7 +17,7 @@
 #include "game.h"
 
 // define screen size parameters,
-// game manages these values not engine
+// game manages these values not engine, TODO: potential refactor now that engine is tracking internally
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     // check if save data exists and create it if not
     // Check if the file exists
     if (access("resources/data/savedata.json", F_OK) == -1) {
-        printf("Save data not found, creating...\n");
+        printf("Save data not found, creating...\n\n");
 
         // Create sensible defaults for the game data
         json_t *savedata = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
             printf("Failed to create JSON object.\n");
         }
     } else {
-        printf("Save data found, reading...\n");
+        printf("Save data found, reading...\n\n");
     }
 
     // open the save data json
@@ -166,14 +166,17 @@ int main(int argc, char *argv[]) {
     TTF_Font *f = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
     
     // add our title and mm background image to render queue 
-    renderText(0,0,0,800,150,"Stardust Dating Sim",f,colorWhite);
-    renderImage(0,0,0,1280,720,"resources/images/people720.png");
+    renderText(1,0,0,.6f,.15f,"Stardust Dating Sim",f,colorWhite,false);
+    renderImage(0,.5f,.5f,1,1,"resources/images/people720.png",true);
     // TODO: add to some sort of game side queue tracking objects
+
+    // TODO: either engine or game track specific parts of screen so its not so annyoing
+    // calculating where to place things each time
 
     // TODO: implement button constructor to do dirty work of text orientation
     //       automatically
-    renderImage(1,550,200,250,80,"resources/images/ui/button-small.png");
-    renderText(2,600,210,150,60,"Play",f,colorWhite);
+    // renderImage(1,550,200,250,80,"resources/images/ui/button-small.png",true);
+    // renderText(2,600,210,150,60,"Play",f,colorWhite,true);
 
     // renderImage(1,550,300,250,80,"resources/images/ui/button-small.png");
     // renderText(2,600,210,150,60,"Scenes",f,colorWhite);
