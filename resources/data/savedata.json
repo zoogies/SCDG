@@ -1,8 +1,11 @@
 {
-  "settings":{
-    "resolution":[1240,720],
-    "window mode":0,
-    "volume":32,
-    "framecap":-1
+  "settings": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "window mode": 0,
+    "volume": 32,
+    "framecap": -1
   }
 }

@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <SDL2/SDL.h>
 #include <jansson.h>
@@ -56,6 +57,36 @@ int main(int argc, char *argv[]) {
         Get some neccessary values from game data to startup the game
         and create them if not existing
     */
+
+    // check if save data exists and create it if not
+    // Check if the file exists
+    if (access("resources/data/savedata.json", F_OK) == -1) {
+        printf("Save data not found, creating...\n");
+
+        // Create sensible defaults for the game data
+        json_t *savedata = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
+                                      "settings",
+                                      "resolution", 1920, 1080,
+                                      "window mode", 1,
+                                      "volume", 128,
+                                      "framecap", -1);
+
+        // Save JSON object to file
+        if (savedata != NULL) {
+            FILE *file = fopen("resources/data/savedata.json", "w");
+            if (file != NULL) {
+                json_dumpf(savedata, file, JSON_INDENT(2));
+                fclose(file);
+            } else {
+                printf("Failed to open file: %s\n", "resources/data/savedata.json");
+            }
+            json_decref(savedata);
+        } else {
+            printf("Failed to create JSON object.\n");
+        }
+    } else {
+        printf("Save data found, reading...\n");
+    }
 
     // open the save data json
     json_error_t error;
@@ -118,7 +149,7 @@ int main(int argc, char *argv[]) {
     Initialize engine, this will cover starting audio as well as splash screen
     and manage all subsequent backend rendering and audio playing invoked by the game
     */
-    printf("Attempting to initialize engine... \t");
+    printf("\nAttempting to initialize engine... \t");
     initEngine(SCREEN_WIDTH,SCREEN_HEIGHT,debug,VOLUME,windowMode,framecap,skipintro); // this call will resolve after 2550ms of a splash screen
 
     /*
