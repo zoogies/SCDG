@@ -90,7 +90,9 @@ void playSound(const char *filename, int chan, int loops) {
 
 // set a specific (or all channels if passed -1) volume level 0-128 
 void setVolume(int channel, int volume){
-    Mix_Volume(channel,volume); // DEBUG: SET ALL VOLUME TO ZERO
+    printf("Setting volume of channel %d to %d.\t",channel,volume);
+    Mix_Volume(channel,volume);
+    debugOutputComplete();
 }
 
 // shut down all audio systems and free all audio chunks

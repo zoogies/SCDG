@@ -39,7 +39,7 @@ int renderImage(int depth, int x, int y, int width, int height, char *path);
 
 void renderAll();
 
-void initGraphics(int screenWidth,int screenHeight);
+void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);
 
 void shutdownGraphics();
 

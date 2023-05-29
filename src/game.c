@@ -1,12 +1,14 @@
 /*
     TODO: GAME PLANNING:
-    - need settings file to read from for: volume, resolution, frame sync
+    - track down weird vsync error
+    - sensible defaults loaded into savedata.json and gamedata.json if nonexistant
 */
 
 #include <stdio.h>
 #include <stdbool.h>
 
 #include <SDL2/SDL.h>
+#include <jansson.h>
 
 #include "engine/engine.h"
 #include "engine/audio.h"
@@ -17,6 +19,19 @@
 // game manages these values not engine
 int SCREEN_WIDTH = 1280;
 int SCREEN_HEIGHT = 720;
+
+// define game volume
+int VOLUME = 128;
+
+// define window mode
+// 0   -> windowed
+// 1   -> fullscreen
+// 16  -> borderless
+// 128 -> maximized
+int windowMode = 0;
+
+// vsync is -1, all else is a number
+int framecap = -1;
 
 // entry point to the game, which invokes all necessary engine functions by extension
 int main(int argc, char *argv[]) {
@@ -32,11 +47,73 @@ int main(int argc, char *argv[]) {
     }
 
     /*
+        Get some neccessary values from game data to startup the game
+        and create them if not existing
+    */
+
+    // open the save data json
+    json_error_t error;
+    json_t *root = json_load_file("resources/data/savedata.json", 0, &error);
+    if (!root) {
+        fprintf(stderr, "Error parsing JSON file: %s\n", error.text);
+        exit(1);
+    }
+
+    // Access the "settings" object
+    json_t *settings = json_object_get(root, "settings");
+    if (!json_is_object(settings)) {
+        fprintf(stderr, "Error: 'settings' must be a JSON object\n");
+        json_decref(root);
+        exit(1);
+    }
+
+    // Extract volume int and validate it
+    json_t *volume = json_object_get(settings, "volume");
+    if (json_is_integer(volume)) {
+        VOLUME = json_integer_value(volume);
+        printf("Volume read from savedata: \t\t%d\n", VOLUME);
+    }
+    json_decref(volume);
+
+    // Extract resolution int(s) and validate them
+    json_t *resolution = json_object_get(settings, "resolution");
+    if (json_is_array(resolution)) {
+        // Get the first and second items from the array
+        json_t *x = json_array_get(resolution, 0);
+        json_t *y = json_array_get(resolution, 1);
+        if (json_is_integer(x) && json_is_integer(y)) {
+            SCREEN_WIDTH = json_integer_value(x);
+            SCREEN_HEIGHT = json_integer_value(y);
+        }
+        printf("Resolution read from savedata: \t\t%dx%d\n", SCREEN_WIDTH,SCREEN_HEIGHT);
+    }
+    json_decref(resolution);
+
+    // extract window mode int and validate it
+    json_t *windowmode = json_object_get(settings, "window mode");
+    if (json_is_integer(windowmode)) {
+        windowMode = json_integer_value(windowmode);
+        printf("Window Mode read from savedata: \t%d\n", windowMode);
+    }
+    json_decref(windowmode);
+
+    // extract the frame cap and validate it
+    json_t *savedframecap = json_object_get(settings, "framecap");
+    if (json_is_integer(savedframecap)) {
+        framecap = json_integer_value(savedframecap);
+        printf("Frame Cap read from savedata: \t\t%d\n", framecap);
+    }
+    json_decref(savedframecap);
+
+    // done with our json (for now until we eventually open it to write values)
+    json_decref(root);
+
+    /*
     Initialize engine, this will cover starting audio as well as splash screen
     and manage all subsequent backend rendering and audio playing invoked by the game
     */
     printf("Attempting to initialize engine... \t");
-    initEngine(SCREEN_WIDTH,SCREEN_HEIGHT,debug); // this call will resolve after 2550ms of a splash screen
+    initEngine(SCREEN_WIDTH,SCREEN_HEIGHT,debug,VOLUME,windowMode,framecap); // this call will resolve after 2550ms of a splash screen
 
     /*
         ==============================

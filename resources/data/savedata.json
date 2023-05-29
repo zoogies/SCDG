@@ -1,12 +1,8 @@
 {
-  "Characters": {
-    "Van": {
-      "Affinity": 100
-    }
-  },
-  "Scenes": {
-    "most_recent": "boathouse",
-    "boathouse": "completed",
-    "arbys": "locked"
+  "settings":{
+    "resolution":[1240,720],
+    "window mode":0,
+    "volume":32,
+    "framecap":-1
   }
 }

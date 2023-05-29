@@ -34,6 +34,8 @@ int fpsUpdateTime = 0;
 int frameCounter = 0;
 int fps = 0;
 int startTime = 0;
+int fpscap = 0;
+int desiredFrameTime = 0;  
 
 /*
     To avoid passing a pointer to an SDL color (which caused me great pain)
@@ -260,8 +262,10 @@ int renderImage(int depth, int x, int y, int width, int height, char *path){
 
 // render everything in the scene
 void renderAll() {
+    int frameStart = SDL_GetTicks();
+
     // Set background color to black
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
     // Clear the window with the set background color
     SDL_RenderClear(renderer);
@@ -311,10 +315,24 @@ void renderAll() {
 
     // update the window to reflect the new renderer changes
     SDL_UpdateWindowSurface(window);
+
+    // if we arent on vsync we need to preform some frame calculations to delay next frame
+    if(fpscap != -1){
+        // set the end of the render frame
+        int frameEnd = SDL_GetTicks();
+
+        // calculate the current frame time
+        int frameTime = frameEnd - frameStart;
+
+        // check the desired FPS cap and add delay if needed
+        if (frameTime < desiredFrameTime) {
+            SDL_Delay(desiredFrameTime - frameTime);
+        }
+    }
 }
 
 // initialize graphics
-void initGraphics(int screenWidth,int screenHeight){
+void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap){
     // debug output
     printf("Attempting to initialize SDL... \t");
 
@@ -329,7 +347,7 @@ void initGraphics(int screenWidth,int screenHeight){
 
     // test for window init, alarm if failed
     printf("Attempting to initialize window... \t");
-    window = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | windowMode);
     if (window == NULL) {
         printf("Window creation failed: %s\n", SDL_GetError()); // catch creation error
         exit(1);
@@ -338,8 +356,23 @@ void initGraphics(int screenWidth,int screenHeight){
     debugOutputComplete();
 
     // test for renderer init, alarm if failed
-    printf("Attempting to initialize renderer... \t");
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    printf("Attempting to initialize renderer...\n");
+    
+    // set our fps cap to the frame cap param
+    // (-1) for vsync
+    fpscap = framecap;
+    desiredFrameTime = 1000 / fpscap;  
+
+    // if vsync is on
+    if(fpscap == -1) {
+        printf("Starting renderer with vsync... \t");
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
+    else {
+        printf("Starting renderer with maxfps %d... \t",framecap);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    }
+
     if (renderer == NULL) {
         printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
         exit(1);

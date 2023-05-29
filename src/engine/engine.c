@@ -37,7 +37,7 @@ void debugOutputComplete(){
 
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
-void initEngine(int screenWidth, int screenHeight, bool debug){
+void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap){
 
     // initialzie our helper variables for the midpoints on both axis of
     // the screen
@@ -51,7 +51,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
     printf("\n\033[0;33mYoyo Engine v0.0.1\033[0;37m\n");
 
     // initialize graphics systems, creating window renderer, etc
-    initGraphics(screenWidth,screenHeight);
+    initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine
     NunitoBold = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
@@ -75,12 +75,15 @@ void initEngine(int screenWidth, int screenHeight, bool debug){
     // startup audio systems
     initAudio();
 
+    // before we play our loud ass startup sound, lets check what volume the game wants
+    // the engine to be at initially
+    setVolume(-1, volume);
+
     /*
         Part of the engine startup which isnt configurable by the game is displaying
         a splash screen with the engine title and logo for 2550ms and playing a
         startup noise
     */
-    setVolume(-1,32); // TODO re evaluate how voluem is set for splash screen
     playSound("resources/sfx/startup.mp3",0,0); // play startup sound
 
     // create startup logo and title and save their id# into memory to destroy them after startup

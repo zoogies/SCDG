@@ -1,7 +1,7 @@
 # Variables
 CC = gcc
 CFLAGS = -Wall -g
-LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson
 BUILD_DIR = build
 BUILD_DIR_WIN = build-win
 CC_WIN = x86_64-w64-mingw32-gcc
