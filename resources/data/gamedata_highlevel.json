@@ -1,0 +1,50 @@
+{
+    "characters": {
+        "van":{
+            "scenes":{
+                "boathouse":{
+                    "data":{
+                        "dialogue":{
+                            "speaker":"Van",
+                            "sound":"van_stutter_2",
+                            "expression":"dialogue2",
+                            "content":"you know, i love overwatch 2"
+                        },
+                        "selection":{
+                            "choice1":{
+                                "text":"ME TOO!",
+                                "result":{
+                                    "dialogue":{
+                                        "speaker":"Van",
+                                        "sound":"van_happy",
+                                        "expression":"dialogue2",
+                                        "content":"wow, youre awesome dude"
+                                    },
+                                    "affinity change":{
+                                        "character":"Van",
+                                        "change":10
+                                    }
+                                }
+                            },
+                            "choice2":{
+                                "text":"that game totally sucks",
+                                "result":{
+                                    "dialogue":{
+                                        "speaker":"Van",
+                                        "sound":"van_mad",
+                                        "expression":"mad2",
+                                        "content":"i knew this wasnt going to work out..."
+                                    },
+                                    "affinity change":{
+                                        "character":"Van",
+                                        "change":-10
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,15 +1,59 @@
 {
-  "Scenes": {
-    "Van": {
-      "date1": {
-        "loadbg": "boathouse",
-        "speak": {
-          "character": "Van",
-          "from": "Date",
-          "content": "yoooooo",
-          "expression": "chill1"
+  "scenes": {
+    "main menu":{
+      "assets":[
+        {
+          "type":"text",
+          "text":"Stardust Crusaders Dating Sim",
+          "x":10,
+          "y":10,
+          "w":10,
+          "h":10,
+          "centered":false,
+          "depth":1
+        },
+        {
+          "type":"image",
+          "src":"resources/images/people720.png",
+          "x":0,
+          "y":0,
+          "w":1,
+          "h":1,
+          "centered":true,
+          "depth":0
+        },
+        {
+          "type":"button",
+          "text":"Settings",
+          "src":"resources/images/ui/button-small.png",
+          "x":0,
+          "y":0,
+          "w":1,
+          "h":1,
+          "depth":1,
+          "goto":"settings"
         }
-      }
+      ]
+    },
+    "settings": {
+      "assets":[
+        {
+          "type":"text",
+          "x":10,
+          "y":10,
+          "w":10,
+          "h":10,
+          "depth":1
+        },
+        {
+          "type":"image",
+          "x":0,
+          "y":0,
+          "w":1,
+          "h":1,
+          "depth":0
+        }
+      ]
     }
   }
 }
