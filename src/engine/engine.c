@@ -37,7 +37,7 @@ void debugOutputComplete(){
 
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
-void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap){
+void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
 
     // initialzie our helper variables for the midpoints on both axis of
     // the screen
@@ -84,21 +84,26 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         a splash screen with the engine title and logo for 2550ms and playing a
         startup noise
     */
-    playSound("resources/sfx/startup.mp3",0,0); // play startup sound
+    if(skipintro){
+        printf("\033[0;35mSkipping Intro.\033[0;37m\n");
+    }
+    else{
+        playSound("resources/sfx/startup.mp3",0,0); // play startup sound
 
-    // create startup logo and title and save their id# into memory to destroy them after startup
-    const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
-    const int engineTitle = renderText(0,(SCREEN_MIDDLE_WIDTH - 250),(SCREEN_MIDDLE_HEIGHT - 300),500,150,"yoyo engine",NunitoBold,colorWhite);
+        // create startup logo and title and save their id# into memory to destroy them after startup
+        const int engineLogo = renderImage(0,(SCREEN_MIDDLE_WIDTH - 200),(SCREEN_MIDDLE_HEIGHT - 200),400,400,"resources/images/enginelogo.png");
+        const int engineTitle = renderText(0,(SCREEN_MIDDLE_WIDTH - 250),(SCREEN_MIDDLE_HEIGHT - 300),500,150,"yoyo engine",NunitoBold,colorWhite);
 
-    // render everything in engine queue
-    renderAll(); 
+        // render everything in engine queue
+        renderAll(); 
 
-    // pause on engine splash for 2550ms (TODO: consider alternatives)
-    SDL_Delay(2550); 
-    
-    // remove the engine logo and title from engine renderer queue
-    removeRenderObject(engineLogo);
-    removeRenderObject(engineTitle);
+        // pause on engine splash for 2550ms (TODO: consider alternatives)
+        SDL_Delay(2550); 
+        
+        // remove the engine logo and title from engine renderer queue
+        removeRenderObject(engineLogo);
+        removeRenderObject(engineTitle);
+    }
 
     // render everything in engine queue after splash asset removal
     renderAll();

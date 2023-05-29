@@ -33,6 +33,9 @@ int windowMode = 0;
 // vsync is -1, all else is a number
 int framecap = -1;
 
+// flag for skipping the intro
+bool skipintro = false;
+
 // entry point to the game, which invokes all necessary engine functions by extension
 int main(int argc, char *argv[]) {
     // output game title and info
@@ -42,8 +45,11 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--debug") == 0 || strcmp(argv[i], "-d") == 0) {
             debug = true;
-            break;
-        } // other flags can be implemented here in the future
+        } 
+        if (strcmp(argv[i], "--skipintro") == 0 || strcmp(argv[i], "-s") == 0) {
+            skipintro = true;
+        } 
+        // other flags can be implemented here in the future
     }
 
     /*
@@ -113,7 +119,7 @@ int main(int argc, char *argv[]) {
     and manage all subsequent backend rendering and audio playing invoked by the game
     */
     printf("Attempting to initialize engine... \t");
-    initEngine(SCREEN_WIDTH,SCREEN_HEIGHT,debug,VOLUME,windowMode,framecap); // this call will resolve after 2550ms of a splash screen
+    initEngine(SCREEN_WIDTH,SCREEN_HEIGHT,debug,VOLUME,windowMode,framecap,skipintro); // this call will resolve after 2550ms of a splash screen
 
     /*
         ==============================

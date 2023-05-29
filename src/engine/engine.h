@@ -8,7 +8,7 @@ extern int SCREEN_MIDDLE_WIDTH;
 extern int SCREEN_MIDDLE_HEIGHT;
 
 // entry point to the engine, initializes all subsystems
-void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap);
+void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);
 
 // function to print out (complete) with "complete" displayed in green color
 void debugOutputComplete();
