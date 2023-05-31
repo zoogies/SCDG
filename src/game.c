@@ -172,20 +172,10 @@ int main(int argc, char *argv[]) {
 
     // TODO: either engine or game track specific parts of screen so its not so annyoing
     // calculating where to place things each time
+    // ex: (character pos 1-3: denote different rects to paint characters in and can be abstracted)
 
     // TODO: implement button constructor to do dirty work of text orientation
     //       automatically
-    // renderImage(1,550,200,250,80,"resources/images/ui/button-small.png",true);
-    // renderText(2,600,210,150,60,"Play",f,colorWhite,true);
-
-    // renderImage(1,550,300,250,80,"resources/images/ui/button-small.png");
-    // renderText(2,600,210,150,60,"Scenes",f,colorWhite);
-
-    // renderImage(1,550,400,250,80,"resources/images/ui/button-small.png");
-    // renderText(2,600,210,150,60,"Settings",f,colorWhite);
-
-    // renderImage(1,550,500,250,80,"resources/images/ui/button-small.png");
-    // renderText(2,600,210,150,60,"Exit",f,colorWhite);
 
     // begin event catching
     SDL_Event e; // define new event
