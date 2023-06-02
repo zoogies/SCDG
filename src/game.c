@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
     TTF_Font *f = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
     
     // add our title and mm background image to render queue 
-    renderText(1,0,0,.6f,.15f,"Stardust Dating Sim",f,colorWhite,false);
-    renderImage(0,.5f,.5f,1,1,"resources/images/people720.png",true);
+    createText(1,0,0,.6f,.15f,"Stardust Dating Sim",f,&colorWhite,false);
+    createImage(0,.5f,.5f,1,1,"resources/images/people720.png",true);
     // TODO: add to some sort of game side queue tracking objects
 
     // TODO: either engine or game track specific parts of screen so its not so annyoing

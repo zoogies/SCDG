@@ -44,16 +44,8 @@ int virtualHeight = 1080;
 int xOffset = 0;
 int yOffset = 0;
 
-/*
-    To avoid passing a pointer to an SDL color (which caused me great pain)
-    it seems much easier to just have a dummy color to pass to the addRenderObject
-    function when we are adding a object of type image which just needs a placeholder
-    for the color and font in the struct
-*/
-SDL_Color dummyColor = {0, 0, 0, 0};
-
-// constructor for render objects, invoked internally by renderText() and renderImage()
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *texture, TTF_Font* font, SDL_Color color, bool centered) {
+// constructor for render objects, invoked internally by createText() and createImage()
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *texture, bool centered) {
     // debug output
     printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
@@ -82,8 +74,6 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     obj->depth = depth;
     obj->next = NULL;
     obj->type = type;
-    obj->font = font;
-    obj->color = color;
 
     // if there are no renderObjects in the list, or the depth of this object is lower than the head
     if (renderListHead == NULL || obj->depth < renderListHead->depth) {
@@ -220,9 +210,9 @@ TTF_Font* loadFont(const char* fontPath, int fontSize) {
 }
 
 // Create a texture from text string with specified font and color, returns NULL for failure
-SDL_Texture* createTextTexture(const char* text, TTF_Font* font, SDL_Color color) {
+SDL_Texture* createTextTexture(const char* text, TTF_Font* font, SDL_Color *color) {
     // create surface from parameters
-    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text, color);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text, *color);
     
     // error out if surface creation failed
     if (surface == NULL) {
@@ -274,18 +264,35 @@ SDL_Texture* createImageTexture(const char* path) {
 }
 
 // add text to the render queue, returns the engine assigned ID of the object
-int renderText(int depth, float x,float y, float width, float height, char *text, TTF_Font *font, SDL_Color color, bool centered){
-    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),font,color,centered);
+int createText(int depth, float x,float y, float width, float height, char *text, TTF_Font *font, SDL_Color *color, bool centered){
+    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),centered);
     global_id++; // increment the global ID for next object
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 // add an image to the render queue, returns the engine assigned ID of the object
-int renderImage(int depth, float x, float y, float width, float height, char *path, bool centered){
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),NULL,dummyColor,centered);
+int createImage(int depth, float x, float y, float width, float height, char *path, bool centered){
+    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),centered);
     global_id++;
     return global_id - 1;
 }
+
+/*
+    method to create an engine button
+    Takes in a string path to the background, font, text color, relative x, relative y, relative width, relative height
+    CONSIDERATIONS / TODO: formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
+*/
+// int createButton(int depth, float x, float y, float width, float height, char *text, TTF_Font *font, SDL_Color *color, bool centered, char *backgroundPath){
+//     // create a render object of renderType_Button and save a pointer to the struct in a new list of Button Objects, return its assigned ID
+//     // we are going to bake all textures into one so there is no fucking around with assosciating multiple render objects
+//     // in theory this is also cheaper computationally (source: me assuming)
+    
+//     // actually, we have to handle the texture creation and ID assignment completely on our own, so theres that
+    
+    // TODO: THIS ALL GOES ON HOLD WHILE I REFACTOR addRenderObject
+
+//     // renderObject obj = 
+// }
 
 // render everything in the scene
 void renderAll() {
@@ -326,8 +333,8 @@ void renderAll() {
                 SDL_DestroyTexture(current->texture);
             }
 
-            // Update texture with the new text
-            current->texture = createTextTexture(str, current->font, current->color);
+            // Update texture with the new text TODO FIXME
+            current->texture = createTextTexture(str, engineFont, pEngineFontColor);
         }
 
         // render our current object

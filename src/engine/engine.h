@@ -3,9 +3,17 @@
 
 #include <stdbool.h>
 
-// declare global helper const for tracking middle coords of screen
-extern int SCREEN_MIDDLE_WIDTH;
-extern int SCREEN_MIDDLE_HEIGHT;
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
+#include "graphics.h"
+
+/*
+    Reserve an internal font and color for the engine to use rendering
+    overlays such as the fpsCounter. Font NULL until initialized in init()
+*/
+extern SDL_Color *pEngineFontColor;
+extern TTF_Font *engineFont;
 
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);
