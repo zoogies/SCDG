@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         printf("Save data not found, creating...\n\n");
 
         // Create sensible defaults for the game data
-        json_t *savedata = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
+        json_t *pSaveData = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
                                       "settings",
                                       "resolution", 1920, 1080,
                                       "window mode", 1,
@@ -72,78 +72,81 @@ int main(int argc, char *argv[]) {
                                       "framecap", -1);
 
         // Save JSON object to file
-        if (savedata != NULL) {
-            FILE *file = fopen("resources/data/savedata.json", "w");
-            if (file != NULL) {
-                json_dumpf(savedata, file, JSON_INDENT(2));
-                fclose(file);
-            } else {
+        if (pSaveData != NULL) {
+            FILE *pFile = fopen("resources/data/savedata.json", "w");
+            if (pFile != NULL) {
+                json_dumpf(pSaveData, pFile, JSON_INDENT(2));
+                fclose(pFile);
+            }
+            else {
                 printf("Failed to open file: %s\n", "resources/data/savedata.json");
             }
-            json_decref(savedata);
-        } else {
+            json_decref(pSaveData);
+        }
+        else {
             printf("Failed to create JSON object.\n");
         }
-    } else {
+    }
+    else {
         printf("Save data found, reading...\n\n");
     }
 
     // open the save data json
     json_error_t error;
-    json_t *root = json_load_file("resources/data/savedata.json", 0, &error);
-    if (!root) {
+    json_t *pRoot = json_load_file("resources/data/savedata.json", 0, &error);
+    if (!pRoot) {
         fprintf(stderr, "Error parsing JSON file: %s\n", error.text);
         exit(1);
     }
 
     // Access the "settings" object
-    json_t *settings = json_object_get(root, "settings");
-    if (!json_is_object(settings)) {
+    json_t *pSettings = json_object_get(pRoot, "settings");
+    if (!json_is_object(pSettings)) {
         fprintf(stderr, "Error: 'settings' must be a JSON object\n");
-        json_decref(root);
+        json_decref(pRoot);
         exit(1);
     }
 
     // Extract volume int and validate it
-    json_t *volume = json_object_get(settings, "volume");
-    if (json_is_integer(volume)) {
-        VOLUME = json_integer_value(volume);
+    json_t *pVolume = json_object_get(pSettings, "volume");
+    if (json_is_integer(pVolume)) {
+        VOLUME = json_integer_value(pVolume);
         printf("Volume read from savedata: \t\t%d\n", VOLUME);
     }
-    json_decref(volume);
+    json_decref(pVolume);
 
     // Extract resolution int(s) and validate them
-    json_t *resolution = json_object_get(settings, "resolution");
-    if (json_is_array(resolution)) {
+    json_t *pResolution = json_object_get(pSettings, "resolution");
+    if (json_is_array(pResolution)) {
         // Get the first and second items from the array
-        json_t *x = json_array_get(resolution, 0);
-        json_t *y = json_array_get(resolution, 1);
-        if (json_is_integer(x) && json_is_integer(y)) {
-            SCREEN_WIDTH = json_integer_value(x);
-            SCREEN_HEIGHT = json_integer_value(y);
+        json_t *pX = json_array_get(pResolution, 0);
+        json_t *pY = json_array_get(pResolution, 1);
+        if (json_is_integer(pX) && json_is_integer(pY)) {
+            SCREEN_WIDTH = json_integer_value(pX);
+            SCREEN_HEIGHT = json_integer_value(pY);
         }
         printf("Resolution read from savedata: \t\t%dx%d\n", SCREEN_WIDTH,SCREEN_HEIGHT);
     }
-    json_decref(resolution);
+    json_decref(pResolution);
 
     // extract window mode int and validate it
-    json_t *windowmode = json_object_get(settings, "window mode");
-    if (json_is_integer(windowmode)) {
-        windowMode = json_integer_value(windowmode);
+    json_t *pWindowMode = json_object_get(pSettings, "window mode");
+    if (json_is_integer(pWindowMode)) {
+        windowMode = json_integer_value(pWindowMode);
         printf("Window Mode read from savedata: \t%d\n", windowMode);
     }
-    json_decref(windowmode);
+    json_decref(pWindowMode);
 
     // extract the frame cap and validate it
-    json_t *savedframecap = json_object_get(settings, "framecap");
-    if (json_is_integer(savedframecap)) {
-        framecap = json_integer_value(savedframecap);
+    json_t *pSavedFrameCap = json_object_get(pSettings, "framecap");
+    if (json_is_integer(pSavedFrameCap)) {
+        framecap = json_integer_value(pSavedFrameCap);
         printf("Frame Cap read from savedata: \t\t%d\n", framecap);
     }
-    json_decref(savedframecap);
+    json_decref(pSavedFrameCap);
 
     // done with our json (for now until we eventually open it to write values)
-    json_decref(root);
+    json_decref(pRoot);
 
     /*
     Initialize engine, this will cover starting audio as well as splash screen
@@ -163,12 +166,11 @@ int main(int argc, char *argv[]) {
 
     // declare color and font that we are using in the game
     SDL_Color colorWhite = {255, 255, 255};
-    TTF_Font *f = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
+    TTF_Font *pStartupFont = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
     
     // add our title and mm background image to render queue 
-    createText(1,0,0,.6f,.15f,"Stardust Dating Sim",f,&colorWhite,false);
+    createText(1,0,0,.6f,.15f,"Stardust Dating Sim",pStartupFont,&colorWhite,false);
     createImage(0,.5f,.5f,1,1,"resources/images/people720.png",true);
-    // TODO: add to some sort of game side queue tracking objects
 
     // TODO: either engine or game track specific parts of screen so its not so annyoing
     // calculating where to place things each time

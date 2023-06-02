@@ -17,10 +17,10 @@
 #include "graphics.h"
 
 // define globals for file
-SDL_Window* window = NULL;
-SDL_Surface* screenSurface = NULL;
-SDL_Renderer* renderer = NULL;
-renderObject* renderListHead = NULL;
+SDL_Window *pWindow = NULL;
+SDL_Surface *pScreenSurface = NULL;
+SDL_Renderer *pRenderer = NULL;
+renderObject *pRenderListHead = NULL;
 
 // int that increments each renderObject created, allowing new unique id's to be assigned
 int global_id = 0;
@@ -45,7 +45,7 @@ int xOffset = 0;
 int yOffset = 0;
 
 // constructor for render objects, invoked internally by createText() and createImage()
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *texture, bool centered) {
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered) {
     // debug output
     printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
@@ -65,35 +65,35 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     SDL_Rect rect = {objX, objY, objWidth, objHeight};
 
     // construct and malloc new object
-    renderObject *obj = (renderObject *)malloc(sizeof(renderObject));
+    renderObject *pObj = (renderObject *)malloc(sizeof(renderObject));
 
     // self explanatory assignment of fields from parameters
-    obj->identifier = identifier;
-    obj->texture = texture;
-    obj->rect = rect;
-    obj->depth = depth;
-    obj->next = NULL;
-    obj->type = type;
+    pObj->identifier = identifier;
+    pObj->pTexture = pTexture;
+    pObj->rect = rect;
+    pObj->depth = depth;
+    pObj->pNext = NULL;
+    pObj->type = type;
 
     // if there are no renderObjects in the list, or the depth of this object is lower than the head
-    if (renderListHead == NULL || obj->depth < renderListHead->depth) {
+    if (pRenderListHead == NULL || pObj->depth < pRenderListHead->depth) {
         // make this object the head
-        obj->next = renderListHead; 
-        renderListHead = obj;
+        pObj->pNext = pRenderListHead; 
+        pRenderListHead = pObj;
     } 
     else {
         // iterate through the renderObject queue starting at the head
-        renderObject* current = renderListHead;
+        renderObject *pCurrent = pRenderListHead;
 
         // while there is a next item and the next items depth is less than 
         // our current objects depth, keep going
-        while (current->next != NULL && current->next->depth < obj->depth) {
-            current = current->next;
+        while (pCurrent->pNext != NULL && pCurrent->pNext->depth < pObj->depth) {
+            pCurrent = pCurrent->pNext;
         }
 
         // once we know where our object sits:
-        obj->next = current->next; // make our object point to the one after our current
-        current->next = obj; // make our current point to our object
+        pObj->pNext = pCurrent->pNext; // make our object point to the one after our current
+        pCurrent->pNext = pObj; // make our current point to our object
 
         /*
             Object has been inserted inbetween current and next in order of depth
@@ -125,25 +125,25 @@ void removeRenderObject(int identifier) {
     printf("\033[0;31mRemove\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
     // if our render list has zero items
-    if (renderListHead == NULL) {
+    if (pRenderListHead == NULL) {
         printf("ERROR REMOVING RENDER OBJECT: HEAD IS NULL");
         return;
         // alarm and pass
     }
 
     // if the head is the item we are looking to remove
-    if (renderListHead->identifier == identifier) {
+    if (pRenderListHead->identifier == identifier) {
         // pop our head into a new temp object
-        renderObject* toDelete = renderListHead;
+        renderObject *pToDelete = pRenderListHead;
 
         // set our head to the previous 2nd item
-        renderListHead = renderListHead->next;
+        pRenderListHead = pRenderListHead->pNext;
 
         // delete the texture of our previous head
-        SDL_DestroyTexture(toDelete->texture);
+        SDL_DestroyTexture(pToDelete->pTexture);
 
         // free our previous head from memory
-        free(toDelete);
+        free(pToDelete);
 
         // debug output
         debugOutputComplete();
@@ -151,27 +151,27 @@ void removeRenderObject(int identifier) {
     }
 
     // create a temp renderObject pointer to increment the list
-    renderObject* current = renderListHead;
+    renderObject *pCurrent = pRenderListHead;
 
     // while the next struct is not null and the next identifier is not our desired ID
-    while (current->next != NULL && current->next->identifier != identifier) {
+    while (pCurrent->pNext != NULL && pCurrent->pNext->identifier != identifier) {
         // scoot over by one
-        current = current->next;
+        pCurrent = pCurrent->pNext;
     } // when this resolves, next will match desired ID or NULL
 
     // if we found the ID to remove
-    if (current->next != NULL) {
+    if (pCurrent->pNext != NULL) {
         // copy our struct to delete to a temp var
-        renderObject* toDelete = current->next;
+        renderObject *pToDelete = pCurrent->pNext;
 
         // set our current next to what the deleted next pointed to
-        current->next = toDelete->next;
+        pCurrent->pNext = pToDelete->pNext;
 
         // destroy the texture of our node to be deleted
-        SDL_DestroyTexture(toDelete->texture);
+        SDL_DestroyTexture(pToDelete->pTexture);
 
         // free our node from memory
-        free(toDelete);
+        free(pToDelete);
 
         // debug output
         debugOutputComplete();
@@ -183,96 +183,96 @@ void removeRenderObject(int identifier) {
 }
 
 // returns FIRST render object struct by ID, returns NULL if nonexistant
-renderObject* getRenderObject(int identifier) {
+renderObject *getRenderObject(int identifier) {
     // traversal temp var
-    renderObject* current = renderListHead;
+    renderObject *pCurrent = pRenderListHead;
     // while traversal var isnt null
-    while (current != NULL) {
+    while (pCurrent != NULL) {
         // if our current ID matches the desired identifier
-        if (current->identifier == identifier) {
-            return current; // return our current
+        if (pCurrent->identifier == identifier) {
+            return pCurrent; // return our current
         }
         // else increment
-        current = current->next;
+        pCurrent = pCurrent->pNext;
     }
     // if no object exists with identifier, return NULL
     return NULL;
 }
 
 // load a font into memory and return a pointer to it
-TTF_Font* loadFont(const char* fontPath, int fontSize) {
-    TTF_Font* font = TTF_OpenFont(fontPath, fontSize);
-    if (font == NULL) {
+TTF_Font *loadFont(const char *pFontPath, int fontSize) {
+    TTF_Font *pFont = TTF_OpenFont(pFontPath, fontSize);
+    if (pFont == NULL) {
         printf("Failed to load font: %s\n", TTF_GetError());
         return NULL;
     }
-    return font;
+    return pFont;
 }
 
 // Create a texture from text string with specified font and color, returns NULL for failure
-SDL_Texture* createTextTexture(const char* text, TTF_Font* font, SDL_Color *color) {
+SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor) {
     // create surface from parameters
-    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text, *color);
+    SDL_Surface *pSurface = TTF_RenderUTF8_Blended(pFont, pText, *pColor);
     
     // error out if surface creation failed
-    if (surface == NULL) {
+    if (pSurface == NULL) {
         printf("Failed to render text: %s\n", TTF_GetError());
         return NULL;
     }
 
     // create texture from surface
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);
 
     // error out if texture creation failed
-    if (texture == NULL) {
+    if (pTexture == NULL) {
         printf("Failed to create texture: %s\n", SDL_GetError());
         return NULL;
     }
 
     // free the surface memory
-    SDL_FreeSurface(surface);
+    SDL_FreeSurface(pSurface);
 
     // return the created texture
-    return texture;
+    return pTexture;
 }
 
 // Create a texture from image path, returns NULL for failure
-SDL_Texture* createImageTexture(const char* path) {
+SDL_Texture *createImageTexture(const char *pPath) {
     // create surface from loading the image
-    SDL_Surface* image_surface = IMG_Load(path);
+    SDL_Surface *pImage_surface = IMG_Load(pPath);
     
     // error out if surface load failed
-    if (!image_surface) {
+    if (!pImage_surface) {
         printf("Error loading image: %s\n", IMG_GetError());
         return NULL;
     }
 
     // create texture from surface
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image_surface);
+    SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, pImage_surface);
     
     // error out if texture creation failed
-    if (!texture) {
+    if (!pTexture) {
         printf("Error creating texture: %s\n", SDL_GetError());
         return NULL;
     }
 
     // release surface from memory
-    SDL_FreeSurface(image_surface);
+    SDL_FreeSurface(pImage_surface);
     
     // return the created texture
-    return texture;
+    return pTexture;
 }
 
 // add text to the render queue, returns the engine assigned ID of the object
-int createText(int depth, float x,float y, float width, float height, char *text, TTF_Font *font, SDL_Color *color, bool centered){
-    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(text,font,color),centered);
+int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered){
+    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(pText,pFont,pColor),centered);
     global_id++; // increment the global ID for next object
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 // add an image to the render queue, returns the engine assigned ID of the object
-int createImage(int depth, float x, float y, float width, float height, char *path, bool centered){
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(path),centered);
+int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
+    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(pPath),centered);
     global_id++;
     return global_id - 1;
 }
@@ -299,18 +299,18 @@ void renderAll() {
     int frameStart = SDL_GetTicks();
 
     // Set background color to black
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
 
     // Clear the window with the set background color
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(pRenderer);
 
     // create iteration var for render list
-    renderObject* current = renderListHead;
+    renderObject *pCurrent = pRenderListHead;
 
     // while iteration var is not null
-    while (current != NULL) {
+    while (pCurrent != NULL) {
         // check if current item is the fps counter
-        if (current->type == renderType_Text && current->identifier == -1) {
+        if (pCurrent->type == renderType_Text && pCurrent->identifier == -1) {
             // allocate a new string
             char str[25];
                 
@@ -329,26 +329,26 @@ void renderAll() {
             }
 
             // Destroy old texture to prevent memory leak
-            if (current->texture != NULL) {
-                SDL_DestroyTexture(current->texture);
+            if (pCurrent->pTexture != NULL) {
+                SDL_DestroyTexture(pCurrent->pTexture);
             }
 
             // Update texture with the new text TODO FIXME
-            current->texture = createTextTexture(str, engineFont, pEngineFontColor);
+            pCurrent->pTexture = createTextTexture(str, pEngineFont, pEngineFontColor);
         }
 
         // render our current object
-        SDL_RenderCopy(renderer, current->texture, NULL, &(current->rect));
+        SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
         
         // increment
-        current = current->next;
+        pCurrent = pCurrent->pNext;
     }
 
     // present our new changes to the renderer
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(pRenderer);
 
     // update the window to reflect the new renderer changes
-    SDL_UpdateWindowSurface(window);
+    SDL_UpdateWindowSurface(pWindow);
 
     // if we arent on vsync we need to preform some frame calculations to delay next frame
     if(fpscap != -1){
@@ -381,8 +381,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
     // test for window init, alarm if failed
     printf("Attempting to initialize window... \t");
-    window = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | windowMode);
-    if (window == NULL) {
+    pWindow = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | windowMode);
+    if (pWindow == NULL) {
         printf("Window creation failed: %s\n", SDL_GetError()); // catch creation error
         exit(1);
     }
@@ -400,14 +400,14 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     // if vsync is on
     if(fpscap == -1) {
         printf("Starting renderer with vsync... \t");
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     }
     else {
         printf("Starting renderer with maxfps %d... \t",framecap);
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED);
     }
 
-    if (renderer == NULL) {
+    if (pRenderer == NULL) {
         printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
         exit(1);
     }
@@ -444,7 +444,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     viewport.y = yOffset;
     viewport.w = virtualWidth;
     viewport.h = virtualHeight;
-    SDL_RenderSetViewport(renderer, &viewport);
+    SDL_RenderSetViewport(pRenderer, &viewport);
     
     // test for TTF init, alarm if failed
     printf("Attempting to initialize TTF... \t");
@@ -470,16 +470,16 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     printf("Attempting to set window icon... \t");
 
     // load icon to surface
-    SDL_Surface *iconSurface = IMG_Load("resources/images/icon.png");
-    if (iconSurface == NULL) {
+    SDL_Surface *pIconSurface = IMG_Load("resources/images/icon.png");
+    if (pIconSurface == NULL) {
         SDL_Log("IMG_Load error: %s", IMG_GetError());
         exit(1);
     }
     // set icon
-    SDL_SetWindowIcon(window, iconSurface);
+    SDL_SetWindowIcon(pWindow, pIconSurface);
     
     // release surface
-    SDL_FreeSurface(iconSurface);
+    SDL_FreeSurface(pIconSurface);
 
     // debug: acknowledge window icon initialization
     debugOutputComplete();
@@ -499,10 +499,10 @@ void shutdownGraphics(){
     printf("\033[0;31mShut down IMG.\033[0;37m\n");
 
     // shutdown renderer
-    SDL_DestroyRenderer(renderer);
+    SDL_DestroyRenderer(pRenderer);
     printf("\033[0;31mRenderer destroyed.\033[0;37m\n");
 
     // shutdown window
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(pWindow);
     printf("\033[0;31mWindow destroyed.\033[0;37m\n");
 }

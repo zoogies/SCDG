@@ -13,7 +13,7 @@
     overlays such as the fpsCounter. Font NULL until initialized in init()
 */
 extern SDL_Color *pEngineFontColor;
-extern TTF_Font *engineFont;
+extern TTF_Font *pEngineFont;
 
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);

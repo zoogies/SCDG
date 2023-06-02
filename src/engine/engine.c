@@ -20,7 +20,7 @@
 
 // initialize engine internal variable globals to NULL
 SDL_Color *pEngineFontColor = NULL;
-TTF_Font *engineFont = NULL;
+TTF_Font *pEngineFont = NULL;
 
 // helper function to print a positive output
 void debugOutputComplete(){
@@ -45,7 +45,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine (value of global in engine.h modified)
-    engineFont = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
+    pEngineFont = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -66,7 +66,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
         // add fps counter manually to render stack with a custom id
-        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",engineFont,pEngineFontColor),false);
+        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
     }
 
     // debug output
@@ -92,7 +92,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 
         // create startup logo and title and save their id# into memory to destroy them after startup
         const int engineLogo = createImage(0,.5f,.5f,.35f,.4f,"resources/images/enginelogo.png",true);
-        const int engineTitle = createText(0,.5f,.3f,.3f,.1f,"yoyo engine",engineFont,&colorWhite,true);
+        const int engineTitle = createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
 
         // render everything in engine queue
         renderAll(); 

@@ -15,30 +15,30 @@ typedef struct renderObject {
     int identifier;
     int depth;
     renderObjectType type;
-    SDL_Texture* texture;
+    SDL_Texture *pTexture;
     SDL_Rect rect;
-    struct renderObject* next;
+    struct renderObject *pNext;
 } renderObject;
 
 // linked list holding pointers towards button render objects
 typedef struct button {
-    struct renderObject *object;
-    struct button *next;
+    struct renderObject *pObject;
+    struct button *pNext;
 } button;
 
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *texture, bool centered);
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered);
 
 void removeRenderObject(int identifier);
 
-renderObject* getRenderObject(int identifier);
+renderObject *getRenderObject(int identifier);
 
-TTF_Font* loadFont(const char* fontPath, int fontSize);
+TTF_Font *loadFont(const char *pFontPath, int fontSize);
 
-SDL_Texture* createTextTexture(const char* text, TTF_Font* font, SDL_Color *color);
+SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor);
 
-int createText(int depth, float x,float y, float width, float height, char *text, TTF_Font *font, SDL_Color *color, bool centered);
+int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered);
 
-int createImage(int depth, float x, float y, float width, float height, char *path, bool centered);
+int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
 
 void renderAll();
 

@@ -16,7 +16,7 @@
 #define MAX_CHANNELS 16
 
 // create array to hold audio chunks in memory
-Mix_Chunk *chunks[MAX_CHANNELS] = { NULL };
+Mix_Chunk *pChunks[MAX_CHANNELS] = { NULL };
 
 // function to initialize audio system
 void initAudio(){
@@ -42,47 +42,47 @@ void free_audio_chunk(int channel) {
     }
 
     // if there is something in the channel we want to free from
-    if (chunks[channel] != NULL) {
+    if (pChunks[channel] != NULL) {
         // free the chunk indexed from our chunks at the channel specified
-        Mix_FreeChunk(chunks[channel]);
+        Mix_FreeChunk(pChunks[channel]);
         
         // set the channel the chunk resided in to NULL
-        chunks[channel] = NULL;
+        pChunks[channel] = NULL;
     }
 }
 
 // function allowing a sound to be played on a channel by filename
 // param "chan" is channel
-void playSound(const char *filename, int chan, int loops) {
+void playSound(const char *pFilename, int chan, int loops) {
     // open our filename into a chunk
-    Mix_Chunk *sound = Mix_LoadWAV(filename);
+    Mix_Chunk *pSound = Mix_LoadWAV(pFilename);
     
     // if opening failed
-    if (sound == NULL) {
+    if (pSound == NULL) {
         printf("Error loading audio file: %s\n", Mix_GetError());
         return; // alarm in console and pass
     }
     
     // attempt to play the chunk on the channel,
     // returns which channel it was assigned to
-    int channel = Mix_PlayChannel(chan, sound, loops); 
+    int channel = Mix_PlayChannel(chan, pSound, loops); 
     
     // if playing failed (assigned channel -1)
     if (channel == -1) {
         printf("Error playing audio file: %s\n", Mix_GetError());
-        Mix_FreeChunk(sound);
+        Mix_FreeChunk(pSound);
         return; // alarm in console, free the allocated chunk and pass
     }
 
     // if the channel assigned was out of bounds
     if(channel < 0 || channel >= MAX_CHANNELS){
         printf("Error: channel index out of bounds\n");
-        Mix_FreeChunk(sound);
+        Mix_FreeChunk(pSound);
         return; // free the allocated chunk and pass
     }
 
     // put our channel identifier into the chunks
-    chunks[channel] = sound;
+    pChunks[channel] = pSound;
 
     // Free audio memory when channel finishes
     Mix_ChannelFinished(free_audio_chunk);
@@ -104,9 +104,9 @@ void shutdownAudio(){
 
     // Free all audio chunks in the chunks array
     for (int i = 0; i < MAX_CHANNELS; i++) {
-        if (chunks[i] != NULL) {
-            Mix_FreeChunk(chunks[i]);
-            chunks[i] = NULL;
+        if (pChunks[i] != NULL) {
+            Mix_FreeChunk(pChunks[i]);
+            pChunks[i] = NULL;
         }
     }
 
