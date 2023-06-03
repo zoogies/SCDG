@@ -8,8 +8,9 @@ A joke "Dating" game starring friends from a discord server, made as an intro to
 
 ## Dependencies
 
-- SDL2
+- [SDL2](https://www.libsdl.org/)
 - [jansson](https://github.com/akheron/jansson)
+- [discord SDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide)
 
 ## Credit
 
