@@ -3,6 +3,8 @@
         "sdl.h": "c",
         "engine.h": "c",
         "sdl_image.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "stdlib.h": "c",
+        "discord_game_sdk.h": "c"
     }
 }

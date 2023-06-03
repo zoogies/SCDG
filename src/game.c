@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <SDL2/SDL.h>
 #include <jansson.h>
@@ -14,7 +15,16 @@
 #include "engine/engine.h"
 #include "engine/audio.h"
 #include "engine/graphics.h"
+
 #include "game.h"
+#include "discord.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#include <string.h>
+#endif
 
 // define screen size parameters,
 // game manages these values not engine, TODO: potential refactor now that engine is tracking internally
@@ -179,11 +189,20 @@ int main(int argc, char *argv[]) {
     // TODO: implement button constructor to do dirty work of text orientation
     //       automatically
 
+    // initialize rich prescence
+    printf("\nAttempting to set activity status... \t");
+    init_discord_rich_presence();
+    update_discord_activity("Playing a game", "In the main menu", "mainmenu", "Main Menu");
+    debugOutputComplete();
+
     // begin event catching
     SDL_Event e; // define new event
     bool quit = false; // define quit
 
     while(!quit) {
+        // something something rich presence
+        run_discord_callbacks();
+
         while(SDL_PollEvent(&e)){ // while there is an event polled
             if(e.type == SDL_QUIT){ // check if event is to quit
                 quit = true; // quit
@@ -202,6 +221,10 @@ int main(int argc, char *argv[]) {
     shutdownEngine();
     printf("\033[0;31mShut down engine.\033[0;37m\n");
     printf("\033[0;31mShut down game.\033[0;37m\n");
+
+    // shutdown rich presence
+    shutdown_discord_rich_presence();
+    printf("\033[0;31mShut down rich presence.\033[0;37m\n");
 
     // graceful exit
     return 0;

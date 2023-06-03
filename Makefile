@@ -1,11 +1,10 @@
+# TODO: change to add other target platforms and completely cleanup so its not so scuffed
+
 # Variables
 CC = gcc
-CFLAGS = -Wall -g
-LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson
+CFLAGS = -Wall -g -Wextra -I./src/discordSDK
+LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64
 BUILD_DIR = build
-BUILD_DIR_WIN = build-win
-CC_WIN = x86_64-w64-mingw32-gcc
-EXE_WIN = game.exe
 
 # Main target
 all: dirs $(BUILD_DIR)/game
@@ -13,34 +12,29 @@ all: dirs $(BUILD_DIR)/game
 # Create build directories
 dirs:
 	mkdir -p $(BUILD_DIR)
-	mkdir -p $(BUILD_DIR_WIN)
 
 # Compile game executable
-$(BUILD_DIR)/game: $(BUILD_DIR)/game.o $(BUILD_DIR)/engine.o $(BUILD_DIR)/audio.o $(BUILD_DIR)/graphics.o
+$(BUILD_DIR)/game: $(BUILD_DIR)/game.o $(BUILD_DIR)/engine.o $(BUILD_DIR)/audio.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/discord.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
-# Compile Windows game executable
-windows: dirs $(BUILD_DIR_WIN)/$(EXE_WIN)
-
-$(BUILD_DIR_WIN)/$(EXE_WIN): $(BUILD_DIR_WIN)/game.o $(BUILD_DIR_WIN)/engine.o $(BUILD_DIR_WIN)/audio.o $(BUILD_DIR_WIN)/graphics.o
-	$(CC_WIN) $(CFLAGS) $^ $(LIBS) -o $@
-
 # Compile object files
-$(BUILD_DIR)/%.o: src/engine/%.c src/engine/%.h src/game.c src/game.h
+$(BUILD_DIR)/game.o: src/game.c src/game.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR_WIN)/%.o: src/engine/%.c src/engine/%.h src/game.c src/game.h
-	$(CC_WIN) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/%.o: src/%.c src/%.h src/engine/engine.c src/engine/engine.h src/engine/audio.c src/engine/audio.h src/engine/graphics.c src/engine/graphics.h
+$(BUILD_DIR)/discord.o: src/discord.c src/discord.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR_WIN)/%.o: src/%.c src/%.h src/engine/engine.c src/engine/engine.h src/engine/audio.c src/engine/audio.h src/engine/graphics.c src/engine/graphics.h
-	$(CC_WIN) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/engine.o: src/engine/engine.c src/engine/engine.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/audio.o: src/engine/audio.c src/engine/audio.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/graphics.o: src/engine/graphics.c src/engine/graphics.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean up build directory
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -rf $(BUILD_DIR_WIN)
 
-.PHONY: all dirs windows clean
+.PHONY: all dirs clean
