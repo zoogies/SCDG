@@ -20,10 +20,10 @@
 #include "discord.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+    #include <windows.h>
 #else
-#include <unistd.h>
-#include <string.h>
+    #include <unistd.h>
+    #include <string.h>
 #endif
 
 // define screen size parameters,
@@ -48,7 +48,8 @@ int framecap = -1;
 bool skipintro = false;
 
 // entry point to the game, which invokes all necessary engine functions by extension
-int main(int argc, char *argv[]) {
+int mainFunction(int argc, char *argv[])
+{
     // output game title and info
     printf("\n\033[0;33mStardust Crusaders Dating Sim v0.0.1\033[0;37m\n");
 
@@ -229,3 +230,16 @@ int main(int argc, char *argv[]) {
     // graceful exit
     return 0;
 }
+
+// make sure when compiling regardless of platform main has correct entry point
+#ifdef _WIN32
+    int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+    {
+        return mainFunction(__argc, __argv);
+    }
+#else
+    int main(int argc, char *argv[])
+    {
+        return mainFunction(argc, argv);
+    }
+#endif

@@ -1,20 +1,32 @@
-# TODO: change to add other target platforms and completely cleanup so its not so scuffed
-
 # Variables
 CC = gcc
 CFLAGS = -Wall -g -Wextra -I./src/discordSDK
 LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64
 BUILD_DIR = build
 
-# Main target
-all: dirs $(BUILD_DIR)/game
+# Windows-specific variables
+CC_WIN = x86_64-w64-mingw32-gcc
+LIBS_WIN = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk
+
+# Main target (default: Linux)
+all: dirs linux
 
 # Create build directories
 dirs:
 	mkdir -p $(BUILD_DIR)
 
-# Compile game executable
-$(BUILD_DIR)/game: $(BUILD_DIR)/game.o $(BUILD_DIR)/engine.o $(BUILD_DIR)/audio.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/discord.o
+# Compile game executable for Linux
+linux: $(BUILD_DIR)/game_linux
+
+$(BUILD_DIR)/game_linux: $(BUILD_DIR)/game.o $(BUILD_DIR)/engine.o $(BUILD_DIR)/audio.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/discord.o
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
+
+# Compile game executable for Windows
+windows: CC = $(CC_WIN)
+windows: LIBS = $(LIBS_WIN)
+windows: dirs $(BUILD_DIR)/game_windows.exe
+
+$(BUILD_DIR)/game_windows.exe: $(BUILD_DIR)/game.o $(BUILD_DIR)/engine.o $(BUILD_DIR)/audio.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/discord.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 # Compile object files
@@ -37,4 +49,6 @@ $(BUILD_DIR)/graphics.o: src/engine/graphics.c src/engine/graphics.h
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all dirs clean
+.PHONY: all dirs clean linux windows
+
+#TODO ZLIB DLL ERRORS AND ALSO SHOULD I INCLUDE DLLS / CHANGE WINDOWS BUILD STEPS

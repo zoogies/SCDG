@@ -2,3 +2,4 @@
 build-win
 resources/data/savedata.json
 src/discordSDK
+resources/dlls

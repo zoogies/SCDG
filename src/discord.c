@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "discordSDK/discord_game_sdk.h"
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #include <string.h>
