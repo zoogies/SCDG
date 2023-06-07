@@ -32,6 +32,31 @@ void debugOutputComplete(){
     printf(")\n");
 }
 
+// helper function to get the screen size
+// TODO: consider moving graphics.c
+struct ScreenSize getScreenSize(){
+    // initialize video
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL initialization failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    // use video to initialize display mode
+    SDL_DisplayMode displayMode;
+    if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
+        printf("SDL_GetCurrentDisplayMode failed! SDL_Error: %s\n", SDL_GetError());
+    }
+
+    int screenWidth = displayMode.w;
+    int screenHeight = displayMode.h;
+
+    printf("Inferred sreen size: \t\t\t%dx%d\n", screenWidth, screenHeight);
+
+    // return a ScreenSize struct with the screen width and height
+    struct ScreenSize screenSize = {screenWidth, screenHeight};
+    return screenSize;
+}
+
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
@@ -49,7 +74,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
-    SDL_Color engineFontColor = {255, 255, 0};
+    SDL_Color engineFontColor = {255, 255, 0, 255};
     pEngineFontColor = &engineFontColor;
     pEngineFontColor = malloc(sizeof(SDL_Color));
     pEngineFontColor->r = 255;
@@ -58,7 +83,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     pEngineFontColor->a = 255;
 
     // load a SDL_Color(s) for use in engine debug displays and startup
-    SDL_Color colorWhite = {255, 255, 255};
+    SDL_Color colorWhite = {255, 255, 255, 255};
 
     // if we are in debug mode
     if(debug){

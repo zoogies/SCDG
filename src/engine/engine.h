@@ -15,6 +15,15 @@
 extern SDL_Color *pEngineFontColor;
 extern TTF_Font *pEngineFont;
 
+// struct to hold screen points
+struct ScreenSize {
+    int width;
+    int height;
+};
+
+// helper function to return ScreenSize struct from getting the screensize with SDL2
+struct ScreenSize getScreenSize();
+
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);
 

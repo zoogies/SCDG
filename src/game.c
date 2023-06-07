@@ -74,10 +74,13 @@ int mainFunction(int argc, char *argv[])
     if (access("resources/data/savedata.json", F_OK) == -1) {
         printf("Save data not found, creating...\n\n");
 
+        // we need to get the screen size to set the defualt resolution
+        struct ScreenSize size = getScreenSize();
+
         // Create sensible defaults for the game data
         json_t *pSaveData = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
                                       "settings",
-                                      "resolution", 1920, 1080,
+                                      "resolution", size.width, size.height,
                                       "window mode", 1,
                                       "volume", 128,
                                       "framecap", -1);
@@ -176,7 +179,7 @@ int mainFunction(int argc, char *argv[])
     playSound("resources/music/menu_loop.mp3",0,-1);
 
     // declare color and font that we are using in the game
-    SDL_Color colorWhite = {255, 255, 255};
+    SDL_Color colorWhite = {255, 255, 255, 255};
     TTF_Font *pStartupFont = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
     
     // add our title and mm background image to render queue 
