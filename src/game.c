@@ -196,10 +196,14 @@ int mainFunction(int argc, char *argv[])
 
     // initialize rich prescence
     printf("\nAttempting to set activity status... \t");
-    init_discord_rich_presence();
-    update_discord_activity("Playing a game", "In the main menu", "mainmenu", "Main Menu");
-    debugOutputComplete();
-
+    if (init_discord_rich_presence() > 0){ // tried to make connection to discord and successfully set activity
+        update_discord_activity("Playing a game", "In the main menu", "mainmenu", "Main Menu");
+        debugOutputComplete();
+    }
+    else{
+        // case where user does not have a successful connection to discord
+        printf("Failed!\n");
+    }
     // begin event catching
     SDL_Event e; // define new event
     bool quit = false; // define quit

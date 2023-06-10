@@ -10,8 +10,6 @@
 #include <string.h>
 #endif
 
-#define DISCORD_REQUIRE(x) assert(x == DiscordResult_Ok)
-
 struct Application {
     struct IDiscordCore* core;
     struct IDiscordActivityManager* activities;
@@ -21,10 +19,12 @@ struct Application app;
 
 void DISCORD_CALLBACK UpdateActivityCallback(void* data, enum EDiscordResult result)
 {
-    DISCORD_REQUIRE(result);
+    if (result != DiscordResult_Ok) {
+        printf("Error updating Discord activity: %d\n", result);
+    }
 }
 
-void init_discord_rich_presence()
+int init_discord_rich_presence()
 {
     memset(&app, 0, sizeof(app));
 
@@ -38,13 +38,18 @@ void init_discord_rich_presence()
     params.event_data = &app;
     params.activity_events = &activities_events;
 
-    DISCORD_REQUIRE(DiscordCreate(DISCORD_VERSION, &params, &app.core));
+    if (DiscordCreate(DISCORD_VERSION, &params, &app.core) != DiscordResult_Ok) {
+        app.core = NULL;
+        return 0;
+    }
 
     app.activities = app.core->get_activity_manager(app.core);
+    return 1;
 }
 
 void update_discord_activity(const char* details, const char* state, const char* large_image, const char* large_text)
 {
+    if(app.core == NULL) return;
     struct DiscordActivity activity;
     memset(&activity, 0, sizeof(activity));
     sprintf(activity.details, "%s", details);
@@ -57,11 +62,17 @@ void update_discord_activity(const char* details, const char* state, const char*
 
 void run_discord_callbacks()
 {
-    DISCORD_REQUIRE(app.core->run_callbacks(app.core));
+    if (app.core != NULL) {
+        enum EDiscordResult result = app.core->run_callbacks(app.core);
+        if (result != DiscordResult_Ok) {
+            printf("Error running Discord callbacks: %d\n", result);
+        }
+    }
 }
 
 void shutdown_discord_rich_presence()
 {
+    if(app.core == NULL) return;
     app.core->destroy(app.core);
 }
 

@@ -50,8 +50,8 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
     // translate our relative floats into actual screen coordinates for rendering
-    int objX = (int)(x * (float)virtualWidth);
-    int objY = (int)(y * (float)virtualHeight);
+    int objX = (int)(x * (float)virtualWidth); // + xOffset;
+    int objY = (int)(y * (float)virtualHeight); // + yOffset;
     int objWidth = (int)(width * (float)virtualWidth);
     int objHeight = (int)(height * (float)virtualHeight);
 
@@ -470,7 +470,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     printf("Attempting to set window icon... \t");
 
     // load icon to surface
-    SDL_Surface *pIconSurface = IMG_Load("resources/images/icon.png");
+    SDL_Surface *pIconSurface = IMG_Load(getPath("images/icon.png"));
     if (pIconSurface == NULL) {
         SDL_Log("IMG_Load error: %s", IMG_GetError());
         exit(1);
