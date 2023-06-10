@@ -18,6 +18,13 @@
 #include "graphics.h"
 #include "engine.h"
 
+// buffer to hold filepath strings
+// will be modified by getPath()
+char path_buffer[1024];
+
+// get the base path
+char *base_path = NULL;
+
 // initialize engine internal variable globals to NULL
 SDL_Color *pEngineFontColor = NULL;
 TTF_Font *pEngineFont = NULL;
@@ -57,6 +64,21 @@ struct ScreenSize getScreenSize(){
     return screenSize;
 }
 
+// helper function to get the path to a resource
+// will modify buffer automatically
+char *getPath(char *path){
+    // lazily set the base path used for opening resources cross platform on first call
+    if(base_path == NULL){
+        base_path = SDL_GetBasePath();
+        if (base_path == NULL) {
+            printf("Error getting base path: %s\n", SDL_GetError());
+        }
+    }
+
+    snprintf(path_buffer, sizeof(path_buffer), "%s../resources/%s", base_path,path);
+    return path_buffer;
+}
+
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
@@ -70,7 +92,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine (value of global in engine.h modified)
-    pEngineFont = loadFont("resources/fonts/Nunito-Bold.ttf", 500);
+    pEngineFont = loadFont(getPath("fonts/Nunito-Bold.ttf"), 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -116,7 +138,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         playSound("resources/sfx/startup.mp3",0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
-        const int engineLogo = createImage(0,.5f,.5f,.35f,.4f,"resources/images/enginelogo.png",true);
+        const int engineLogo = createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);
+
         const int engineTitle = createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
 
         // render everything in engine queue
@@ -140,6 +163,17 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 // function that shuts down all engine subsystems and components ()
 void shutdownEngine(){
 
+    /*
+        TECHNICALLY this might not have been called unless getPath() 
+        was called at least once, however: i dont feel like fixing 
+        this as the engine will always call this internally for the 
+        splash screen (unless the argv for skipping is passed) in 
+        which case it doesnt matter because its called in the game 
+        and nobody will ever use this engine :P
+    */
+    SDL_free(base_path);
+
+    // free the engine font color
     free(pEngineFontColor);
     pEngineFontColor = NULL;
 

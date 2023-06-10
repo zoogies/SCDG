@@ -24,6 +24,9 @@ struct ScreenSize {
 // helper function to return ScreenSize struct from getting the screensize with SDL2
 struct ScreenSize getScreenSize();
 
+// returns the char * path to a resource specified in relation to root dir
+char *getPath(char *path);
+
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);
 

@@ -71,7 +71,8 @@ int mainFunction(int argc, char *argv[])
 
     // check if save data exists and create it if not
     // Check if the file exists
-    if (access("resources/data/savedata.json", F_OK) == -1) {
+    if (access(getPath("data/savedata.json"), F_OK) == -1) {
+        printf("\n%s\n",getPath("data/savedata.json"));
         printf("Save data not found, creating...\n\n");
 
         // we need to get the screen size to set the defualt resolution
@@ -87,7 +88,7 @@ int mainFunction(int argc, char *argv[])
 
         // Save JSON object to file
         if (pSaveData != NULL) {
-            FILE *pFile = fopen("resources/data/savedata.json", "w");
+            FILE *pFile = fopen(getPath("data/savedata.json"), "w");
             if (pFile != NULL) {
                 json_dumpf(pSaveData, pFile, JSON_INDENT(2));
                 fclose(pFile);
@@ -107,7 +108,7 @@ int mainFunction(int argc, char *argv[])
 
     // open the save data json
     json_error_t error;
-    json_t *pRoot = json_load_file("resources/data/savedata.json", 0, &error);
+    json_t *pRoot = json_load_file(getPath("data/savedata.json"), 0, &error);
     if (!pRoot) {
         fprintf(stderr, "Error parsing JSON file: %s\n", error.text);
         exit(1);
@@ -176,15 +177,15 @@ int mainFunction(int argc, char *argv[])
     */
 
     // play some main menu music on auto track looping forever
-    playSound("resources/music/menu_loop.mp3",0,-1);
+    playSound(getPath("music/menu_loop.mp3"),0,-1);
 
     // declare color and font that we are using in the game
     SDL_Color colorWhite = {255, 255, 255, 255};
-    TTF_Font *pStartupFont = loadFont("resources/fonts/Nunito-Regular.ttf", 500);
+    TTF_Font *pStartupFont = loadFont(getPath("fonts/Nunito-Regular.ttf"), 500);
     
     // add our title and mm background image to render queue 
     createText(1,0,0,.6f,.15f,"Stardust Dating Sim",pStartupFont,&colorWhite,false);
-    createImage(0,.5f,.5f,1,1,"resources/images/people720.png",true);
+    createImage(0,.5f,.5f,1,1,getPath("images/people720.png"),true);
 
     // TODO: either engine or game track specific parts of screen so its not so annyoing
     // calculating where to place things each time
