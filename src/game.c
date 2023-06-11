@@ -47,6 +47,13 @@ int framecap = -1;
 // flag for skipping the intro
 bool skipintro = false;
 
+// enum for general depth values
+enum depth {
+    engineUI = 999,
+    UI = 99,
+    background = 0
+};
+
 // entry point to the game, which invokes all necessary engine functions by extension
 int mainFunction(int argc, char *argv[])
 {
@@ -185,14 +192,15 @@ int mainFunction(int argc, char *argv[])
     
     // add our title and mm background image to render queue 
     createText(1,0,0,.6f,.15f,"Stardust Dating Sim",pStartupFont,&colorWhite,false);
-    createImage(0,.5f,.5f,1,1,getPath("images/people720.png"),true);
+    createImage(background,.5f,.5f,1,1,getPath("images/people720.png"),true);
+    // add our mm buttons
+    createButton(UI,.4,.25,.2,.1,"Play",pStartupFont,&colorWhite,false,getPath("images/ui/button-small.png"));
+    createButton(UI,.4,.4,.2,.1,"Settings",pStartupFont,&colorWhite,false,getPath("images/ui/button-small.png"));
+    createButton(UI,.4,.55,.2,.1,"Quit",pStartupFont,&colorWhite,false,getPath("images/ui/button-small.png"));
 
     // TODO: either engine or game track specific parts of screen so its not so annyoing
     // calculating where to place things each time
     // ex: (character pos 1-3: denote different rects to paint characters in and can be abstracted)
-
-    // TODO: implement button constructor to do dirty work of text orientation
-    //       automatically
 
     // initialize rich prescence
     printf("\nAttempting to set activity status... \t");

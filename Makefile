@@ -1,7 +1,7 @@
 # Variables
 CC = gcc
 CFLAGS = -Wall -g -Wextra -I./src/discordSDK
-LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64
+LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64 -lm
 BUILD_DIR_LINUX = build/linux
 BUILD_DIR_WINDOWS = build/windows
 

@@ -8,6 +8,7 @@
 */
 
 #include <stdio.h>
+#include <math.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -20,7 +21,9 @@
 SDL_Window *pWindow = NULL;
 SDL_Surface *pScreenSurface = NULL;
 SDL_Renderer *pRenderer = NULL;
+
 renderObject *pRenderListHead = NULL;
+button *pButtonListHead = NULL;
 
 // int that increments each renderObject created, allowing new unique id's to be assigned
 int global_id = 0;
@@ -51,6 +54,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
     
     // translate our relative floats into actual screen coordinates for rendering
+    // TODO: consider genericizing this into a function
     int objX = (int)(x * (float)virtualWidth); // + xOffset;
     int objY = (int)(y * (float)virtualHeight); // + yOffset;
     int objWidth = (int)(width * (float)virtualWidth);
@@ -282,19 +286,103 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
 /*
     method to create an engine button
     Takes in a string path to the background, font, text color, relative x, relative y, relative width, relative height
-    CONSIDERATIONS / TODO: formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
+    CONSIDERATIONS / TODO: 
+    - formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
+    - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
 */
-// int createButton(int depth, float x, float y, float width, float height, char *text, TTF_Font *font, SDL_Color *color, bool centered, char *backgroundPath){
-//     // create a render object of renderType_Button and save a pointer to the struct in a new list of Button Objects, return its assigned ID
-//     // we are going to bake all textures into one so there is no fucking around with assosciating multiple render objects
-//     // in theory this is also cheaper computationally (source: me assuming)
-    
-//     // actually, we have to handle the texture creation and ID assignment completely on our own, so theres that
-    
-    // TODO: THIS ALL GOES ON HOLD WHILE I REFACTOR addRenderObject
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath) {
+    // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
+    int realX = (int)(x * (float)virtualWidth); // + xOffset;
+    int realY = (int)(y * (float)virtualHeight); // + yOffset;
+    int realWidth = (int)(width * (float)virtualWidth);
+    int realHeight = (int)(height * (float)virtualHeight);
 
-//     // renderObject obj = 
-// }
+    SDL_Texture *textTexture = createTextTexture(pText, pFont, pColor);
+
+    if (textTexture == NULL) {
+        printf("ERROR CREATING TEXT TEXTURE\n");
+        return NULL;
+    }
+
+    SDL_Texture *pImageTexture = createImageTexture(pBackgroundPath);
+
+    if(pImageTexture == NULL){
+        printf("ERROR CREATING IMAGE TEXTURE\n");
+        SDL_DestroyTexture(textTexture);
+        return NULL;
+    }
+
+    SDL_Texture* buttonTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, realWidth, realHeight);
+
+    if (buttonTexture == NULL) {
+        printf("ERROR CREATING BUTTON TEXTURE\n");
+        SDL_DestroyTexture(textTexture);
+        return NULL;
+    }
+
+    // Set the new texture as the render target
+    SDL_SetRenderTarget(pRenderer, buttonTexture);
+
+    // Render the background image onto the new texture
+    SDL_Rect backgroundRect = {0, 0, realWidth, realHeight};
+    SDL_RenderCopy(pRenderer, pImageTexture, NULL, &backgroundRect);
+
+    // Get dimensions of the text texture
+    int textWidth, textHeight;
+    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
+
+    float widthRatio = (float)realWidth / textWidth;
+    float heightRatio = (float)realHeight / textHeight;
+    float scale = fminf(widthRatio, heightRatio);
+
+    int scaledTextWidth = (int)(textWidth * scale);
+    int scaledTextHeight = (int)(textHeight * scale);
+
+    // Calculate the position of the text to center it within the button
+    SDL_Rect textRect;
+    textRect.x = (realWidth - scaledTextWidth) / 2;
+    textRect.y = (realHeight - scaledTextHeight) / 2;
+    textRect.w = scaledTextWidth;
+    textRect.h = scaledTextHeight;
+    printf("x:%d, y:%d, w:%d, h:%d\n", textRect.x, textRect.y, textRect.w, textRect.h);
+
+    // Render the text onto the new texture
+    SDL_RenderCopy(pRenderer, textTexture, NULL, &textRect);
+
+    // Reset the render target to the default
+    SDL_SetRenderTarget(pRenderer, NULL);
+
+    global_id++; // to stay consistant, increment now and refer to global_id - 1 when accessing ID
+
+    addRenderObject(global_id - 1,renderType_Button,depth,x,y,width,height,buttonTexture,centered);
+
+    renderObject *pObj = getRenderObject(global_id - 1);
+
+    // construct and malloc new button
+    button *pButton = (button *)malloc(sizeof(button));
+    pButton->pObject = pObj;
+    pButton->pNext = NULL;
+
+    // Add the new button to the linked list
+    // (sorted by depth, highest at head)
+    if(pButtonListHead == NULL){
+        pButtonListHead = pButton;
+    }
+    else{
+        button *pCurrent = pButtonListHead;
+        while(pCurrent->pNext != NULL && pCurrent->pNext->pObject->depth < pButton->pObject->depth){
+            pCurrent = pCurrent->pNext;
+        }
+        pButton->pNext = pCurrent->pNext;
+        pCurrent->pNext = pButton;
+    }
+
+    // Cleanup
+    SDL_DestroyTexture(textTexture);
+    SDL_DestroyTexture(pImageTexture);
+
+    return global_id - 1; // for consistancy
+}
 
 // function that clears all non engine render objects (depth >= 0)
 // TODO: refactor this and removeRenderObject() to send pointers to nodes to another function to genericise this

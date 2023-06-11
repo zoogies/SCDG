@@ -161,6 +161,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 
 // function that shuts down all engine subsystems and components ()
 void shutdownEngine(){
+    printf("\nSHUTTING DOWN ENGINE!\n");
 
     /*
         TECHNICALLY this might not have been called unless getPath() 
