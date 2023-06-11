@@ -75,7 +75,7 @@ char *getPath(char *path){
         }
     }
 
-    snprintf(path_buffer, sizeof(path_buffer), "%s../resources/%s", base_path,path);
+    snprintf(path_buffer, sizeof(path_buffer), "%s../../resources/%s", base_path,path);
     return path_buffer;
 }
 
@@ -135,7 +135,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         printf("\033[0;35mSkipping Intro.\033[0;37m\n");
     }
     else{
-        playSound("resources/sfx/startup.mp3",0,0); // play startup sound
+        playSound(getPath("sfx/startup.mp3"),0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
         const int engineLogo = createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);

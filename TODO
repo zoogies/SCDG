@@ -1,0 +1,24 @@
+FEATURES:
+  ENGINE:
+    - backend button support
+    - clear all items from render queue with >1 depth
+    LOW PRIORITY:
+      - dev console
+      - hot reload
+  GAME:
+    - main menu event handling and changing settings
+    - loading from game data
+    - exe icon
+    - rpc generic functions
+      - rpc heart in corner
+BUGS:
+  WINDOWS:
+    - command line color codes dont display
+    - windows sometimes cant launch from explorer bug
+  GENERIC:
+    - ultrawide bug where alt tabbing decenters the renderer in the window
+  ASSUMED:
+    - im guessing that linux build without deps does not work (windows needs dlls)
+MISC:
+  - look into optimizations
+  - look into bundling everything into one exe
