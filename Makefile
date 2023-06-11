@@ -1,6 +1,6 @@
 # Variables
 CC = gcc
-CFLAGS = -Wall -g -Wextra -I./src/discordSDK
+CFLAGS = -Wall -Wextra -I./src/discordSDK
 LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64 -lm
 BUILD_DIR_LINUX = build/linux
 BUILD_DIR_WINDOWS = build/windows
@@ -17,7 +17,12 @@ dirs:
 	mkdir -p $(BUILD_DIR_LINUX) $(BUILD_DIR_WINDOWS)
 
 # Compile game executable for Linux
-linux: $(BUILD_DIR_LINUX)/game_linux
+linux: CFLAGS += -O2
+linux: dirs $(BUILD_DIR_LINUX)/game_linux
+
+# Compile game executable for debug (Linux)
+debug: CFLAGS += -g
+debug: dirs $(BUILD_DIR_LINUX)/game_linux
 
 $(BUILD_DIR_LINUX)/game_linux: $(BUILD_DIR_LINUX)/game.o $(BUILD_DIR_LINUX)/engine.o $(BUILD_DIR_LINUX)/audio.o $(BUILD_DIR_LINUX)/graphics.o $(BUILD_DIR_LINUX)/discord.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
@@ -53,4 +58,4 @@ copy_resources_windows:
 clean:
 	rm -rf $(BUILD_DIR_LINUX) $(BUILD_DIR_WINDOWS)
 
-.PHONY: all dirs clean linux windows copy_resources_windows
+.PHONY: all dirs clean linux windows copy_resources_windows debug

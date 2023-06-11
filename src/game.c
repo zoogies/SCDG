@@ -234,6 +234,9 @@ int mainFunction(int argc, char *argv[])
         renderAll();
     }
 
+    // shut down our own game specific stuff
+    TTF_CloseFont(pStartupFont);
+
     // main game loop has finished: shutdown engine and subsequently the game
     shutdownEngine();
     printf("\033[0;31mShut down engine.\033[0;37m\n");
