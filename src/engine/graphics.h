@@ -40,6 +40,9 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
 
+// function that clears all non engine render objects (depth >= 0)
+void clearAll(bool freeEngine);
+
 void renderAll();
 
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);

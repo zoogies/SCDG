@@ -1,13 +1,13 @@
 FEATURES:
   ENGINE:
     - backend button support
-    - clear all items from render queue with >1 depth
     LOW PRIORITY:
       - dev console
       - hot reload
   GAME:
     - main menu event handling and changing settings
     - loading from game data
+    - generic functions for reading values from save data
     - exe icon
     - rpc generic functions
       - rpc heart in corner
@@ -22,3 +22,6 @@ BUGS:
 MISC:
   - look into optimizations
   - look into bundling everything into one exe
+  - every other todo in project comments
+  - rewrite this in markdown
+  - macOS port? (difficult bc need dev tools but will look into for ben)

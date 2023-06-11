@@ -148,9 +148,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         // pause on engine splash for 2550ms (TODO: consider alternatives)
         SDL_Delay(2550); 
         
-        // remove the engine logo and title from engine renderer queue
-        removeRenderObject(engineLogo);
-        removeRenderObject(engineTitle);
+        // remove startup objects
+        clearAll(false);
     }
 
     // render everything in engine queue after splash asset removal
@@ -176,6 +175,9 @@ void shutdownEngine(){
     // free the engine font color
     free(pEngineFontColor);
     pEngineFontColor = NULL;
+
+    // remove and free ALL render objects
+    clearAll(true);
 
     // shutdown graphics
     shutdownGraphics();

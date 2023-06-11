@@ -45,6 +45,7 @@ int xOffset = 0;
 int yOffset = 0;
 
 // constructor for render objects, invoked internally by createText() and createImage()
+// NOTE: this function inserts highest depth objects at the front of the list
 void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered) {
     // debug output
     printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
@@ -117,6 +118,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
         printf("R: ");
     }
     printf("x:%d y:%d w:%d h:%d\n\n",objX,objY,objWidth,objHeight);
+    // printf("HEAD ID=%d\n",pRenderListHead->identifier); debug output showing what ID head is
 }
 
 // remove a render object from the queue by its identifier
@@ -293,6 +295,48 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
 
 //     // renderObject obj = 
 // }
+
+// function that clears all non engine render objects (depth >= 0)
+// TODO: refactor this and removeRenderObject() to send pointers to nodes to another function to genericise this
+void clearAll(bool includeEngine) {
+    // If our render list has zero items
+    if (pRenderListHead == NULL) {
+        printf("ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL");
+        return; // alarm and exit
+    }
+
+    // Initialize a previous node pointer to update pRenderListHead after deletions
+    renderObject *pPrev = NULL;
+    
+    renderObject *pCurrent = pRenderListHead;
+    while (pCurrent != NULL) {
+        if (includeEngine || pCurrent->identifier >= 0) {
+            // Delete the current object as we are either deleting everything or the current object is always deletable
+            renderObject *pToDelete = pCurrent;
+            printf("\033[0;31mRemove\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t", pToDelete->identifier);
+            pCurrent = pCurrent->pNext;
+            SDL_DestroyTexture(pToDelete->pTexture);
+            free(pToDelete);
+            // If there was a previous node, update its next pointer
+            if (pPrev != NULL) {
+                pPrev->pNext = pCurrent;
+            } else {
+                // If there was no previous node, we deleted the head, so update pRenderListHead
+                pRenderListHead = pCurrent;
+            }
+            debugOutputComplete();
+        } else {
+            // Pass as we have encountered an engine object that we don't want to delete
+            pPrev = pCurrent;
+            pCurrent = pCurrent->pNext;
+        }
+    }
+
+    // If we cleared the whole list, set the pRenderListHead to NULL
+    if (includeEngine) {
+        pRenderListHead = NULL;
+    }
+}
 
 // render everything in the scene
 void renderAll() {
