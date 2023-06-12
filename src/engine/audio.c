@@ -18,6 +18,9 @@
 // create array to hold audio chunks in memory
 Mix_Chunk *pChunks[MAX_CHANNELS] = { NULL };
 
+// counter for total chunks (used in debug)
+int totalChunks = 0;
+
 // function to initialize audio system
 void initAudio(){
     // opens the mixer to the format specified
@@ -48,6 +51,7 @@ void free_audio_chunk(int channel) {
         
         // set the channel the chunk resided in to NULL
         pChunks[channel] = NULL;
+        totalChunks--;
     }
 }
 
@@ -83,6 +87,9 @@ void playSound(const char *pFilename, int chan, int loops) {
 
     // put our channel identifier into the chunks
     pChunks[channel] = pSound;
+
+    // increment total chunks
+    totalChunks++;
 
     // Free audio memory when channel finishes
     Mix_ChannelFinished(free_audio_chunk);

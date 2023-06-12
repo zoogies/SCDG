@@ -1,9 +1,5 @@
 /*
     TODO: GRAPHICS
-    - return pointers to renderObject structs so game can modify them as they see fit
-    - look into passing a pointer for SDL color instead of the actual struct as it should
-      theoretically be faster
-    - consider having images in engine start at their center, so game has to do no calculations for finding middles of things
     - some sort of system for re render only updated renderObjects
 */
 
@@ -16,6 +12,7 @@
 
 #include "engine.h"
 #include "graphics.h"
+#include "audio.h"
 
 // define globals for file
 SDL_Window *pWindow = NULL;
@@ -27,6 +24,9 @@ button *pButtonListHead = NULL;
 
 // int that increments each renderObject created, allowing new unique id's to be assigned
 int global_id = 0;
+int objectCount = 0;
+int lastObjectCount = 0;
+int lastChunkCount = 0;
 
 // NOTE: negative global_id's are reserved for engine components, 
 // and traversing the list to clear renderObjects will only clear 
@@ -123,6 +123,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     }
     printf("x:%d y:%d w:%d h:%d\n\n",objX,objY,objWidth,objHeight);
     // printf("HEAD ID=%d\n",pRenderListHead->identifier); debug output showing what ID head is
+    objectCount++;
 }
 
 // remove a render object from the queue by its identifier
@@ -153,6 +154,7 @@ void removeRenderObject(int identifier) {
 
         // debug output
         debugOutputComplete();
+        objectCount--;
         return;
     }
 
@@ -181,6 +183,7 @@ void removeRenderObject(int identifier) {
 
         // debug output
         debugOutputComplete();
+        objectCount--;
     }
     else{
         // if we couldnt find the ID, alarm
@@ -413,6 +416,7 @@ void clearAll(bool includeEngine) {
                 pRenderListHead = pCurrent;
             }
             debugOutputComplete();
+            objectCount--;
         } else {
             // Pass as we have encountered an engine object that we don't want to delete
             pPrev = pCurrent;
@@ -442,7 +446,7 @@ void renderAll() {
     // while iteration var is not null
     while (pCurrent != NULL) {
         // check if current item is the fps counter
-        if (pCurrent->type == renderType_Text && pCurrent->identifier == -1) {
+        if (pCurrent->identifier == -1) {
             // allocate a new string
             char str[25];
                 
@@ -467,6 +471,52 @@ void renderAll() {
 
             // Update texture with the new text TODO FIXME
             pCurrent->pTexture = createTextTexture(str, pEngineFont, pEngineFontColor);
+        }
+
+        // check if current item is the render object counter
+        if (pCurrent->identifier == -2) {
+            // Check if the object count has changed
+            if (objectCount != lastObjectCount) {
+                // Update the previous object count value
+                lastObjectCount = objectCount;
+
+                // allocate a new string
+                char strObjCount[25];
+
+                // Insert the render object count number into the string
+                sprintf(strObjCount, "render objects: %d", objectCount);
+
+                // Destroy old texture to prevent memory leak
+                if (pCurrent->pTexture != NULL) {
+                    SDL_DestroyTexture(pCurrent->pTexture);
+                }
+
+                // Update texture with the new text TODO FIXME
+                pCurrent->pTexture = createTextTexture(strObjCount, pEngineFont, pEngineFontColor);
+            }
+        }
+
+        // check if current item is the audio chunk counter
+        if (pCurrent->identifier == -3) {
+            // Check if the object count has changed
+            if (totalChunks != lastChunkCount) {
+                // Update the previous object count value
+                lastChunkCount = totalChunks;
+
+                // allocate a new string
+                char strChkCount[25];
+
+                // Insert the render object count number into the string
+                sprintf(strChkCount, "audio chunks: %d", totalChunks);
+
+                // Destroy old texture to prevent memory leak
+                if (pCurrent->pTexture != NULL) {
+                    SDL_DestroyTexture(pCurrent->pTexture);
+                }
+
+                // Update texture with the new text TODO FIXME
+                pCurrent->pTexture = createTextTexture(strChkCount, pEngineFont, pEngineFontColor);
+            }
         }
 
         // render our current object

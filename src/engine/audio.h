@@ -1,6 +1,9 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
+// counter for audio chunks
+extern int totalChunks;
+
 // initialize audio components for engine
 void initAudio();
 

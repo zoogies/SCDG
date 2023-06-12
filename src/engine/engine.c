@@ -108,12 +108,20 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     SDL_Color colorWhite = {255, 255, 255, 255};
 
     // if we are in debug mode
+    // BUG/INFO: FPS COUNTER MUST ABSOLUTELY BE THE HIGHEST DEPTH OR THE RENDER ORDER FUDGES THE NUMBERS 
+    // (we need to count from the first item which is the counter to get accurate numbers (i think))
     if(debug){
         // display in console
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
         // add fps counter manually to render stack with a custom id
         addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
+
+        // add object counter (only updates when changed)
+        addRenderObject(-2, renderType_Text, 998, .0f, .1f, .15f, .1f, createTextTexture("renderObjects: 0",pEngineFont,pEngineFontColor),false);
+
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-3, renderType_Text, 997, .0f, .2f, .15f, .1f, createTextTexture("audio chunks: 0",pEngineFont,pEngineFontColor),false);
     }
 
     // debug output
