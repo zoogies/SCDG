@@ -497,6 +497,25 @@ void renderAll() {
     }
 }
 
+// function that traverses our LL of buttons and returns the highest depth
+// button clicked by ID, NULL if none
+int checkClicked(int x, int y){
+    // create a temp button pointer to increment the list
+    button *pCurrent = pButtonListHead;
+
+    // while the next struct is not null
+    while (pCurrent != NULL) {
+        // check if we have clicked inside the button
+        if (x >= pCurrent->pObject->rect.x && x <= pCurrent->pObject->rect.x + pCurrent->pObject->rect.w && y >= pCurrent->pObject->rect.y && y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h) {
+            return pCurrent->pObject->identifier; // return our current
+        }
+        // else increment
+        pCurrent = pCurrent->pNext;
+    }
+    // if no object exists with identifier, return NULL
+    return NULL;
+}
+
 // initialize graphics
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap){
     // debug output

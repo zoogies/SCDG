@@ -8,7 +8,7 @@
 - [ ] dev console
 - [ ] hot reload
 - [ ] allow log file creation (terminal window output) for playtesting
-- [ ] debug overlay counter for renderObjects and audio chunks (hovered object as well)
+- [ ] debug overlay counter for renderObjects and audio chunks (hovered object as well) (cool graphs for things like fps, memory, etc)
 - [ ] outputs when opening any type of file or image
 - [ ] allow text outlines
 - [ ] generic error output and logging functions shared. genericize all output so it can be logged as well

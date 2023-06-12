@@ -224,11 +224,23 @@ int mainFunction(int argc, char *argv[])
             if(e.type == SDL_QUIT){ // check if event is to quit
                 quit = true; // quit
             }
-            // other input handles can be created here
-            // TODO: if mouse click, run function checking if its in the bounds of
-            // any active buttons (tracked by engine in a new stack, still in renderObject
-            // stack however) and return the id of what has been clicked on so the game
-            // (which has been tracking the objects independently) can handle it
+            // for now, we will only check bounds if there was a click,
+            // this is subject to change when highlight interactions are introduced
+            if (e.type == SDL_MOUSEBUTTONDOWN) {
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    int mouseX = e.button.x;
+                    int mouseY = e.button.y;
+                    printf("\nLeft click event at (%d, %d)\n", mouseX, mouseY);
+                    // run checks on if button was clicked and get its id if we did
+                    int buttonClicked = checkClicked(mouseX, mouseY);
+                    if(buttonClicked != NULL){
+                        printf("Button %d clicked.\n", buttonClicked);
+                    }
+                    else{
+                        printf("No button clicked.\n");
+                    }
+                }
+            }
         }
         // render frame
         renderAll();

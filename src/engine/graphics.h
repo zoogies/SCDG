@@ -47,6 +47,8 @@ void clearAll(bool freeEngine);
 
 void renderAll();
 
+int checkClicked(int x, int y);
+
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);
 
 void shutdownGraphics();
