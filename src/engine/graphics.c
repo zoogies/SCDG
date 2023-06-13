@@ -47,11 +47,25 @@ int virtualHeight = 1080;
 int xOffset = 0;
 int yOffset = 0;
 
+// helper function to get renderObjectType as a string from the enum name
+char *getRenderObjectTypeString(renderObjectType type) {
+    switch (type) {
+        case renderType_Text:
+            return "Text";
+        case renderType_Image:
+            return "Image";
+        case renderType_Button:
+            return "Button";
+        default:
+            return "Unknown";
+    }
+}
+
 // constructor for render objects, invoked internally by createText() and createImage()
 // NOTE: this function inserts highest depth objects at the front of the list
 void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered) {
     // debug output
-    printf("\n\033[0;32mAdd\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
+    printf("\n\033[0;32mAdd\033[0;37m renderObject type=%s [\033[0;33mid %d\033[0;37m]\t",getRenderObjectTypeString(type),identifier);
     
     // translate our relative floats into actual screen coordinates for rendering
     // TODO: consider genericizing this into a function
@@ -347,7 +361,6 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     textRect.y = (realHeight - scaledTextHeight) / 2;
     textRect.w = scaledTextWidth;
     textRect.h = scaledTextHeight;
-    printf("x:%d, y:%d, w:%d, h:%d\n", textRect.x, textRect.y, textRect.w, textRect.h);
 
     // Render the text onto the new texture
     SDL_RenderCopy(pRenderer, textTexture, NULL, &textRect);
