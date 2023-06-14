@@ -6,12 +6,11 @@
 
 - [ ] dev console
 - [ ] hot reload
-- [ ] allow log file creation (terminal window output) for playtesting
+- [ ] finish logging and test on windows
 - [ ] debug overlay cool graphs for things like fps, memory, etc
 - [ ] outputs when opening any type of file or image
 - [ ] allow text outlines
 - [ ] generic error output and logging functions shared. genericize all output so it can be logged as well
-- [ ] render object adding list type (easy)
 - [ ] free button memory too
 
 ### GAME

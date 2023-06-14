@@ -17,6 +17,7 @@
 #include "audio.h"
 #include "graphics.h"
 #include "engine.h"
+#include "logging.h"
 
 // buffer to hold filepath strings
 // will be modified by getPath()
@@ -114,6 +115,9 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         // display in console
         printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
         
+        // initialize logging
+        log_init();
+
         // add fps counter manually to render stack with a custom id
         addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
 

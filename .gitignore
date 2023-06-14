@@ -3,3 +3,4 @@ build-win
 resources/data/savedata.json
 src/discordSDK
 resources/dlls
+resources/data/log.txt
