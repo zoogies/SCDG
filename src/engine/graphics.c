@@ -145,7 +145,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
 void removeRenderObject(int identifier) {
     // debug output
     char buffer[100];
-    sprintf(buffer, "Remove render object id=%d\n",identifier);
+    sprintf(buffer, "Remove render object id#%d\n",identifier);
     logMessage(debug, buffer);
     
     // if our render list has zero items
@@ -202,8 +202,54 @@ void removeRenderObject(int identifier) {
     else{
         // if we couldnt find the ID, alarm
         char buffer[100];
-        sprintf(buffer, "ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE",identifier);
+        sprintf(buffer, "ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE\n",identifier);
         logMessage(error, buffer);
+    }
+}
+
+void removeButton(int id){
+    // step through button LL and find which node has the ID of the renderobject passed
+    // then, we can remove that node from the LL and free it and call removeRenderObject() on the renderObject
+    if(pButtonListHead == NULL){
+        logMessage(error, "ERROR REMOVING BUTTON: HEAD IS NULL\n");
+    }
+    else{
+        button *pCurrent = pButtonListHead;
+        while(pCurrent->pNext != NULL && pCurrent->pNext->pObject->identifier != id){
+            pCurrent = pCurrent->pNext;
+        }
+        if(pCurrent->pNext != NULL){
+            button *pToDelete = pCurrent->pNext;
+            pCurrent->pNext = pToDelete->pNext;
+            free(pToDelete);
+            removeRenderObject(id);
+        }
+        else{
+            char buffer[100];
+            sprintf(buffer, "ERROR: COULD NOT FIND BUTTON WITH ID#%d TO DELETE\n",id);
+            logMessage(error, buffer);
+        }
+    }
+}
+
+// helper function for clearAll() to remove all buttons from the button LL and their render objects
+void clearAllButtons(){
+    if(pButtonListHead == NULL){
+        logMessage(error, "ERROR REMOVING ALL BUTTONS: HEAD IS NULL\n");
+    }
+    else{
+        button *pCurrent = pButtonListHead;
+        while(pCurrent != NULL){
+            button *pToDelete = pCurrent;
+            pCurrent = pCurrent->pNext;
+
+            char buffer[100];
+            sprintf(buffer, "Remove button object id#%d\n", pToDelete->pObject->identifier);
+            logMessage(debug, buffer);
+            removeRenderObject(pToDelete->pObject->identifier);
+            free(pToDelete); // free button object
+        }
+        pButtonListHead = NULL;
     }
 }
 
@@ -423,6 +469,9 @@ void clearAll(bool includeEngine) {
         logMessage(error, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
         return; // alarm and exit
     }
+
+    // attempt to clear all buttons
+    clearAllButtons();
 
     // Initialize a previous node pointer to update pRenderListHead after deletions
     renderObject *pPrev = NULL;

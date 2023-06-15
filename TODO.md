@@ -11,8 +11,8 @@
 - [ ] debug overlay cool graphs for things like fps, memory, etc
 - [ ] outputs when opening any type of file or image
 - [ ] allow text outlines
-- [ ] generic error output and logging functions shared. genericize all output so it can be logged as well
-- [ ] free button memory too
+- [ ] force errors and warnings to be all caps
+- [ ] go through and change naming conventions to be underscore lowercase instead of camel case and match c style better
 
 ### GAME
 

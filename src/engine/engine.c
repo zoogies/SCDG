@@ -116,7 +116,7 @@ void toggleOverlay(){
 
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
-void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
+void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, int windowMode, int framecap, bool skipintro){
     // initialize graphics systems, creating window renderer, etc
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
@@ -140,15 +140,18 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     // if we are in debug mode
     // BUG/INFO: FPS COUNTER MUST ABSOLUTELY BE THE HIGHEST DEPTH OR THE RENDER ORDER FUDGES THE NUMBERS 
     // (we need to count from the first item which is the counter to get accurate numbers (i think))
-    if(debug){
+    if(debugMode){
         // initialize logging
-        log_init();
+        log_init(debug);
 
         // display in console
         logMessage(debug, "Debug mode enabled.\n");
 
         // turn on debug overlay at launch in debug mode
         toggleOverlay();
+    }
+    else{
+        log_init(warning); // if we launch not in debug mode, only log warnings and errors
     }
 
     // startup audio systems
@@ -164,7 +167,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         startup noise
     */
     if(skipintro){
-        logMessage(info,"Skipping Intro.");
+        logMessage(info,"Skipping Intro.\n");
     }
     else{
         playSound(getPath("sfx/startup.mp3"),0,0); // play startup sound
@@ -173,6 +176,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);
 
         createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
+
+        // createButton(2,.5,.5,.2f,.2f,"test",pEngineFont,&colorWhite,true,getPath("images/ui/button-small.png"));
 
         // render everything in engine queue
         renderAll(); 

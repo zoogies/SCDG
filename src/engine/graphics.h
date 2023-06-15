@@ -48,6 +48,8 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);
 
+void removeButton(int id);
+
 void debugForceRefresh();
 
 void renderAll();
