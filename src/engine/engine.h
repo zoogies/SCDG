@@ -30,9 +30,6 @@ char *getPath(char *path);
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);
 
-// function to print out (complete) with "complete" displayed in green color
-void debugOutputComplete();
-
 // shutdown point for engine, shuts down all subsystems
 void shutdownEngine();
 

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // initialize a global debug flag at false
-bool debug = false;
+bool gamedebug = false;
 
 // main entry point
 int main();

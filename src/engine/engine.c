@@ -30,35 +30,28 @@ char *base_path = NULL;
 SDL_Color *pEngineFontColor = NULL;
 TTF_Font *pEngineFont = NULL;
 
-// helper function to print a positive output
-void debugOutputComplete(){
-    printf("\033[0;37m"); // set color to white
-    printf("(");
-    printf("\033[0;32m"); // set color to green
-    printf("success");
-    printf("\033[0;37m"); // set color to white
-    printf(")\n");
-}
-
 // helper function to get the screen size
 // TODO: consider moving graphics.c
 struct ScreenSize getScreenSize(){
     // initialize video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL initialization failed: %s\n", SDL_GetError());
+        logMessage(error, "SDL could not initialize!\n");
         exit(1);
     }
 
     // use video to initialize display mode
     SDL_DisplayMode displayMode;
     if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
-        printf("SDL_GetCurrentDisplayMode failed! SDL_Error: %s\n", SDL_GetError());
+        logMessage(error, "SDL_GetCurrentDisplayMode failed!\n");
+        exit(1);
     }
 
     int screenWidth = displayMode.w;
     int screenHeight = displayMode.h;
-
-    printf("Inferred sreen size: \t\t\t%dx%d\n", screenWidth, screenHeight);
+    
+    char buffer[100];
+    sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
+    logMessage(debug, buffer);
 
     // return a ScreenSize struct with the screen width and height
     struct ScreenSize screenSize = {screenWidth, screenHeight};
@@ -72,7 +65,7 @@ char *getPath(char *path){
     if(base_path == NULL){
         base_path = SDL_GetBasePath();
         if (base_path == NULL) {
-            printf("Error getting base path: %s\n", SDL_GetError());
+            logMessage(error, "Error getting base path!\n");
         }
     }
 
@@ -83,12 +76,6 @@ char *getPath(char *path){
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
-    // acknowledge engine initialization
-    debugOutputComplete();
-
-    // output engine name to terminal
-    printf("\n\033[0;33mYoyo Engine v0.0.1\033[0;37m\n");
-
     // initialize graphics systems, creating window renderer, etc
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
@@ -112,11 +99,11 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     // BUG/INFO: FPS COUNTER MUST ABSOLUTELY BE THE HIGHEST DEPTH OR THE RENDER ORDER FUDGES THE NUMBERS 
     // (we need to count from the first item which is the counter to get accurate numbers (i think))
     if(debug){
-        // display in console
-        printf("\033[0;35mDebug mode enabled.\033[0;37m\n");
-        
         // initialize logging
         log_init();
+
+        // display in console
+        logMessage(debug, "Debug mode enabled.\n");
 
         // add fps counter manually to render stack with a custom id
         addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
@@ -126,10 +113,10 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 
         // add audio chunk counter (only updates when changed)
         addRenderObject(-3, renderType_Text, 997, .0f, .2f, .15f, .1f, createTextTexture("audio chunks: 0",pEngineFont,pEngineFontColor),false);
+        
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-4, renderType_Text, 997, .0f, .3f, .15f, .1f, createTextTexture("log lines: 0",pEngineFont,pEngineFontColor),false);
     }
-
-    // debug output
-    printf("Attempting to initialize audio... \t");
 
     // startup audio systems
     initAudio();
@@ -144,7 +131,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         startup noise
     */
     if(skipintro){
-        printf("\033[0;35mSkipping Intro.\033[0;37m\n");
+        logMessage(info,"Skipping Intro.");
     }
     else{
         playSound(getPath("sfx/startup.mp3"),0,0); // play startup sound
@@ -168,12 +155,12 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
     renderAll();
 
     // debug output
-    printf("\n\033[0;35mEngine Fully Initialized.\033[0;37m\n\n");
+    logMessage(info, "Engine Fully Initialized.\n");
 } // control is now resumed by the game
 
 // function that shuts down all engine subsystems and components ()
 void shutdownEngine(){
-    printf("\nSHUTTING DOWN ENGINE!\n");
+    logMessage(info, "Shutting down engine...\n");
 
     /*
         TECHNICALLY this might not have been called unless getPath() 
@@ -183,7 +170,6 @@ void shutdownEngine(){
         which case it doesnt matter because its called in the game 
         and nobody will ever use this engine :P
     */
-    SDL_free(base_path);
 
     // free the engine font color
     free(pEngineFontColor);
@@ -194,13 +180,17 @@ void shutdownEngine(){
 
     // shutdown graphics
     shutdownGraphics();
-    printf("\033[0;31mShut down graphics.\033[0;37m\n");
+    logMessage(info, "Shut down graphics.\n");
 
     // shutdown audio
     shutdownAudio();
-    printf("\033[0;31mShut down audio.\033[0;37m\n");
+    logMessage(info, "Shut down audio.\n");
+
+    // shutdown logging
+    // note: must happen before SDL because it relies on SDL path to open file
+    log_shutdown();
+    SDL_free(base_path); // free base path after (used by logging)
 
     // quit SDL (should destroy anything else i forget)
     SDL_Quit();
-    printf("\033[0;31mShut down SDL.\033[0;37m\n");
 }

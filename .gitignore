@@ -4,3 +4,4 @@ resources/data/savedata.json
 src/discordSDK
 resources/dlls
 resources/data/log.txt
+resources/data/debug.log

@@ -13,6 +13,7 @@
 #include "engine.h"
 #include "graphics.h"
 #include "audio.h"
+#include "logging.h"
 
 // define globals for file
 SDL_Window *pWindow = NULL;
@@ -27,6 +28,7 @@ int global_id = 0;
 int objectCount = 0;
 int lastObjectCount = 0;
 int lastChunkCount = 0;
+int lastLinesWritten = 0;
 
 // NOTE: negative global_id's are reserved for engine components, 
 // and traversing the list to clear renderObjects will only clear 
@@ -64,9 +66,6 @@ char *getRenderObjectTypeString(renderObjectType type) {
 // constructor for render objects, invoked internally by createText() and createImage()
 // NOTE: this function inserts highest depth objects at the front of the list
 void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered) {
-    // debug output
-    printf("\n\033[0;32mAdd\033[0;37m renderObject type=%s [\033[0;33mid %d\033[0;37m]\t",getRenderObjectTypeString(type),identifier);
-    
     // translate our relative floats into actual screen coordinates for rendering
     // TODO: consider genericizing this into a function
     int objX = (int)(x * (float)virtualWidth); // + xOffset;
@@ -127,27 +126,29 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
         */
     }
     
-    // debug output
-    debugOutputComplete();
     if(centered){
-        printf("C: ");
+        char buffer[100];
+        sprintf(buffer, "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        logMessage(debug, buffer);
     }
     else{
-        printf("R: ");
+        char buffer[100];
+        sprintf(buffer, "Added renderObject %s id#%d absolutely at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        logMessage(debug, buffer);
     }
-    printf("x:%d y:%d w:%d h:%d\n\n",objX,objY,objWidth,objHeight);
-    // printf("HEAD ID=%d\n",pRenderListHead->identifier); debug output showing what ID head is
     objectCount++;
 }
 
 // remove a render object from the queue by its identifier
 void removeRenderObject(int identifier) {
     // debug output
-    printf("\033[0;31mRemove\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t",identifier);
+    char buffer[100];
+    sprintf(buffer, "Remove render object id=%d\n",identifier);
+    logMessage(debug, buffer);
     
     // if our render list has zero items
     if (pRenderListHead == NULL) {
-        printf("ERROR REMOVING RENDER OBJECT: HEAD IS NULL");
+        logMessage(error, "ERROR REMOVING RENDER OBJECT: HEAD IS NULL\n");
         return;
         // alarm and pass
     }
@@ -166,8 +167,7 @@ void removeRenderObject(int identifier) {
         // free our previous head from memory
         free(pToDelete);
 
-        // debug output
-        debugOutputComplete();
+        // finalize
         objectCount--;
         return;
     }
@@ -195,13 +195,13 @@ void removeRenderObject(int identifier) {
         // free our node from memory
         free(pToDelete);
 
-        // debug output
-        debugOutputComplete();
         objectCount--;
     }
     else{
         // if we couldnt find the ID, alarm
-        printf("ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE",identifier);
+        char buffer[100];
+        sprintf(buffer, "ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE",identifier);
+        logMessage(error, buffer);
     }
 }
 
@@ -226,7 +226,9 @@ renderObject *getRenderObject(int identifier) {
 TTF_Font *loadFont(const char *pFontPath, int fontSize) {
     TTF_Font *pFont = TTF_OpenFont(pFontPath, fontSize);
     if (pFont == NULL) {
-        printf("Failed to load font: %s\n", TTF_GetError());
+        char buffer[100];
+        sprintf(buffer, "Failed to load font: %s\n", TTF_GetError());
+        logMessage(error, buffer);
         return NULL;
     }
     return pFont;
@@ -239,7 +241,9 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
     
     // error out if surface creation failed
     if (pSurface == NULL) {
-        printf("Failed to render text: %s\n", TTF_GetError());
+        char buffer[100];
+        sprintf(buffer, "Failed to render text: %s\n", TTF_GetError());
+        logMessage(error, buffer);
         return NULL;
     }
 
@@ -248,7 +252,9 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
 
     // error out if texture creation failed
     if (pTexture == NULL) {
-        printf("Failed to create texture: %s\n", SDL_GetError());
+        char buffer[100];
+        sprintf(buffer, "Failed to create texture: %s\n", SDL_GetError());
+        logMessage(error, buffer);
         return NULL;
     }
 
@@ -266,7 +272,9 @@ SDL_Texture *createImageTexture(const char *pPath) {
     
     // error out if surface load failed
     if (!pImage_surface) {
-        printf("Error loading image: %s\n", IMG_GetError());
+        char buffer[100];
+        sprintf(buffer, "Error loading image: %s\n", IMG_GetError());
+        logMessage(error, buffer);
         return NULL;
     }
 
@@ -275,7 +283,9 @@ SDL_Texture *createImageTexture(const char *pPath) {
     
     // error out if texture creation failed
     if (!pTexture) {
-        printf("Error creating texture: %s\n", SDL_GetError());
+        char buffer[100];
+        sprintf(buffer, "Error creating texture: %s\n", SDL_GetError());
+        logMessage(error, buffer);
         return NULL;
     }
 
@@ -317,14 +327,14 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     SDL_Texture *textTexture = createTextTexture(pText, pFont, pColor);
 
     if (textTexture == NULL) {
-        printf("ERROR CREATING TEXT TEXTURE\n");
+        logMessage(error, "ERROR CREATING TEXT TEXTURE FOR BUTTON\n");
         return NULL;
     }
 
     SDL_Texture *pImageTexture = createImageTexture(pBackgroundPath);
 
     if(pImageTexture == NULL){
-        printf("ERROR CREATING IMAGE TEXTURE\n");
+        logMessage(error, "ERROR CREATING IMAGE TEXTURE FOR BUTTON\n");
         SDL_DestroyTexture(textTexture);
         return NULL;
     }
@@ -332,7 +342,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     SDL_Texture* buttonTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, realWidth, realHeight);
 
     if (buttonTexture == NULL) {
-        printf("ERROR CREATING BUTTON TEXTURE\n");
+        logMessage(error, "ERROR CREATING BUTTON TEXTURE\n");
         SDL_DestroyTexture(textTexture);
         return NULL;
     }
@@ -405,7 +415,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 void clearAll(bool includeEngine) {
     // If our render list has zero items
     if (pRenderListHead == NULL) {
-        printf("ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL");
+        logMessage(error, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
         return; // alarm and exit
     }
 
@@ -417,7 +427,11 @@ void clearAll(bool includeEngine) {
         if (includeEngine || pCurrent->identifier >= 0) {
             // Delete the current object as we are either deleting everything or the current object is always deletable
             renderObject *pToDelete = pCurrent;
-            printf("\033[0;31mRemove\033[0;37m render object [\033[0;33mid %d\033[0;37m]\t\t", pToDelete->identifier);
+
+            char buffer[100];
+            sprintf(buffer, "Remove render object id#%d\n",pToDelete->identifier);
+            logMessage(debug, buffer);
+
             pCurrent = pCurrent->pNext;
             SDL_DestroyTexture(pToDelete->pTexture);
             free(pToDelete);
@@ -428,7 +442,7 @@ void clearAll(bool includeEngine) {
                 // If there was no previous node, we deleted the head, so update pRenderListHead
                 pRenderListHead = pCurrent;
             }
-            debugOutputComplete();
+
             objectCount--;
         } else {
             // Pass as we have encountered an engine object that we don't want to delete
@@ -443,6 +457,7 @@ void clearAll(bool includeEngine) {
     }
 }
 
+//TODO: OPTIMIZATION -> switch if clauses because currently ID always runs but the inside case isnt always true
 // render everything in the scene
 void renderAll() {
     int frameStart = SDL_GetTicks();
@@ -532,6 +547,30 @@ void renderAll() {
             }
         }
 
+        // check if current item is the log lines
+        // TODO: in the future this is where a dev console with log output could be
+        if (pCurrent->identifier == -4) {
+            // Check if the object count has changed
+            if (linesWritten != lastLinesWritten) {
+                // Update the previous object count value
+                lastLinesWritten = linesWritten;
+
+                // allocate a new string
+                char strLinCount[25];
+
+                // Insert the render object count number into the string
+                sprintf(strLinCount, "log lines: %d", linesWritten);
+
+                // Destroy old texture to prevent memory leak
+                if (pCurrent->pTexture != NULL) {
+                    SDL_DestroyTexture(pCurrent->pTexture);
+                }
+
+                // Update texture with the new text TODO FIXME
+                pCurrent->pTexture = createTextTexture(strLinCount, pEngineFont, pEngineFontColor);
+            }
+        }
+
         // render our current object
         SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
         
@@ -581,30 +620,26 @@ int checkClicked(int x, int y){
 
 // initialize graphics
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap){
-    // debug output
-    printf("Attempting to initialize SDL... \t");
-
     // test for video init, alarm if failed
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL initialization failed: %s\n", SDL_GetError());
+        char buffer[100];
+        sprintf(buffer, "SDL initialization failed: %s\n", SDL_GetError());
+        logMessage(debug, buffer);
         exit(1);
     }
 
-    // debug: acknowledge SDL initialization
-    debugOutputComplete(); 
+    logMessage(info, "SDL initialized.\n");
 
     // test for window init, alarm if failed
-    printf("Attempting to initialize window... \t");
     pWindow = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | windowMode);
     if (pWindow == NULL) {
-        printf("Window creation failed: %s\n", SDL_GetError()); // catch creation error
+        char buffer[100];
+        sprintf(buffer, "Window creation failed: %s\n", SDL_GetError());
+        logMessage(debug, buffer);
         exit(1);
     }
-    // debug: acknowledge window initialization
-    debugOutputComplete();
-
-    // test for renderer init, alarm if failed
-    printf("Attempting to initialize renderer...\n");
+    
+    logMessage(info, "Window initialized.\n");
     
     // set our fps cap to the frame cap param
     // (-1) for vsync
@@ -613,21 +648,22 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
     // if vsync is on
     if(fpscap == -1) {
-        printf("Starting renderer with vsync... \t");
+        logMessage(info, "Starting renderer with vsync... \n");
         pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     }
     else {
-        printf("Starting renderer with maxfps %d... \t",framecap);
+        char buffer[100];
+        sprintf(buffer, "Starting renderer with maxfps %d... \n",framecap);
+        logMessage(debug, buffer);
         pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED);
     }
 
     if (pRenderer == NULL) {
-        printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+        char buffer[100];
+        sprintf(buffer, "Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+        logMessage(error, buffer);
         exit(1);
     }
-
-    // debug: acknowledge renderer initialization
-    debugOutputComplete();
 
     // get our current aspect ratio
     float currentAspectRatio = (float)screenWidth / (float)screenHeight;
@@ -648,9 +684,13 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     }
 
     // debug outputs
-    printf("Targeting aspect ratio: %f\n",targetAspectRatio);
-    printf("Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
-    printf("(unused) X offset: %d\n(unused) Y offset: %d\n",xOffset,yOffset);
+    char buffer[100];
+    sprintf(buffer, "Targeting aspect ratio: %f\n",targetAspectRatio);
+    logMessage(debug, buffer);
+    sprintf(buffer, "Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
+    logMessage(debug, buffer);
+    sprintf(buffer, "(unused) offset: %dx%d\n",xOffset,yOffset);
+    logMessage(debug, buffer);
 
     // setup viewport with our virtual resolutions
     SDL_Rect viewport;
@@ -661,32 +701,28 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     SDL_RenderSetViewport(pRenderer, &viewport);
     
     // test for TTF init, alarm if failed
-    printf("Attempting to initialize TTF... \t");
     if (TTF_Init() == -1) {
-        printf("SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
+        char buffer[100];
+        sprintf(buffer, "SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
+        logMessage(error, buffer);
         exit(1);
     }
+    logMessage(info, "TTF initialized.\n");
 
-    // debug: acknowledge TTF initialization
-    debugOutputComplete();
-
-    // test for IMG init, alarm if failed
-    printf("Attempting to initialize IMG... \t");
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
-        SDL_Log("IMG_Init error: %s", IMG_GetError());
+        char buffer[100];
+        sprintf(buffer, "IMG_Init error: %s", IMG_GetError());
+        logMessage(error, buffer);
         exit(1);
     }
-
-    // debug: acknowledge IMG initialization
-    debugOutputComplete();
-
-    // test for setting window icon, alarm if failed
-    printf("Attempting to set window icon... \t");
+    logMessage(info, "IMG initialized.\n");
 
     // load icon to surface
     SDL_Surface *pIconSurface = IMG_Load(getPath("images/icon.png"));
     if (pIconSurface == NULL) {
-        SDL_Log("IMG_Load error: %s", IMG_GetError());
+        char buffer[100];
+        sprintf(buffer, "IMG_Load error: %s", IMG_GetError());
+        logMessage(error, buffer);
         exit(1);
     }
     // set icon
@@ -695,8 +731,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     // release surface
     SDL_FreeSurface(pIconSurface);
 
-    // debug: acknowledge window icon initialization
-    debugOutputComplete();
+    logMessage(info, "Window icon set.\n");
 
     // set a start time for counting fps
     startTime = SDL_GetTicks();
@@ -706,17 +741,17 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 void shutdownGraphics(){
     // shutdown TTF
     TTF_Quit();
-    printf("\033[0;31mShut down TFT.\033[0;37m\n");
+    logMessage(info, "Shut down TTF.\n");
 
     // shutdown IMG
     IMG_Quit();
-    printf("\033[0;31mShut down IMG.\033[0;37m\n");
+    logMessage(info, "Shut down IMG.\n");
 
     // shutdown renderer
     SDL_DestroyRenderer(pRenderer);
-    printf("\033[0;31mRenderer destroyed.\033[0;37m\n");
+    logMessage(info, "Shut down renderer.\n");
 
     // shutdown window
     SDL_DestroyWindow(pWindow);
-    printf("\033[0;31mWindow destroyed.\033[0;37m\n");
+    logMessage(info, "Shut down window.\n");
 }

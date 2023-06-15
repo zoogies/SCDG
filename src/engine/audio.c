@@ -11,6 +11,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "engine.h"
+#include "logging.h"
 
 // define the max number of audio channels
 #define MAX_CHANNELS 16
@@ -27,20 +28,24 @@ void initAudio(){
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) 
     {
         // catch failure
-        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        char buffer[100];
+        sprintf(buffer, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        logMessage(error, buffer);
     }
     // allocate our desired max channels to the mixer
     Mix_AllocateChannels(MAX_CHANNELS);
 
     // debug: acknowledge audio initialization
-    debugOutputComplete(); 
+    logMessage(info, "Audio initialized.\n");
 }
 
 // function to free audio chunk from memory by channel
 void free_audio_chunk(int channel) {
     // if the channel is invalid
     if (channel < 0 || channel >= MAX_CHANNELS) {
-        printf("ERROR: INVALID CHANNEL TO FREE AUDIO CHUNK");
+        char buffer[100];
+        sprintf(buffer, "Invalid channel (%d) to free audio chunk.\n", channel);
+        logMessage(error, buffer);
         return; // pass
     }
 
@@ -63,7 +68,9 @@ void playSound(const char *pFilename, int chan, int loops) {
     
     // if opening failed
     if (pSound == NULL) {
-        printf("Error loading audio file: %s\n", Mix_GetError());
+        char buffer[100];
+        sprintf(buffer, "Error loading audio file: %s\n", Mix_GetError());
+        logMessage(error, buffer);
         return; // alarm in console and pass
     }
     
@@ -73,14 +80,16 @@ void playSound(const char *pFilename, int chan, int loops) {
     
     // if playing failed (assigned channel -1)
     if (channel == -1) {
-        printf("Error playing audio file: %s\n", Mix_GetError());
+        char buffer[100];
+        sprintf(buffer, "Error playing audio file: %s\n", Mix_GetError());
+        logMessage(error, buffer);
         Mix_FreeChunk(pSound);
         return; // alarm in console, free the allocated chunk and pass
     }
 
     // if the channel assigned was out of bounds
     if(channel < 0 || channel >= MAX_CHANNELS){
-        printf("Error: channel index out of bounds\n");
+        logMessage(error, "Error: channel index out of bounds\n");
         Mix_FreeChunk(pSound);
         return; // free the allocated chunk and pass
     }
@@ -97,16 +106,17 @@ void playSound(const char *pFilename, int chan, int loops) {
 
 // set a specific (or all channels if passed -1) volume level 0-128 
 void setVolume(int channel, int volume){
-    printf("Setting volume of channel %d to %d.\t",channel,volume);
+    char buffer[100];
+    sprintf(buffer, "Setting volume of channel %d to %d.\n",channel,volume);
+    logMessage(debug, buffer);
     Mix_Volume(channel,volume);
-    debugOutputComplete();
 }
 
 // shut down all audio systems and free all audio chunks
 void shutdownAudio(){
     // Halt all playing channels
     Mix_HaltChannel(-1);
-    printf("\033[0;31mHalted playing channels.\033[0;37m\n");
+    logMessage(debug, "Halted playing all channels.\n");
 
 
     // Free all audio chunks in the chunks array
@@ -119,5 +129,5 @@ void shutdownAudio(){
 
     // Close the audio mixer
     Mix_CloseAudio();
-    printf("\033[0;31mMixer closed.\033[0;37m\n");
+    logMessage(info, "Mixer closed.\n");
 }

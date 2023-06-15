@@ -1,12 +1,19 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
+extern int linesWritten;
+
+enum logLevel {
+    debug,
+    info,
+    warning,
+    error
+};
+
 void log_init();
 
-// void log_info(const char *pMessage);
+void log_shutdown();
 
-// void log_error(const char *pMessage);
-
-// log render object lists and button lists?
+void logMessage(enum logLevel level, const char *text);
 
 #endif

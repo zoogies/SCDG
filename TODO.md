@@ -6,7 +6,8 @@
 
 - [ ] dev console
 - [ ] hot reload
-- [ ] finish logging and test on windows
+- [ ] test logging on windows
+- [ ] logging before SDL init
 - [ ] debug overlay cool graphs for things like fps, memory, etc
 - [ ] outputs when opening any type of file or image
 - [ ] allow text outlines
