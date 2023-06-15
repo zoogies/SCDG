@@ -34,6 +34,9 @@ renderObject *getRenderObject(int identifier);
 
 TTF_Font *loadFont(const char *pFontPath, int fontSize);
 
+// Create a texture from image path, returns NULL for failure
+SDL_Texture *createImageTexture(const char *pPath);
+
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor);
 
 int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered);
@@ -44,6 +47,8 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);
+
+void debugForceRefresh();
 
 void renderAll();
 

@@ -19,6 +19,7 @@ struct Application app;
 
 void DISCORD_CALLBACK UpdateActivityCallback(void* data, enum EDiscordResult result)
 {
+    (void)data; // Use the unused parameter to suppress warning
     if (result != DiscordResult_Ok) {
         printf("Error updating Discord activity: %d\n", result);
     }

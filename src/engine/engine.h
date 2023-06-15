@@ -8,12 +8,15 @@
 
 #include "graphics.h"
 
+#define intFail -666 // define global engine int fail num
+
 /*
     Reserve an internal font and color for the engine to use rendering
     overlays such as the fpsCounter. Font NULL until initialized in init()
 */
 extern SDL_Color *pEngineFontColor;
 extern TTF_Font *pEngineFont;
+extern TTF_Font *pEngineFont2;
 
 // struct to hold screen points
 struct ScreenSize {
@@ -26,6 +29,8 @@ struct ScreenSize getScreenSize();
 
 // returns the char * path to a resource specified in relation to root dir
 char *getPath(char *path);
+
+void toggleOverlay();
 
 // entry point to the engine, initializes all subsystems
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro);

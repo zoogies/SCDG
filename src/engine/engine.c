@@ -29,6 +29,10 @@ char *base_path = NULL;
 // initialize engine internal variable globals to NULL
 SDL_Color *pEngineFontColor = NULL;
 TTF_Font *pEngineFont = NULL;
+TTF_Font *pEngineFont2 = NULL;
+
+// debug overlay state controller
+bool debugOverlay = false;
 
 // helper function to get the screen size
 // TODO: consider moving graphics.c
@@ -73,6 +77,43 @@ char *getPath(char *path){
     return path_buffer;
 }
 
+void toggleOverlay(){
+    if(debugOverlay){
+        logMessage(debug, "Toggled Debug Overlay Off.\n");
+        // remove all items in debug overlay
+        removeRenderObject(-1);
+        removeRenderObject(-2);
+        removeRenderObject(-3);
+        removeRenderObject(-4);
+        removeRenderObject(-5);
+        removeRenderObject(-900);
+    }
+    else{
+        logMessage(debug, "Toggled Debug Overlay On.\n");
+        // add fps counter manually to render stack with a custom id
+        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .12f, .08f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
+
+        // add object counter (only updates when changed)
+        addRenderObject(-2, renderType_Text, 998, .0f, .07f, .12f, .08f, createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor),false);
+
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-3, renderType_Text, 997, .0f, .14f, .12f, .08f, createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor),false);
+        
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-4, renderType_Text, 997, .0f, .21f, .12f, .08f, createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor),false);
+
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-5, renderType_Text, 997, .0f, .28f, .12f, .08f, createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor),false);
+    
+        // add back panel to debug overlay
+        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, createImageTexture(getPath("images/ui/dimpanel.png")),false);
+
+        // force overlay refresh or text will be default
+        debugForceRefresh();
+    }
+    debugOverlay = !debugOverlay;
+}
+
 // engine entry point, takes in the screenWidth, screenHeight and a bool flag for
 // starting in debug mode
 void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int windowMode, int framecap, bool skipintro){
@@ -81,6 +122,7 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
 
     // load a font for use in engine (value of global in engine.h modified)
     pEngineFont = loadFont(getPath("fonts/Nunito-Bold.ttf"), 500);
+    pEngineFont2 = loadFont(getPath("fonts/Nunito-Regular.ttf"), 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -105,20 +147,8 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         // display in console
         logMessage(debug, "Debug mode enabled.\n");
 
-        // add fps counter manually to render stack with a custom id
-        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .15f, .1f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
-
-        // add object counter (only updates when changed)
-        addRenderObject(-2, renderType_Text, 998, .0f, .1f, .15f, .1f, createTextTexture("renderObjects: 0",pEngineFont,pEngineFontColor),false);
-
-        // add audio chunk counter (only updates when changed)
-        addRenderObject(-3, renderType_Text, 997, .0f, .2f, .15f, .1f, createTextTexture("audio chunks: 0",pEngineFont,pEngineFontColor),false);
-        
-        // add audio chunk counter (only updates when changed)
-        addRenderObject(-4, renderType_Text, 997, .0f, .3f, .15f, .1f, createTextTexture("log lines: 0",pEngineFont,pEngineFontColor),false);
-
-        // add audio chunk counter (only updates when changed)
-        addRenderObject(-5, renderType_Text, 997, .0f, .4f, .15f, .1f, createTextTexture("paint time: 0ms",pEngineFont,pEngineFontColor),false);
+        // turn on debug overlay at launch in debug mode
+        toggleOverlay();
     }
 
     // startup audio systems
@@ -140,9 +170,9 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         playSound(getPath("sfx/startup.mp3"),0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
-        const int engineLogo = createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);
+        createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);
 
-        const int engineTitle = createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
+        createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
 
         // render everything in engine queue
         renderAll(); 

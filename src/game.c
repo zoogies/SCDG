@@ -237,16 +237,23 @@ int mainFunction(int argc, char *argv[])
                     int mouseY = e.button.y;
                     // run checks on if button was clicked and get its id if we did
                     int buttonClicked = checkClicked(mouseX, mouseY);
-                    if(buttonClicked != NULL){
+                    if(buttonClicked != intFail){
                         char buffer[100];
                         sprintf(buffer, "Left click event at (%d, %d) hit button id#%d\n", mouseX, mouseY,buttonClicked);
                         logMessage(debug, buffer);
                     }
                     else{
                         char buffer[100];
-                        sprintf(buffer, "Left click event at (%d, %d) miss\n", mouseX, mouseY,buttonClicked);
+                        sprintf(buffer, "Left click event at (%d, %d) miss\n", mouseX, mouseY);
                         logMessage(debug, buffer);
                     }
+                }
+            }
+            if (e.type == SDL_KEYDOWN) {
+                // if key is backtick we want to toggle debug overlay
+                if (e.key.keysym.sym == SDLK_BACKQUOTE) {
+                    // Backtick key is pressed
+                    toggleOverlay();
                 }
             }
         }

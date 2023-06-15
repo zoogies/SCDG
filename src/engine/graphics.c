@@ -49,6 +49,8 @@ int virtualHeight = 1080;
 int xOffset = 0;
 int yOffset = 0;
 
+bool forceRefresh = false;
+
 // helper function to get renderObjectType as a string from the enum name
 char *getRenderObjectTypeString(renderObjectType type) {
     switch (type) {
@@ -231,6 +233,9 @@ TTF_Font *loadFont(const char *pFontPath, int fontSize) {
         logMessage(error, buffer);
         return NULL;
     }
+    char buffer[100];
+    sprintf(buffer, "Loaded font: %s\n", pFontPath);
+    logMessage(debug, buffer);
     return pFont;
 }
 
@@ -319,8 +324,8 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
 */
 int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath) {
     // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
-    int realX = (int)(x * (float)virtualWidth); // + xOffset;
-    int realY = (int)(y * (float)virtualHeight); // + yOffset;
+    // int realX = (int)(x * (float)virtualWidth); // + xOffset;
+    // int realY = (int)(y * (float)virtualHeight); // + yOffset;
     int realWidth = (int)(width * (float)virtualWidth);
     int realHeight = (int)(height * (float)virtualHeight);
 
@@ -328,7 +333,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
     if (textTexture == NULL) {
         logMessage(error, "ERROR CREATING TEXT TEXTURE FOR BUTTON\n");
-        return NULL;
+        return intFail;
     }
 
     SDL_Texture *pImageTexture = createImageTexture(pBackgroundPath);
@@ -336,7 +341,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     if(pImageTexture == NULL){
         logMessage(error, "ERROR CREATING IMAGE TEXTURE FOR BUTTON\n");
         SDL_DestroyTexture(textTexture);
-        return NULL;
+        return intFail;
     }
 
     SDL_Texture* buttonTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, realWidth, realHeight);
@@ -344,7 +349,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     if (buttonTexture == NULL) {
         logMessage(error, "ERROR CREATING BUTTON TEXTURE\n");
         SDL_DestroyTexture(textTexture);
-        return NULL;
+        return intFail;
     }
 
     // Set the new texture as the render target
@@ -457,6 +462,11 @@ void clearAll(bool includeEngine) {
     }
 }
 
+// function to allow externel signal to force display refresh for debug overlay
+void debugForceRefresh(){
+    forceRefresh = true;
+}
+
 //TODO: OPTIMIZATION -> switch if clauses because currently ID always runs but the inside case isnt always true
 // render everything in the scene
 void renderAll() {
@@ -501,13 +511,13 @@ void renderAll() {
             }
 
             // Update texture with the new text TODO FIXME
-            pCurrent->pTexture = createTextTexture(str, pEngineFont, pEngineFontColor);
+            pCurrent->pTexture = createTextTexture(str, pEngineFont2, pEngineFontColor);
         }
 
         // check if current item is the render object counter
         if (pCurrent->identifier == -2) {
             // Check if the object count has changed
-            if (objectCount != lastObjectCount) {
+            if (objectCount != lastObjectCount || forceRefresh) {
                 // Update the previous object count value
                 lastObjectCount = objectCount;
 
@@ -523,14 +533,14 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strObjCount, pEngineFont, pEngineFontColor);
+                pCurrent->pTexture = createTextTexture(strObjCount, pEngineFont2, pEngineFontColor);
             }
         }
 
         // check if current item is the audio chunk counter
         if (pCurrent->identifier == -3) {
             // Check if the object count has changed
-            if (totalChunks != lastChunkCount) {
+            if (totalChunks != lastChunkCount || forceRefresh) {
                 // Update the previous object count value
                 lastChunkCount = totalChunks;
 
@@ -546,7 +556,7 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strChkCount, pEngineFont, pEngineFontColor);
+                pCurrent->pTexture = createTextTexture(strChkCount, pEngineFont2, pEngineFontColor);
             }
         }
 
@@ -554,7 +564,7 @@ void renderAll() {
         // TODO: in the future this is where a dev console with log output could be
         if (pCurrent->identifier == -4) {
             // Check if the object count has changed
-            if (linesWritten != lastLinesWritten) {
+            if (linesWritten != lastLinesWritten || forceRefresh) {
                 // Update the previous object count value
                 lastLinesWritten = linesWritten;
 
@@ -570,7 +580,7 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strLinCount, pEngineFont, pEngineFontColor);
+                pCurrent->pTexture = createTextTexture(strLinCount, pEngineFont2, pEngineFontColor);
             }
         }
 
@@ -600,7 +610,7 @@ void renderAll() {
                     SDL_DestroyTexture(pCurrent->pTexture);
                 }
 
-                pCurrent->pTexture = createTextTexture(paintTimeString, pEngineFont, pEngineFontColor);
+                pCurrent->pTexture = createTextTexture(paintTimeString, pEngineFont2, pEngineFontColor);
 
                 // Render the updated paint time texture
                 SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
@@ -631,6 +641,11 @@ void renderAll() {
             SDL_Delay(desiredFrameTime - frameTime);
         }
     }
+
+    if(forceRefresh){
+        forceRefresh = false;
+    }
+
 }
 
 // function that traverses our LL of buttons and returns the highest depth
@@ -649,7 +664,7 @@ int checkClicked(int x, int y){
         pCurrent = pCurrent->pNext;
     }
     // if no object exists with identifier, return NULL
-    return NULL;
+    return intFail;
 }
 
 // initialize graphics
