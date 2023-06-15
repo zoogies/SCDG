@@ -471,6 +471,9 @@ void renderAll() {
     // create iteration var for render list
     renderObject *pCurrent = pRenderListHead;
 
+    // Get paint start timestamp
+    Uint32 paintStartTime = SDL_GetTicks();
+
     // while iteration var is not null
     while (pCurrent != NULL) {
         // check if current item is the fps counter
@@ -576,6 +579,37 @@ void renderAll() {
         
         // increment
         pCurrent = pCurrent->pNext;
+    }
+
+    // Get paint end timestamp
+    Uint32 paintEndTime = SDL_GetTicks();
+
+    // Calculate paint time
+    Uint32 paintTime = paintEndTime - paintStartTime;
+
+    if (SDL_GetTicks() - fpsUpdateTime >= 250) {
+        // Update ID -5 texture with paint time
+        pCurrent = pRenderListHead;
+        while (pCurrent != NULL) {
+            if (pCurrent->identifier == -5) {
+                char paintTimeString[30];
+
+                sprintf(paintTimeString, "paint time: %d ms", paintTime);
+
+                if (pCurrent->pTexture != NULL) {
+                    SDL_DestroyTexture(pCurrent->pTexture);
+                }
+
+                pCurrent->pTexture = createTextTexture(paintTimeString, pEngineFont, pEngineFontColor);
+
+                // Render the updated paint time texture
+                SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
+
+                break;
+            }
+
+            pCurrent = pCurrent->pNext;
+        }
     }
 
     // present our new changes to the renderer

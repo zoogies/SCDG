@@ -235,14 +235,17 @@ int mainFunction(int argc, char *argv[])
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     int mouseX = e.button.x;
                     int mouseY = e.button.y;
-                    printf("\nLeft click event at (%d, %d)\n", mouseX, mouseY);
                     // run checks on if button was clicked and get its id if we did
                     int buttonClicked = checkClicked(mouseX, mouseY);
                     if(buttonClicked != NULL){
-                        printf("Button %d clicked.\n", buttonClicked);
+                        char buffer[100];
+                        sprintf(buffer, "Left click event at (%d, %d) hit button id#%d\n", mouseX, mouseY,buttonClicked);
+                        logMessage(debug, buffer);
                     }
                     else{
-                        printf("No button clicked.\n");
+                        char buffer[100];
+                        sprintf(buffer, "Left click event at (%d, %d) miss\n", mouseX, mouseY,buttonClicked);
+                        logMessage(debug, buffer);
                     }
                 }
             }

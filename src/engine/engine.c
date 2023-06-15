@@ -116,6 +116,9 @@ void initEngine(int screenWidth, int screenHeight, bool debug, int volume, int w
         
         // add audio chunk counter (only updates when changed)
         addRenderObject(-4, renderType_Text, 997, .0f, .3f, .15f, .1f, createTextTexture("log lines: 0",pEngineFont,pEngineFontColor),false);
+
+        // add audio chunk counter (only updates when changed)
+        addRenderObject(-5, renderType_Text, 997, .0f, .4f, .15f, .1f, createTextTexture("paint time: 0ms",pEngineFont,pEngineFontColor),false);
     }
 
     // startup audio systems
