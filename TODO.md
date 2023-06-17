@@ -5,10 +5,9 @@
 ### ENGINE
 
 - [ ] dev console
-- [ ] hot reload
+- [ ] hot reload (possible, python C pid monitoring script)
 - [ ] test logging on windows
 - [ ] logging before SDL init
-- [ ] debug overlay cool graphs for things like fps, memory, etc
 - [ ] outputs when opening any type of file or image
 - [ ] allow text outlines
 - [ ] force errors and warnings to be all caps
@@ -33,8 +32,6 @@
 
 ### GENERIC
 
-- [ ] ultrawide bug where alt tabbing decenters the renderer in the window
-
 ### ASSUMED
 
 - [ ] im guessing that linux build without deps does not work (windows needs dlls)
@@ -46,3 +43,5 @@
 - [ ] every other todo in project comments
 - [ ] macOS port? (difficult bc need dev tools but will look into for ben)
 - [ ] convert all spaces to tabs and setup auto formatter
+
+can i just shutdown engine systems from the game and then reset them? like if i want to change the window size or mode i could end the renderer and then restart it with the new settings? or would that be too slow? i think it would be fine but i need to test it

@@ -706,7 +706,11 @@ int checkClicked(int x, int y){
     // while the next struct is not null
     while (pCurrent != NULL) {
         // check if we have clicked inside the button
-        if (x >= pCurrent->pObject->rect.x && x <= pCurrent->pObject->rect.x + pCurrent->pObject->rect.w && y >= pCurrent->pObject->rect.y && y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h) {
+        if (x >= pCurrent->pObject->rect.x +xOffset &&
+            x <= pCurrent->pObject->rect.x + pCurrent->pObject->rect.w +xOffset &&
+            y >= pCurrent->pObject->rect.y +yOffset &&
+            y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
+        {
             return pCurrent->pObject->identifier; // return our current
         }
         // else increment
@@ -714,6 +718,44 @@ int checkClicked(int x, int y){
     }
     // if no object exists with identifier, return NULL
     return intFail;
+}
+
+// method to ensure our game content is centered and scaled well
+void setViewport(int screenWidth, int screenHeight){
+    // get our current aspect ratio
+    float currentAspectRatio = (float)screenWidth / (float)screenHeight;
+
+    // if aspect ratio is too wide
+    if (currentAspectRatio >= targetAspectRatio) {
+        // set our width to be the max that can accomidate the height
+        virtualWidth = (int)(screenHeight * targetAspectRatio);
+        virtualHeight = screenHeight;
+        xOffset = (screenWidth - virtualWidth) / 2;
+    } 
+    // if aspect ratio is too tall
+    else {
+        // set our width to be the max that can fit
+        virtualWidth = screenWidth;
+        virtualHeight = screenWidth / targetAspectRatio;
+        yOffset = (screenHeight - virtualHeight) / 2;
+    }
+
+    // debug outputs
+    char buffer[100];
+    sprintf(buffer, "Targeting aspect ratio: %f\n",targetAspectRatio);
+    logMessage(debug, buffer);
+    sprintf(buffer, "Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
+    logMessage(debug, buffer);
+    sprintf(buffer, "(unused) offset: %dx%d\n",xOffset,yOffset);
+    logMessage(debug, buffer);
+
+    // setup viewport with our virtual resolutions
+    SDL_Rect viewport;
+    viewport.x = xOffset;
+    viewport.y = yOffset;
+    viewport.w = virtualWidth;
+    viewport.h = virtualHeight;
+    SDL_RenderSetViewport(pRenderer, &viewport);
 }
 
 // initialize graphics
@@ -763,40 +805,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
         exit(1);
     }
 
-    // get our current aspect ratio
-    float currentAspectRatio = (float)screenWidth / (float)screenHeight;
-
-    // if aspect ratio is too wide
-    if (currentAspectRatio >= targetAspectRatio) {
-        // set our width to be the max that can accomidate the height
-        virtualWidth = (int)(screenHeight * targetAspectRatio);
-        virtualHeight = screenHeight;
-        xOffset = (screenWidth - virtualWidth) / 2;
-    } 
-    // if aspect ratio is too tall
-    else {
-        // set our width to be the max that can fit
-        virtualWidth = screenWidth;
-        virtualHeight = screenWidth / targetAspectRatio;
-        yOffset = (screenHeight - virtualHeight) / 2;
-    }
-
-    // debug outputs
-    char buffer[100];
-    sprintf(buffer, "Targeting aspect ratio: %f\n",targetAspectRatio);
-    logMessage(debug, buffer);
-    sprintf(buffer, "Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
-    logMessage(debug, buffer);
-    sprintf(buffer, "(unused) offset: %dx%d\n",xOffset,yOffset);
-    logMessage(debug, buffer);
-
-    // setup viewport with our virtual resolutions
-    SDL_Rect viewport;
-    viewport.x = xOffset;
-    viewport.y = yOffset;
-    viewport.w = virtualWidth;
-    viewport.h = virtualHeight;
-    SDL_RenderSetViewport(pRenderer, &viewport);
+    // set our viewport to the screen size with neccessary computed offsets
+    setViewport(screenWidth, screenHeight);
     
     // test for TTF init, alarm if failed
     if (TTF_Init() == -1) {

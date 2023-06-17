@@ -56,6 +56,8 @@ void renderAll();
 
 int checkClicked(int x, int y);
 
+void setViewport(int screenWidth, int screenHeight);
+
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);
 
 void shutdownGraphics();

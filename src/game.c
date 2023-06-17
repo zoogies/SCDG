@@ -226,12 +226,13 @@ int mainFunction(int argc, char *argv[])
         run_discord_callbacks();
 
         while(SDL_PollEvent(&e)){ // while there is an event polled
+            //TODO: optimization would be to make this chain of else ifs into a switch
             if(e.type == SDL_QUIT){ // check if event is to quit
                 quit = true; // quit
             }
             // for now, we will only check bounds if there was a click,
             // this is subject to change when highlight interactions are introduced
-            if (e.type == SDL_MOUSEBUTTONDOWN) {
+            else if (e.type == SDL_MOUSEBUTTONDOWN) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
                     int mouseX = e.button.x;
                     int mouseY = e.button.y;
@@ -247,13 +248,24 @@ int mainFunction(int argc, char *argv[])
                         sprintf(buffer, "Left click event at (%d, %d) miss\n", mouseX, mouseY);
                         logMessage(debug, buffer);
                     }
+
+                    // handle button clicks
+                    if(buttonClicked == 6){
+                        quit = true;
+                    }
                 }
             }
-            if (e.type == SDL_KEYDOWN) {
+            else if (e.type == SDL_KEYDOWN) {
                 // if key is backtick we want to toggle debug overlay
                 if (e.key.keysym.sym == SDLK_BACKQUOTE) {
                     // Backtick key is pressed
                     toggleOverlay();
+                }
+            }
+            else if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                    // Reset the viewport when the game window regains focus
+                    setViewport(SCREEN_WIDTH, SCREEN_HEIGHT);
                 }
             }
         }
