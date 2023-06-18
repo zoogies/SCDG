@@ -28,7 +28,9 @@ struct ScreenSize {
 struct ScreenSize getScreenSize();
 
 // returns the char * path to a resource specified in relation to root dir
-char *getPath(char *path);
+char *getPathStatic(const char *path);
+
+char *getPathDynamic(const char *path);
 
 void toggleOverlay();
 

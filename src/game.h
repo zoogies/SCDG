@@ -4,7 +4,16 @@
 #include <stdbool.h>
 
 // initialize a global debug flag at false
-bool gamedebug = false;
+extern bool gamedebug;
+extern bool quit;
+
+enum scenes {
+    mainmenu = 0,
+    game = 1,
+    settings = 2
+};
+
+void loadScene(enum scenes scene);
 
 // main entry point
 int main();

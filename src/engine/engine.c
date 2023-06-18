@@ -62,18 +62,40 @@ struct ScreenSize getScreenSize(){
     return screenSize;
 }
 
-// helper function to get the path to a resource
-// will modify buffer automatically
-char *getPath(char *path){
-    // lazily set the base path used for opening resources cross platform on first call
-    if(base_path == NULL){
+// get path for one time use
+char *getPathStatic(const char *path) {
+    static char path_buffer[256];  // Adjust the buffer size as per your requirement
+
+    if (base_path == NULL) {
         base_path = SDL_GetBasePath();
         if (base_path == NULL) {
             logMessage(error, "Error getting base path!\n");
+            return NULL;
         }
     }
 
-    snprintf(path_buffer, sizeof(path_buffer), "%s../../resources/%s", base_path,path);
+    snprintf(path_buffer, sizeof(path_buffer), "%s../../resources/%s", base_path, path);
+    return path_buffer;
+}
+
+// get dynamically allocated path which must be freed
+char *getPathDynamic(const char *path) {
+    if (base_path == NULL) {
+        base_path = SDL_GetBasePath();
+        if (base_path == NULL) {
+            logMessage(error, "Error getting base path!\n");
+            return NULL;
+        }
+    }
+
+    size_t buffer_size = strlen(base_path) + strlen("../../resources/") + strlen(path) + 1;
+    char *path_buffer = malloc(buffer_size);
+    if (path_buffer == NULL) {
+        logMessage(error, "Error allocating memory for path!\n");
+        return NULL;
+    }
+
+    snprintf(path_buffer, buffer_size, "%s../../resources/%s", base_path, path);
     return path_buffer;
 }
 
@@ -106,7 +128,7 @@ void toggleOverlay(){
         addRenderObject(-5, renderType_Text, 997, .0f, .28f, .12f, .08f, createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor),false);
     
         // add back panel to debug overlay
-        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, createImageTexture(getPath("images/ui/dimpanel.png")),false);
+        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, createImageTexture(getPathStatic("images/ui/dimpanel.png")),false);
 
         // force overlay refresh or text will be default
         debugForceRefresh();
@@ -121,8 +143,8 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine (value of global in engine.h modified)
-    pEngineFont = loadFont(getPath("fonts/Nunito-Bold.ttf"), 500);
-    pEngineFont2 = loadFont(getPath("fonts/Nunito-Regular.ttf"), 500);
+    pEngineFont = loadFont(getPathStatic("fonts/Nunito-Bold.ttf"), 500);
+    pEngineFont2 = loadFont(getPathStatic("fonts/Nunito-Regular.ttf"), 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -170,10 +192,10 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
         logMessage(info,"Skipping Intro.\n");
     }
     else{
-        playSound(getPath("sfx/startup.mp3"),0,0); // play startup sound
+        playSound(getPathStatic("sfx/startup.mp3"),0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
-        createImage(0,.5f,.5f,.35f,.4f,getPath("images/enginelogo.png"),true);
+        createImage(0,.5f,.5f,.35f,.4f,getPathStatic("images/enginelogo.png"),true);
 
         createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
 

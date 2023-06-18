@@ -20,10 +20,14 @@ typedef struct renderObject {
     struct renderObject *pNext;
 } renderObject;
 
+// function pointer for button
+typedef void (*ButtonCallback)(void);
+
 // linked list holding pointers towards button render objects
 typedef struct button {
     struct renderObject *pObject;
     struct button *pNext;
+    ButtonCallback callback;
 } button;
 
 void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered);
@@ -43,7 +47,7 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
 
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath);
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, void (*callback)(void));
 
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);
@@ -54,7 +58,7 @@ void debugForceRefresh();
 
 void renderAll();
 
-int checkClicked(int x, int y);
+void checkClicked(int x, int y);
 
 void setViewport(int screenWidth, int screenHeight);
 

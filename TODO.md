@@ -45,3 +45,16 @@
 - [ ] convert all spaces to tabs and setup auto formatter
 
 can i just shutdown engine systems from the game and then reset them? like if i want to change the window size or mode i could end the renderer and then restart it with the new settings? or would that be too slow? i think it would be fine but i need to test it
+
+goal has shifted, we no longer really care about drop in json game data changing the whole entire game easily, it should still be on the mind but its ok to hard code some things into the game code it doesnt all have to be read in the json
+
+change gitignore to keep out of resources until all game assets are finalized so git not tracking massive files
+
+some sort of level editor where i can place buttons and text and stuff and then it will generate the json for me
+
+6/17/2023:
+
+- clean up the code from yesterday ive lost my marbles im sorry future me
+- hunt down and optimize what is making the game hang when adding a lot of new textures and buttons, cache textures and stuff to combine and speed up
+- make a level editor for the game
+- figure out key value pair state, how does the game flow work, callback functions accessing globals? there will be dynamically loaded variables that need referecned?

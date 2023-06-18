@@ -45,7 +45,7 @@ const char* getTimestamp() {
 
 void openLog(){
     // open the log file
-    logFile = fopen(getPath("data/debug.log"), "a");
+    logFile = fopen(getPathStatic("data/debug.log"), "a");
     if (logFile == NULL) {
         printf("%sError opening logfile\n",RED);
     }
@@ -100,7 +100,7 @@ void log_init(enum logLevel level){
     #endif
 
     // open log file the first time in w mode to overwrite any existing log
-    logFile = fopen(getPath("data/debug.log"), "w");
+    logFile = fopen(getPathStatic("data/debug.log"), "w");
     if (logFile == NULL) {
         printf("%sError opening logfile\n",RED);
     }

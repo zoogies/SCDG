@@ -150,7 +150,7 @@ void removeRenderObject(int identifier) {
     
     // if our render list has zero items
     if (pRenderListHead == NULL) {
-        logMessage(error, "ERROR REMOVING RENDER OBJECT: HEAD IS NULL\n");
+        logMessage(warning, "ERROR REMOVING RENDER OBJECT: HEAD IS NULL\n");
         return;
         // alarm and pass
     }
@@ -211,7 +211,7 @@ void removeButton(int id){
     // step through button LL and find which node has the ID of the renderobject passed
     // then, we can remove that node from the LL and free it and call removeRenderObject() on the renderObject
     if(pButtonListHead == NULL){
-        logMessage(error, "ERROR REMOVING BUTTON: HEAD IS NULL\n");
+        logMessage(warning, "ERROR REMOVING BUTTON: HEAD IS NULL\n");
     }
     else{
         button *pCurrent = pButtonListHead;
@@ -235,7 +235,7 @@ void removeButton(int id){
 // helper function for clearAll() to remove all buttons from the button LL and their render objects
 void clearAllButtons(){
     if(pButtonListHead == NULL){
-        logMessage(error, "ERROR REMOVING ALL BUTTONS: HEAD IS NULL\n");
+        logMessage(warning, "ERROR REMOVING ALL BUTTONS: HEAD IS NULL\n");
     }
     else{
         button *pCurrent = pButtonListHead;
@@ -368,7 +368,7 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     - formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
     - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
 */
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath) {
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, void (*callback)(void)) {
     // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
     // int realX = (int)(x * (float)virtualWidth); // + xOffset;
     // int realY = (int)(y * (float)virtualHeight); // + yOffset;
@@ -439,6 +439,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     button *pButton = (button *)malloc(sizeof(button));
     pButton->pObject = pObj;
     pButton->pNext = NULL;
+    pButton->callback = callback;
 
     // Add the new button to the linked list
     // (sorted by depth, highest at head)
@@ -466,7 +467,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 void clearAll(bool includeEngine) {
     // If our render list has zero items
     if (pRenderListHead == NULL) {
-        logMessage(error, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
+        logMessage(warning, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
         return; // alarm and exit
     }
 
@@ -699,7 +700,7 @@ void renderAll() {
 
 // function that traverses our LL of buttons and returns the highest depth
 // button clicked by ID, NULL if none
-int checkClicked(int x, int y){
+void checkClicked(int x, int y){
     // create a temp button pointer to increment the list
     button *pCurrent = pButtonListHead;
 
@@ -711,13 +712,24 @@ int checkClicked(int x, int y){
             y >= pCurrent->pObject->rect.y +yOffset &&
             y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
         {
-            return pCurrent->pObject->identifier; // return our current
+            // run the buttons callback if its not null
+            if(pCurrent->callback != NULL){
+                logMessage(debug, "Button clicked, running callback\n");
+                pCurrent->callback();
+                logMessage(debug, "Callback finished\n");
+                return;
+            }
+            else{
+                logMessage(warning, "ERROR: CLICKED BUTTON CALLBACK IS NULL\n");
+                return;
+            }
+            // return pCurrent->pObject->identifier; // return our current
         }
         // else increment
         pCurrent = pCurrent->pNext;
     }
     // if no object exists with identifier, return NULL
-    return intFail;
+    //return intFail;
 }
 
 // method to ensure our game content is centered and scaled well
@@ -826,7 +838,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     logMessage(info, "IMG initialized.\n");
 
     // load icon to surface
-    SDL_Surface *pIconSurface = IMG_Load(getPath("images/icon.png"));
+    SDL_Surface *pIconSurface = IMG_Load(getPathStatic("images/icon.png"));
     if (pIconSurface == NULL) {
         char buffer[100];
         sprintf(buffer, "IMG_Load error: %s", IMG_GetError());
