@@ -79,20 +79,53 @@ void callback(){
     // generic callback does nothing TODO
 }
 
+// todo should prob go to other file
+void updateText(char *key, char *text){
+    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
+    int id = getValue(key);
+    renderObject *pObject = getRenderObject(id);
+    SDL_Texture *temp = pObject->pTexture;
+    pObject->pTexture = createTextTexture(text,pStartupFont,&colorWhite);
+    SDL_DestroyTexture(temp);
+}
+
 void volumeUp(){
-    VOLUME += 10;
+    // if we are max vol we dont do anything
+    if(VOLUME == 128){
+        return;
+    }
+
+    VOLUME += 8;
     if(VOLUME > 128){
         VOLUME = 128;
     }
     setVolume(-1,VOLUME);
+    // update volume-text with "VOLUME%"
+    char buffer[100];
+    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    updateText("volume-text",buffer);
+
+    // write changes to save data
+    writeInt(getObject(initSaveData(getPathStatic("data/savedata.json")), "settings"),"volume",VOLUME);
 }
 
 void volumeDown(){
-    VOLUME -= 10;
+    // if we are min vol we dont do anything
+    if(VOLUME == 0){
+        return;
+    }
+
+    VOLUME -= 8;
     if(VOLUME < 0){
         VOLUME = 0;
     }
     setVolume(-1,VOLUME);
+    char buffer[100];
+    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    updateText("volume-text",buffer);
+
+    // write changes to save data
+    writeInt(getObject(initSaveData(getPathStatic("data/savedata.json")), "settings"),"volume",VOLUME);
 }
 
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
@@ -100,9 +133,7 @@ void volumeDown(){
 void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
-    logMessage(warning, "Cleared all game objects.\n");
-    // freeTrackedObjects();
-    logMessage(warning, "Freed all tracked objects.\n");
+    freeTrackedObjects();
 
     currentScene = scene;
     
@@ -113,9 +144,11 @@ void loadScene(enum scenes scene){
         logMessage(debug, "Loading main menu scene.\n");
         // play some main menu music on auto track looping forever
         playSound(getPathStatic("music/menu_loop.mp3"),0,-1);
+
         // add our title and mm background image to render queue 
         createText(1,0,0,.6f,.15f,"Stardust Dating Sim",pStartupFont,&colorWhite,false);
         createImage(background,.5f,.5f,1,1,getPathStatic("images/backgrounds/people720.png"),true);
+        
         // add our mm buttons
         int playbtn = createButton(UI,.4,.25,.2,.1,"Play",pStartupFont,&colorWhite,false,smallButton,&callback);
         int settingsbtn = createButton(UI,.4,.4,.2,.1,"Settings",pStartupFont,&colorWhite,false,smallButton,&gotoSettings);
@@ -159,9 +192,12 @@ void loadScene(enum scenes scene){
         float volY = .45f;
         createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
         createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
+
         char buffer[100];
         sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-        createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
+        int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
+        addObject("volume-text",vtxt);
+
         createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
         logMessage(debug, "Finished loading settings scene.\n");
         break;
@@ -191,105 +227,30 @@ int mainFunction(int argc, char *argv[])
         and create them if not existing
     */
 
-    // check if save data exists and create it if not
-    // Check if the file exists
-    if (access(getPathStatic("data/savedata.json"), F_OK) == -1) {
-        logMessage(warning, "Save data not found, creating...\n");
-
-        // we need to get the screen size to set the defualt resolution
-        struct ScreenSize size = getScreenSize();
-
-        // Create sensible defaults for the game data
-        json_t *pSaveData = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
-                                      "settings",
-                                      "resolution", size.width, size.height,
-                                      "window mode", 1,
-                                      "volume", 128,
-                                      "framecap", -1);
-
-        // Save JSON object to file
-        if (pSaveData != NULL) {
-            FILE *pFile = fopen(getPathStatic("data/savedata.json"), "w");
-            if (pFile != NULL) {
-                json_dumpf(pSaveData, pFile, JSON_INDENT(2));
-                fclose(pFile);
-            }
-            else {
-                logMessage(error, "Failed to open save data file.\n");
-            }
-            json_decref(pSaveData);
-        }
-        else {
-            logMessage(error,"failed to create JSON object.\n");
-        }
-    }
-    else {
-        logMessage(info, "Save data found, reading...\n");
-    }
-
-    // open the save data json
-    json_error_t err;
-    json_t *pRoot = json_load_file(getPathStatic("data/savedata.json"), 0, &err);
-    if (!pRoot) {
-        logMessage(error, "Error parsing JSON file.\n");
-        exit(1);
-    }
+    json_t *pRoot = initSaveData(getPathStatic("data/savedata.json"));
+    // printf("\n%s\n",json_dumps(pRoot, JSON_INDENT(2)));
+    // json_decref(pRoot);
+    // exit(0);
 
     // Access the "settings" object
-    json_t *pSettings = json_object_get(pRoot, "settings");
-    if (!json_is_object(pSettings)) {
-        logMessage(error, "Error settings is not json object.\n");
-        json_decref(pRoot);
-        exit(1);
-    }
+    json_t *pSettings = getObject(pRoot, "settings");
 
     // Extract volume int and validate it
-    json_t *pVolume = json_object_get(pSettings, "volume");
-    if (json_is_integer(pVolume)) {
-        VOLUME = json_integer_value(pVolume);
-        char buffer[100];
-        sprintf(buffer, "Volume read from savedata: %d/128\n", VOLUME);
-        logMessage(debug, buffer);
-    }
-    json_decref(pVolume);
+    VOLUME = getInteger(pSettings, "volume");
 
     // Extract resolution int(s) and validate them
-    json_t *pResolution = json_object_get(pSettings, "resolution");
-    if (json_is_array(pResolution)) {
-        // Get the first and second items from the array
-        json_t *pX = json_array_get(pResolution, 0);
-        json_t *pY = json_array_get(pResolution, 1);
-        if (json_is_integer(pX) && json_is_integer(pY)) {
-            SCREEN_WIDTH = json_integer_value(pX);
-            SCREEN_HEIGHT = json_integer_value(pY);
-        }
-        char buffer[100];
-        sprintf(buffer, "Resolution read from savedata: %dx%d\n", SCREEN_WIDTH,SCREEN_HEIGHT);
-        logMessage(debug, buffer);
-    }
-    json_decref(pResolution);
+    json_t *pResArray = getObject(pSettings, "resolution");
+    SCREEN_WIDTH = getArrayInt(pResArray,0);
+    SCREEN_HEIGHT = getArrayInt(pResArray,1);
 
     // extract window mode int and validate it
-    json_t *pWindowMode = json_object_get(pSettings, "window mode");
-    if (json_is_integer(pWindowMode)) {
-        windowMode = json_integer_value(pWindowMode);
-        char buffer[100];
-        sprintf(buffer, "Window Mode read from savedata: %d\n", windowMode);
-        logMessage(debug, buffer);
-    }
-    json_decref(pWindowMode);
+    windowMode = getInteger(pSettings, "window mode");
 
     // extract the frame cap and validate it
-    json_t *pSavedFrameCap = json_object_get(pSettings, "framecap");
-    if (json_is_integer(pSavedFrameCap)) {
-        framecap = json_integer_value(pSavedFrameCap);
-        char buffer[100];
-        sprintf(buffer, "Frame Cap read from savedata: %d\n", framecap);
-        logMessage(debug, buffer);
-    }
-    json_decref(pSavedFrameCap);
+    framecap = getInteger(pSettings, "framecap");
 
     // done with our json (for now until we eventually open it to write values)
+    json_decref(pSettings);
     json_decref(pRoot);
 
     /*
@@ -390,6 +351,8 @@ int mainFunction(int argc, char *argv[])
     // free shit
     free(smallButton);
     freeTrackedObjects();
+
+    shutdownSaveData();
 
     // shut down our own game specific stuff
     TTF_CloseFont(pStartupFont);

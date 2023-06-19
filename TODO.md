@@ -58,3 +58,19 @@ some sort of level editor where i can place buttons and text and stuff and then 
 - hunt down and optimize what is making the game hang when adding a lot of new textures and buttons, cache textures and stuff to combine and speed up
 - make a level editor for the game
 - figure out key value pair state, how does the game flow work, callback functions accessing globals? there will be dynamically loaded variables that need referecned?
+
+state and other thoughts:
+
+- how to put function pointers in json? or is that not possible? maybe just have a string that is the name of the function and then have a dictionary of function pointers that can be referenced by the string name
+- move main menu and other scenes to load from the json
+- caching common created textures to eliminate a lot of overhead
+- less debug output lines for creating and destroying renderobjects unless the op fails
+- better text fitting, it should not stretch it should fill its bounds normal ratio and shrink if needed
+- playtime counter
+- text effects and outlines
+- animations and videos
+- i would really like to be sending parameters to genericize things with callbacks
+- level editor from flag
+- error trapping void functions
+
+- fix everything ive turned into scuff (sorry future me)

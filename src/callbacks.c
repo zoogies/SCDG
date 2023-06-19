@@ -12,6 +12,6 @@ void gotoSettings(){
 }
 
 void quitGame(){
-    logMessage(debug, "Going to settings\n");
+    logMessage(debug, "Quitting game\n");
     quit=true;
 }

@@ -1,36 +1,70 @@
 {
+  "depth-key":{
+    "ui":99,
+    "bg":0
+  },
   "scenes": {
     "main menu":{
-      "assets":[
+      "renderObjects":[
         {
           "type":"text",
           "text":"Stardust Crusaders Dating Sim",
-          "x":10,
-          "y":10,
-          "w":10,
-          "h":10,
+          "x":0,
+          "y":0,
+          "w":0.6,
+          "h":0.15,
           "centered":false,
-          "depth":1
+          "tracked":false,
+          "depth":"ui"
         },
         {
           "type":"image",
-          "src":"resources/images/people720.png",
+          "src":"images/backgrounds/people720.png",
           "x":0,
           "y":0,
           "w":1,
           "h":1,
           "centered":true,
-          "depth":0
+          "tracked":false,
+          "depth":"bg"
+        },
+        {
+          "type":"button",
+          "text":"Play",
+          "src":"images/ui/button-small.png",
+          "x":0.4,
+          "y":0.25,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "tracked":false,
+          "depth":"ui",
+          "goto":"settings"
         },
         {
           "type":"button",
           "text":"Settings",
-          "src":"resources/images/ui/button-small.png",
-          "x":0,
-          "y":0,
-          "w":1,
-          "h":1,
-          "depth":1,
+          "src":"images/ui/button-small.png",
+          "x":0.4,
+          "y":0.4,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "tracked":false,
+          "depth":"ui",
+          "goto":"settings"
+        },
+        {
+          "type":"button",
+          "text":"Quit",
+          "src":"images/ui/button-small.png",
+          "x":0.4,
+          "y":0.55,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "tracked":false,
+          "depth":"ui",
           "goto":"settings"
         }
       ]
