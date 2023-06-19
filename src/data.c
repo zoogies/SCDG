@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include <jansson.h>
 
@@ -67,12 +68,13 @@ void freeTrackedObjects() {
 // certain really common field values should be assumed if they do not exist (tracked false by defualt)
 
 json_t *pRoot = NULL;
-char *savePath = NULL;
+char *savePath = NULL; // should not have globals
 
 // check if save data exists and create it if not
 // Check if the file exists
 json_t *initSaveData(char *path) {
-    if(access(path, F_OK) == -1) {
+    if(access(getPathStatic(path), F_OK) == -1) {
+        printf("\n2\n");
         logMessage(warning, "Save data not found, creating...\n");
 
         // we need to get the screen size to set the defualt resolution
@@ -88,7 +90,7 @@ json_t *initSaveData(char *path) {
 
         // Save JSON object to file
         if (pSaveData != NULL) {
-            FILE *pFile = fopen(getPathStatic("data/savedata.json"), "w");
+            FILE *pFile = fopen(getPathStatic(path), "w");
             if (pFile != NULL) {
                 json_dumpf(pSaveData, pFile, JSON_INDENT(2));
                 fclose(pFile);
@@ -108,11 +110,20 @@ json_t *initSaveData(char *path) {
 
     // open the save data json
     json_error_t err;
-    pRoot = json_load_file(getPathStatic("data/savedata.json"), 0, &err);
+    pRoot = json_load_file(getPathStatic(path), 0, &err);
     if (!pRoot) {
         logMessage(error, "Error parsing JSON file.\n");
     }
-    savePath = path;
+    savePath = getPathStatic(path);
+    return pRoot;
+}
+
+json_t *getGameData(char *path){
+    json_error_t err;
+    json_t *pRoot = json_load_file(getPathStatic(path), 0, &err);
+    if (!pRoot) {
+        logMessage(error, "Error parsing JSON file.\n");
+    }
     return pRoot;
 }
 
@@ -135,6 +146,37 @@ int getInteger(json_t *parent, char *key){
     return json_integer_value(pObject);
 }
 
+bool getBool(json_t *parent, char *key){
+    json_t *pObject = getObject(parent, key);
+    if (!pObject || !json_is_boolean(pObject)) {
+        json_decref(pObject);
+        exit(1); // TODO temp fix
+    }
+    return json_boolean_value(pObject);
+}
+
+// TODO: const all field names?
+
+float getFloat(json_t* parent, const char* field_name) {
+    float value = 0.0;
+    json_t* field = json_object_get(parent, field_name);
+
+    if (json_is_number(field)) {
+        value = json_number_value(field);
+    }
+
+    return value;
+}
+
+char *getString(json_t *parent, char *key){
+    json_t *pObject = getObject(parent, key);
+    if (!pObject || !json_is_string(pObject)) {
+        json_decref(pObject);
+        exit(1); // TODO temp fix
+    }
+    return (char*)json_string_value(pObject);
+}
+
 json_t *getArray(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_array(pObject)) {
@@ -154,6 +196,9 @@ json_t *getArrayIndex(json_t *parent, int index){
     return pObject;
 }
 
+// TODO: get array item fn pass in type enum
+// return union?
+
 int getArrayInt(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_integer(pObject)) {
@@ -161,6 +206,15 @@ int getArrayInt(json_t *parent, int index){
         exit(1); // TODO temp fix
     }
     return json_integer_value(pObject);
+}
+
+char *getArrayString(json_t *parent, int index){
+    json_t *pObject = getArrayIndex(parent, index);
+    if (!pObject || !json_is_string(pObject)) {
+        json_decref(pObject);
+        exit(1); // TODO temp fix
+    }
+    return (char*)json_string_value(pObject);
 }
 
 // modification values
@@ -183,3 +237,6 @@ void shutdownSaveData(){
 // void setupScene(){
     
 // }
+
+// TODO: debug output fn
+// json_dumpf(json_object, stdout, JSON_INDENT(2));

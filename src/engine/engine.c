@@ -143,8 +143,8 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine (value of global in engine.h modified)
-    pEngineFont = loadFont(getPathStatic("fonts/Nunito-Bold.ttf"), 500);
-    pEngineFont2 = loadFont(getPathStatic("fonts/Nunito-Regular.ttf"), 500);
+    pEngineFont = loadFont("fonts/Nunito-Bold.ttf", 500);
+    pEngineFont2 = loadFont("fonts/Nunito-Regular.ttf", 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -192,10 +192,10 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
         logMessage(info,"Skipping Intro.\n");
     }
     else{
-        playSound(getPathStatic("sfx/startup.mp3"),0,0); // play startup sound
+        playSound("sfx/startup.mp3",0,0); // play startup sound
 
         // create startup logo and title and save their id# into memory to destroy them after startup
-        createImage(0,.5f,.5f,.35f,.4f,getPathStatic("images/enginelogo.png"),true);
+        createImage(0,.5f,.5f,.35f,.4f,"images/enginelogo.png",true);
 
         createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
 

@@ -1,8 +1,14 @@
 #ifndef CALLBACKS_H
 #define CALLBACKS_H
 
-void gotoMainMenu();
-void gotoSettings();
-void quitGame();
+// typedef int (*ButtonCallback)(enum callbacks callback);
+
+enum callbacks {
+    gotoMainMenu,
+    gotoSettings,
+    quitGame
+};
+
+int callbackHandler(enum callbacks callback);
 
 #endif

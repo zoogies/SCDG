@@ -1,10 +1,21 @@
 {
-  "depth-key":{
-    "ui":99,
-    "bg":0
+  "keys":{
+    "depth":{
+      "ui":99,
+      "bg":0
+    },
+    "channel":{
+      "bgm":0,
+      "bg":0
+    } 
   },
   "scenes": {
     "main menu":{
+      "music":{
+        "src":"music/menu_loop.mp3",
+        "loops":-1,
+        "channel":"bgm"
+      },
       "renderObjects":[
         {
           "type":"text",
@@ -20,8 +31,8 @@
         {
           "type":"image",
           "src":"images/backgrounds/people720.png",
-          "x":0,
-          "y":0,
+          "x":0.5,
+          "y":0.5,
           "w":1,
           "h":1,
           "centered":true,
@@ -36,10 +47,13 @@
           "y":0.25,
           "w":0.2,
           "h":0.1,
-          "centered":true,
+          "centered":false,
           "tracked":false,
           "depth":"ui",
-          "goto":"settings"
+          "callback":{
+            "type":"loadscene",
+            "scene":"game"
+          }
         },
         {
           "type":"button",
@@ -49,10 +63,13 @@
           "y":0.4,
           "w":0.2,
           "h":0.1,
-          "centered":true,
+          "centered":false,
           "tracked":false,
           "depth":"ui",
-          "goto":"settings"
+          "callback":{
+            "type":"loadscene",
+            "scene":"settings"
+          }
         },
         {
           "type":"button",
@@ -62,10 +79,13 @@
           "y":0.55,
           "w":0.2,
           "h":0.1,
-          "centered":true,
+          "centered":false,
           "tracked":false,
           "depth":"ui",
-          "goto":"settings"
+          "callback":{
+            "type":"action",
+            "action":"quit"
+          }
         }
       ]
     },

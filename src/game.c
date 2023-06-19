@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <SDL2/SDL.h>
 #include <jansson.h>
@@ -64,9 +65,6 @@ bool quit = false; // define quit
 SDL_Color colorWhite;
 TTF_Font *pStartupFont;
 
-// variables used a lot (must be freed in closedown)
-char *smallButton;
-
 bool gamedebug = false;
 
 // function pointer functions to cover all cases:
@@ -106,7 +104,7 @@ void volumeUp(){
     updateText("volume-text",buffer);
 
     // write changes to save data
-    writeInt(getObject(initSaveData(getPathStatic("data/savedata.json")), "settings"),"volume",VOLUME);
+    writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
 }
 
 void volumeDown(){
@@ -125,7 +123,78 @@ void volumeDown(){
     updateText("volume-text",buffer);
 
     // write changes to save data
-    writeInt(getObject(initSaveData(getPathStatic("data/savedata.json")), "settings"),"volume",VOLUME);
+    writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
+}
+
+void constructScene(json_t *pObjects, json_t *depthKeys){
+    // TODO TODO PLEASE PLEASE FIXME
+    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
+
+    for(size_t i = 0; i<json_array_size(pObjects); i++){
+        // check type and call constructor in graphics.c
+        json_t *obj = getArrayIndex(pObjects,i);
+        char *type = getString(obj,"type");
+
+        // TODO: will fail here before even checking type if invalid
+        int depth = getInteger(depthKeys, getString(obj,"depth"));
+        float x = getFloat(obj,"x");
+        float y = getFloat(obj,"y");
+        float w = getFloat(obj,"w");
+        float h = getFloat(obj,"h");
+        bool centered = getBool(obj,"centered");
+
+        if(strcmp(type,"text") == 0){
+            char *text = getString(obj,"text");
+            
+            createText(
+                depth,
+                x,
+                y,
+                w,
+                h,
+                text,
+                pStartupFont,
+                &colorWhite,
+                centered
+            );
+        }
+        else if(strcmp(type,"image") == 0){
+            char *src = getString(obj,"src");
+
+            createImage(
+                depth,
+                x,
+                y,
+                w,
+                h,
+                src,
+                centered
+            );
+        }
+        else if(strcmp(type,"button") == 0){
+            char *src = getString(obj,"src");
+            char *txt = getString(obj,"text");
+
+            createButton(
+                depth,
+                x,
+                y,
+                w,
+                h,
+                txt,
+                pStartupFont,
+                &colorWhite,
+                centered,
+                src,
+                &callback
+            );
+        }
+        else{
+            logMessage(error, "Invalid renderObject type in main menu scene.\n");
+        }
+        json_decref(obj);
+    }
+    json_decref(pObjects);
 }
 
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
@@ -136,74 +205,85 @@ void loadScene(enum scenes scene){
     freeTrackedObjects();
 
     currentScene = scene;
-    
-    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
+
+    // load keys and json scenes dict
+    json_t *data = getGameData("data/gamedata.json");
+    json_t *scenes = getObject(data,"scenes");
+
+    // TODO: FIXME: MAKE GLOBAL
+    json_t *depthKeys = getObject(getObject(data,"keys"),"depth");
+    json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
+
+    // TODO: no switch just load from enum string?
     switch (scene)
     {
     case mainmenu:
+        json_t *_scene = getObject(scenes,"main menu");
         logMessage(debug, "Loading main menu scene.\n");
-        // play some main menu music on auto track looping forever
-        playSound(getPathStatic("music/menu_loop.mp3"),0,-1);
 
-        // add our title and mm background image to render queue 
-        createText(1,0,0,.6f,.15f,"Stardust Dating Sim",pStartupFont,&colorWhite,false);
-        createImage(background,.5f,.5f,1,1,getPathStatic("images/backgrounds/people720.png"),true);
-        
-        // add our mm buttons
-        int playbtn = createButton(UI,.4,.25,.2,.1,"Play",pStartupFont,&colorWhite,false,smallButton,&callback);
-        int settingsbtn = createButton(UI,.4,.4,.2,.1,"Settings",pStartupFont,&colorWhite,false,smallButton,&gotoSettings);
-        int quitbtn = createButton(UI,.4,.55,.2,.1,"Quit",pStartupFont,&colorWhite,false,smallButton,&quitGame);
-        // addObject("playbtn",playbtn);
-        // addObject("settingsbtn",settingsbtn);
-        // addObject("quitbtn",quitbtn);
+        // load our music TODO: can be run in every scene
+        json_t *pMusic = getObject(_scene,"music");
+        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
+        json_decref(pMusic);
+
+        // get our scene objects and render them all
+        json_t *pObjects = getArray(_scene,"renderObjects");
+        constructScene(pObjects,depthKeys);
+        json_decref(pObjects);
+        json_decref(_scene);
+
         break;
     case settings:
-        logMessage(debug, "Loading settings scene.\n");
-        playSound(getPathStatic("music/settings.mp3"),0,-1);
-        createText(1,0,0,.45f,.15f,"Settings",pStartupFont,&colorWhite,false);
-        createImage(background,.5f,.5f,1,1,getPathStatic("images/backgrounds/settingsbg.jpg"),true);
-        createButton(UI,.4,.8,.2,.1,"Exit",pStartupFont,&colorWhite,false,smallButton,&gotoMainMenu);
+        // logMessage(debug, "Loading settings scene.\n");
+        // playSound(getPathStatic("music/settings.mp3"),0,-1);
+        // createText(1,0,0,.45f,.15f,"Settings",pStartupFont,&colorWhite,false);
+        // createImage(background,.5f,.5f,1,1,getPathStatic("images/backgrounds/settingsbg.jpg"),true);
+        // createButton(UI,.4,.8,.2,.1,"Exit",pStartupFont,&colorWhite,false,smallButton,&gotoMainMenu);
         
-        // resolution settings
-        float resY = .15f;
-        createText(1,0,resY-.05,.2f,.15f,"Resolution:",pStartupFont,&colorWhite,false);
-        createButton(UI,.21,resY,.15,.08,"1280x720",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.41,resY,.15,.08,"1920x1080",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.61,resY,.15,.08,"2560x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.81,resY,.15,.08,"3440x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // // resolution settings
+        // float resY = .15f;
+        // createText(1,0,resY-.05,.2f,.15f,"Resolution:",pStartupFont,&colorWhite,false);
+        // createButton(UI,.21,resY,.15,.08,"1280x720",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.41,resY,.15,.08,"1920x1080",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.61,resY,.15,.08,"2560x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.81,resY,.15,.08,"3440x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
 
-        // window settings
-        float winY = .25f;
-        createText(1,0,winY,.2f,.1f,"Window:",pStartupFont,&colorWhite,false);
-        createButton(UI,.21,winY,.15,.08,"fullscreen",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.41,winY,.15,.08,"borderless",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.61,winY,.15,.08,"maximized",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.81,winY,.15,.08,"default",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // // window settings
+        // float winY = .25f;
+        // createText(1,0,winY,.2f,.1f,"Window:",pStartupFont,&colorWhite,false);
+        // createButton(UI,.21,winY,.15,.08,"fullscreen",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.41,winY,.15,.08,"borderless",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.61,winY,.15,.08,"maximized",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.81,winY,.15,.08,"default",pStartupFont,&colorWhite,false,smallButton,&callback);
 
-        // fps settings
-        float fpsY = .35f;
-        createText(1,0,fpsY,.2f,.1f,"FPS:",pStartupFont,&colorWhite,false);
-        createButton(UI,.21,fpsY,.15,.08,"60",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.41,fpsY,.15,.08,"144",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.61,fpsY,.15,.08,"vsync",pStartupFont,&colorWhite,false,smallButton,&callback);
-        createButton(UI,.81,fpsY,.15,.08,"uncapped",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // // fps settings
+        // float fpsY = .35f;
+        // createText(1,0,fpsY,.2f,.1f,"FPS:",pStartupFont,&colorWhite,false);
+        // createButton(UI,.21,fpsY,.15,.08,"60",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.41,fpsY,.15,.08,"144",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.61,fpsY,.15,.08,"vsync",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // createButton(UI,.81,fpsY,.15,.08,"uncapped",pStartupFont,&colorWhite,false,smallButton,&callback);
 
-        // volume settings
-        float volY = .45f;
-        createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
-        createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
+        // // volume settings
+        // float volY = .45f;
+        // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
+        // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
 
-        char buffer[100];
-        sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-        int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
-        addObject("volume-text",vtxt);
+        // char buffer[100];
+        // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+        // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
+        // addObject("volume-text",vtxt);
 
-        createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
-        logMessage(debug, "Finished loading settings scene.\n");
+        // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
+        // logMessage(debug, "Finished loading settings scene.\n");
         break;
     default:
         break;
     }
+    json_decref(data);
+    json_decref(scenes);
+    json_decref(depthKeys);
+    json_decref(channelKeys);
 }
 
 // entry point to the game, which invokes all necessary engine functions by extension
@@ -227,10 +307,7 @@ int mainFunction(int argc, char *argv[])
         and create them if not existing
     */
 
-    json_t *pRoot = initSaveData(getPathStatic("data/savedata.json"));
-    // printf("\n%s\n",json_dumps(pRoot, JSON_INDENT(2)));
-    // json_decref(pRoot);
-    // exit(0);
+    json_t *pRoot = initSaveData("data/savedata.json");
 
     // Access the "settings" object
     json_t *pSettings = getObject(pRoot, "settings");
@@ -250,6 +327,7 @@ int mainFunction(int argc, char *argv[])
     framecap = getInteger(pSettings, "framecap");
 
     // done with our json (for now until we eventually open it to write values)
+    json_decref(pResArray);
     json_decref(pSettings);
     json_decref(pRoot);
 
@@ -266,9 +344,7 @@ int mainFunction(int argc, char *argv[])
     */
 
     // initialize color and font that we are using in the game
-    pStartupFont = loadFont(getPathStatic("fonts/Nunito-Regular.ttf"), 500);
-
-    smallButton = getPathDynamic("images/ui/button-small.png");
+    pStartupFont = loadFont("fonts/Nunito-Regular.ttf", 500);
 
     loadScene(mainmenu);
 
@@ -349,7 +425,6 @@ int mainFunction(int argc, char *argv[])
     }
 
     // free shit
-    free(smallButton);
     freeTrackedObjects();
 
     shutdownSaveData();

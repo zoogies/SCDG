@@ -272,7 +272,7 @@ renderObject *getRenderObject(int identifier) {
 
 // load a font into memory and return a pointer to it
 TTF_Font *loadFont(const char *pFontPath, int fontSize) {
-    TTF_Font *pFont = TTF_OpenFont(pFontPath, fontSize);
+    TTF_Font *pFont = TTF_OpenFont(getPathStatic(pFontPath), fontSize);
     if (pFont == NULL) {
         char buffer[100];
         sprintf(buffer, "Failed to load font: %s\n", TTF_GetError());
@@ -356,7 +356,7 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 
 // add an image to the render queue, returns the engine assigned ID of the object
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(pPath),centered);
+    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(getPathStatic(pPath)),centered);
     global_id++;
     return global_id - 1;
 }
@@ -382,7 +382,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
         return intFail;
     }
 
-    SDL_Texture *pImageTexture = createImageTexture(pBackgroundPath);
+    SDL_Texture *pImageTexture = createImageTexture(getPathStatic(pBackgroundPath));
 
     if(pImageTexture == NULL){
         logMessage(error, "ERROR CREATING IMAGE TEXTURE FOR BUTTON\n");

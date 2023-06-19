@@ -74,3 +74,8 @@ state and other thoughts:
 - error trapping void functions
 
 - fix everything ive turned into scuff (sorry future me)
+- make game paths passed not use pathstatic or dynamic, internel functions create platform specific paths
+- switch from type parameter generic get type from json function
+- font lookup table in gamedata specifiers in renderObjects
+- optimization of game data reading, persist game data in memory so less read write
+- logging persist ?
