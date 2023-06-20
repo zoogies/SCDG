@@ -74,7 +74,6 @@ char *savePath = NULL; // should not have globals
 // Check if the file exists
 json_t *initSaveData(char *path) {
     if(access(getPathStatic(path), F_OK) == -1) {
-        printf("\n2\n");
         logMessage(warning, "Save data not found, creating...\n");
 
         // we need to get the screen size to set the defualt resolution
@@ -130,9 +129,12 @@ json_t *getGameData(char *path){
 json_t *getObject(json_t *parent, char *key){
     json_t *pObject = json_object_get(parent, key);
     if (!pObject) {
-        char buffer[100];
-        sprintf(buffer, "Error parsing JSON file for '%s'.\n", key);
-        logMessage(error, buffer);
+        if(strcmp(key, "prototype") != 0){
+            char buffer[100];
+            sprintf(buffer, "Error parsing JSON file for '%s'.\n", key);
+            logMessage(error, buffer);
+        }
+        return NULL;
     }
     return pObject;
 }
@@ -172,7 +174,8 @@ char *getString(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_string(pObject)) {
         json_decref(pObject);
-        exit(1); // TODO temp fix
+        return NULL; // TODO SIMPLIFY FIX EVERYTHING
+        // FIXME all return null for none handle error outside this file
     }
     return (char*)json_string_value(pObject);
 }
@@ -217,6 +220,11 @@ char *getArrayString(json_t *parent, int index){
     return (char*)json_string_value(pObject);
 }
 
+void dumpJSON(json_t *parent){
+    json_dumpf(parent, stdout, JSON_INDENT(2));
+    printf("\n");
+}
+
 // modification values
 
 void syncChanges(){
@@ -237,6 +245,3 @@ void shutdownSaveData(){
 // void setupScene(){
     
 // }
-
-// TODO: debug output fn
-// json_dumpf(json_object, stdout, JSON_INDENT(2));

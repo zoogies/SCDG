@@ -15,9 +15,6 @@
 
 ### GAME
 
-- [ ] main menu event handling and changing settings
-- [ ] loading from game data
-- [ ] generic functions for reading values from save data
 - [ ] exe icon
 - [ ] rpc generic functions & heart in corner
 - [ ] custom cursor
@@ -27,7 +24,6 @@
 
 ### WINDOWS
 
-- [ ] command line color codes dont display
 - [ ] windows sometimes cant launch from explorer bug
 
 ### GENERIC
@@ -48,34 +44,60 @@ can i just shutdown engine systems from the game and then reset them? like if i 
 
 goal has shifted, we no longer really care about drop in json game data changing the whole entire game easily, it should still be on the mind but its ok to hard code some things into the game code it doesnt all have to be read in the json
 
-change gitignore to keep out of resources until all game assets are finalized so git not tracking massive files
+- json loads in static and starter data, then game looks towards scene flow descriptor in json which is a list of events and awaits which control how the game flows, for non standard things (unprecedented events like minigame chess) control is explicitely handed over to game function to handle and then resolved back to the scene flow descriptor
 
 some sort of level editor where i can place buttons and text and stuff and then it will generate the json for me
 
 6/17/2023:
 
-- clean up the code from yesterday ive lost my marbles im sorry future me
 - hunt down and optimize what is making the game hang when adding a lot of new textures and buttons, cache textures and stuff to combine and speed up
-- make a level editor for the game
 - figure out key value pair state, how does the game flow work, callback functions accessing globals? there will be dynamically loaded variables that need referecned?
 
 state and other thoughts:
 
-- how to put function pointers in json? or is that not possible? maybe just have a string that is the name of the function and then have a dictionary of function pointers that can be referenced by the string name
-- move main menu and other scenes to load from the json
 - caching common created textures to eliminate a lot of overhead
 - less debug output lines for creating and destroying renderobjects unless the op fails
 - better text fitting, it should not stretch it should fill its bounds normal ratio and shrink if needed
 - playtime counter
 - text effects and outlines
 - animations and videos
-- i would really like to be sending parameters to genericize things with callbacks
-- level editor from flag
-- error trapping void functions
 
-- fix everything ive turned into scuff (sorry future me)
-- make game paths passed not use pathstatic or dynamic, internel functions create platform specific paths
+- i would really like to be sending parameters to genericize things with callbacks
+
+- level editor from flag
+- error trapping void functions (into int return status)
+
+- code quality pass
 - switch from type parameter generic get type from json function
 - font lookup table in gamedata specifiers in renderObjects
 - optimization of game data reading, persist game data in memory so less read write
 - logging persist ?
+
+- function pointers callback
+- port settings to gamedata.json
+- text keep aspect ratio forced (pass bool param ignore)
+- button bg texture lookup key
+- missing common bool fields assumed (prototype?)
+
+is there a way to have generic key values in json that get looked up in common table so dont have to repeat common vals (button alignement etc)
+
+- list aspect ratio in settings
+- settings confirm switch timer
+- enable resizable window mode
+- abstract to groupings for json:
+
+"group":{
+    "label":"group",
+    "items":{...}
+}
+
+- identifier or description in json
+- check new setting is not existing setting before running
+
+
+check each object for a prototype and apply defaults from prot, if not existing handle as if no prot
+
+- game data key lookip for common positions and sizes
+- construct game object in data.c
+
+- optional cli arg for log level

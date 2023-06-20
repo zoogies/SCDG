@@ -126,13 +126,40 @@ void volumeDown(){
     writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
 }
 
-void constructScene(json_t *pObjects, json_t *depthKeys){
+void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
     // TODO TODO PLEASE PLEASE FIXME
-    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
+    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME FIXME
 
+    // loop through all renderObjects
+    // TODO: consider making its own method for protype merging
     for(size_t i = 0; i<json_array_size(pObjects); i++){
-        // check type and call constructor in graphics.c
         json_t *obj = getArrayIndex(pObjects,i);
+
+        // test for prototype field and construct if existant (overwrites obj)
+        char *prototypeName = getString(obj,"prototype");
+        if(prototypeName != NULL){
+            // new object for merged result
+            json_t *prototype = getObject(protypes,prototypeName);
+
+            const char *key;
+            json_t *value;
+            json_t *tmp = json_object();
+
+            // iterate through prototype and add all fields that dont exist in obj
+            json_object_foreach(prototype, key, value) {
+                if (!json_object_get(obj, key)) {
+                    json_object_set(tmp, key, value);
+                }
+            }
+            // iterate through obj and add all fields
+            json_object_foreach(obj, key, value) {
+                json_object_set(tmp, key, value);
+            }
+
+            // replace obj with tmp
+            obj = tmp;
+        }
+
         char *type = getString(obj,"type");
 
         // TODO: will fail here before even checking type if invalid
@@ -213,58 +240,50 @@ void loadScene(enum scenes scene){
     // TODO: FIXME: MAKE GLOBAL
     json_t *depthKeys = getObject(getObject(data,"keys"),"depth");
     json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
+    json_t *prototypes = getObject(data,"prototypes");
 
+    json_t *_scene;
+    json_t *pMusic;
+    json_t *pObjects;
+    
     // TODO: no switch just load from enum string?
     switch (scene)
     {
     case mainmenu:
-        json_t *_scene = getObject(scenes,"main menu");
+        _scene = getObject(scenes,"main menu");
         logMessage(debug, "Loading main menu scene.\n");
 
         // load our music TODO: can be run in every scene
-        json_t *pMusic = getObject(_scene,"music");
+        pMusic = getObject(_scene,"music");
         playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
         json_decref(pMusic);
 
         // get our scene objects and render them all
-        json_t *pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,depthKeys);
+        pObjects = getArray(_scene,"renderObjects");
+        constructScene(pObjects,depthKeys,prototypes);
         json_decref(pObjects);
         json_decref(_scene);
 
         break;
     case settings:
-        // logMessage(debug, "Loading settings scene.\n");
-        // playSound(getPathStatic("music/settings.mp3"),0,-1);
-        // createText(1,0,0,.45f,.15f,"Settings",pStartupFont,&colorWhite,false);
-        // createImage(background,.5f,.5f,1,1,getPathStatic("images/backgrounds/settingsbg.jpg"),true);
-        // createButton(UI,.4,.8,.2,.1,"Exit",pStartupFont,&colorWhite,false,smallButton,&gotoMainMenu);
-        
-        // // resolution settings
-        // float resY = .15f;
-        // createText(1,0,resY-.05,.2f,.15f,"Resolution:",pStartupFont,&colorWhite,false);
-        // createButton(UI,.21,resY,.15,.08,"1280x720",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.41,resY,.15,.08,"1920x1080",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.61,resY,.15,.08,"2560x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.81,resY,.15,.08,"3440x1440",pStartupFont,&colorWhite,false,smallButton,&callback);
+        _scene = getObject(scenes,"settings");
+        logMessage(debug, "Loading settings scene.\n");
 
-        // // window settings
-        // float winY = .25f;
-        // createText(1,0,winY,.2f,.1f,"Window:",pStartupFont,&colorWhite,false);
-        // createButton(UI,.21,winY,.15,.08,"fullscreen",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.41,winY,.15,.08,"borderless",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.61,winY,.15,.08,"maximized",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.81,winY,.15,.08,"default",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // load our music TODO: can be run in every scene
+        pMusic = getObject(_scene,"music");
+        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
+        json_decref(pMusic);
 
-        // // fps settings
-        // float fpsY = .35f;
-        // createText(1,0,fpsY,.2f,.1f,"FPS:",pStartupFont,&colorWhite,false);
-        // createButton(UI,.21,fpsY,.15,.08,"60",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.41,fpsY,.15,.08,"144",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.61,fpsY,.15,.08,"vsync",pStartupFont,&colorWhite,false,smallButton,&callback);
-        // createButton(UI,.81,fpsY,.15,.08,"uncapped",pStartupFont,&colorWhite,false,smallButton,&callback);
+        // get our scene objects and render them all
+        pObjects = getArray(_scene,"renderObjects");
+        constructScene(pObjects,depthKeys,prototypes);
+        json_decref(pObjects);
+        json_decref(_scene);
 
-        // // volume settings
+
+
+
+        // volume settings
         // float volY = .45f;
         // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
         // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);

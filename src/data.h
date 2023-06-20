@@ -34,6 +34,8 @@ char *getArrayString(json_t *parent, int index);
 
 json_t *getArrayIndex(json_t *parent, int index);
 
+void dumpJSON(json_t *parent);
+
 void writeInt(json_t *parent, char *keyName, int toWrite);
 
 void shutdownSaveData();

@@ -211,7 +211,7 @@ void removeButton(int id){
     // step through button LL and find which node has the ID of the renderobject passed
     // then, we can remove that node from the LL and free it and call removeRenderObject() on the renderObject
     if(pButtonListHead == NULL){
-        logMessage(warning, "ERROR REMOVING BUTTON: HEAD IS NULL\n");
+        // logMessage(warning, "ERROR REMOVING BUTTON: HEAD IS NULL\n");
     }
     else{
         button *pCurrent = pButtonListHead;
@@ -235,7 +235,7 @@ void removeButton(int id){
 // helper function for clearAll() to remove all buttons from the button LL and their render objects
 void clearAllButtons(){
     if(pButtonListHead == NULL){
-        logMessage(warning, "ERROR REMOVING ALL BUTTONS: HEAD IS NULL\n");
+        // logMessage(warning, "ERROR REMOVING ALL BUTTONS: HEAD IS NULL\n");
     }
     else{
         button *pCurrent = pButtonListHead;
