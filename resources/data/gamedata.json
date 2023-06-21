@@ -1,5 +1,12 @@
 {
   "prototypes":{
+    "text":{
+      "type":"text",
+      "centered":true,
+      "depth":"ui",
+      "font":"nunito",
+      "color":"white"
+    },
     "small button":{
       "type":"button",
       "src":"images/ui/button-small.png",
@@ -11,6 +18,18 @@
     "depth":{
       "ui":99,
       "bg":0
+    },
+    "font":{
+      "nunito":"fonts/Nunito-Regular.ttf",
+      "nunito_bold":"fonts/Nunito-Bold.ttf"
+    },
+    "color":{
+      "white":{
+        "r":255,
+        "g":255,
+        "b":255,
+        "a":255
+      }
     },
     "channel":{
       "bgm":0,
@@ -26,14 +45,13 @@
       },
       "renderObjects":[
         {
-          "type":"text",
+          "prototype":"text",
           "text":"Stardust Crusaders Dating Sim",
           "x":0,
           "y":0,
           "w":0.6,
           "h":0.15,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
           "type":"image",
@@ -94,14 +112,13 @@
       },
       "renderObjects":[
         {
-          "type":"text",
+          "prototype":"text",
           "text":"Settings",
           "x":0,
           "y":0,
           "w":0.45,
           "h":0.15,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
           "type":"image",
@@ -129,14 +146,13 @@
           }
         },
         {
-          "type":"text",
+          "prototype":"text",
           "text":"Resolution:",
           "x":0,
           "y":0.1,
           "w":0.2,
           "h":0.15,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
           "type":"button",
@@ -207,14 +223,13 @@
           }
         },
         {
-          "type":"text",
+          "prototype":"text",
           "text":"Window:",
           "x":0,
           "y":0.25,
           "w":0.2,
           "h":0.1,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
           "type":"button",
@@ -281,14 +296,13 @@
           }
         },
         {
-          "type":"text",
+          "prototype":"text",
           "text":"FPS:",
           "x":0,
           "y":0.35,
           "w":0.2,
           "h":0.1,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
           "type":"button",
@@ -381,15 +395,14 @@
           }
         },
         {
-          "type":"text",
+          "prototype":"text",
           "text":"0%",
           "x":0,
           "y":0.45,
           "w":0.2,
           "h":0.1,
           "centered":false,
-          "kvp":"volume-text",
-          "depth":"ui"
+          "identifier":"volume-text"
         },
         {
           "type":"button",

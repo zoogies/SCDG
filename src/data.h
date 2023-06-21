@@ -1,14 +1,35 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include "engine/graphics.h"
+
 #include <jansson.h>
 
-typedef struct {
-    char* key;
-    int value;
-} KeyValuePair;
+typedef enum {
+    INT,
+    SDL_COLOR,
+    TTF_FONT
+} Type;
 
-void addObject(const char* key, int value);
+typedef struct Node {
+    char* key;
+    Type type;
+    union {
+        int intValue;
+        SDL_Color colorValue;
+        TTF_Font* fontValue;
+    } value;
+    struct Node* next;
+} Node;
+
+typedef struct {
+    Node* head;
+    Node* tail;
+} LinkedList;
+
+void addItem(LinkedList* list, const char* key, void* value, Type type);
+
+Node* getItem(LinkedList* list, const char* key);
 
 json_t *initSaveData(char *path);
 
@@ -40,6 +61,6 @@ void writeInt(json_t *parent, char *keyName, int toWrite);
 
 void shutdownSaveData();
 
-void freeTrackedObjects();
+void freeLinkedList(LinkedList* list);
 
 #endif

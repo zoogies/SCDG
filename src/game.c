@@ -67,6 +67,11 @@ TTF_Font *pStartupFont;
 
 bool gamedebug = false;
 
+// create Linked Lists that game uses to track important things (all are clearing on new scene load for now)
+LinkedList trackedObjects; // tracks scene objects ID's
+LinkedList trackedFonts; // tracks fonts loaded for scenes
+LinkedList trackedColors; // tracks colors loaded for scenes
+
 // function pointer functions to cover all cases:
 // go to new scene
 // change an internel variable by x amount or to new value
@@ -80,7 +85,7 @@ void callback(){
 // todo should prob go to other file
 void updateText(char *key, char *text){
     SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
-    int id = getValue(key);
+    int id = getItem(&trackedObjects,key)->value.intValue;
     renderObject *pObject = getRenderObject(id);
     SDL_Texture *temp = pObject->pTexture;
     pObject->pTexture = createTextTexture(text,pStartupFont,&colorWhite);
@@ -170,10 +175,12 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
         float h = getFloat(obj,"h");
         bool centered = getBool(obj,"centered");
 
+        int created;
+        
         if(strcmp(type,"text") == 0){
             char *text = getString(obj,"text");
             
-            createText(
+            created = createText(
                 depth,
                 x,
                 y,
@@ -188,7 +195,7 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
         else if(strcmp(type,"image") == 0){
             char *src = getString(obj,"src");
 
-            createImage(
+            created = createImage(
                 depth,
                 x,
                 y,
@@ -202,7 +209,7 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
             char *src = getString(obj,"src");
             char *txt = getString(obj,"text");
 
-            createButton(
+            created = createButton(
                 depth,
                 x,
                 y,
@@ -219,6 +226,15 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
         else{
             logMessage(error, "Invalid renderObject type in main menu scene.\n");
         }
+
+        // check if our object has a kvp so we can be tracking it
+        char *identifier = getString(obj,"identifier");
+        if(identifier != NULL){
+            // add to kvp (or update?)
+            printf("adding %s to trackedObjects\n",identifier);
+            addItem(&trackedObjects,identifier,&created,INT); // TODO: TEST IF THIS OVERWRITES DUPLICATES
+        }
+
         json_decref(obj);
     }
     json_decref(pObjects);
@@ -229,7 +245,11 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
 void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
-    freeTrackedObjects();
+
+    // clear all tracked/cached objects
+    freeLinkedList(&trackedObjects);
+    freeLinkedList(&trackedColors);
+    freeLinkedList(&trackedFonts);
 
     currentScene = scene;
 
@@ -443,10 +463,16 @@ int mainFunction(int argc, char *argv[])
         renderAll();
     }
 
-    // free shit
-    freeTrackedObjects();
+    // free shit (does not destroy, just frees nodes)
+    freeLinkedList(&trackedObjects);
+    freeLinkedList(&trackedFonts);
+    freeLinkedList(&trackedColors);
 
+    // shutdown our save data and free our LinkedLists
     shutdownSaveData();
+    free(&trackedObjects);
+    free(&trackedFonts);
+    free(&trackedColors);
 
     // shut down our own game specific stuff
     TTF_CloseFont(pStartupFont);

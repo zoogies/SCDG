@@ -94,10 +94,43 @@ is there a way to have generic key values in json that get looked up in common t
 - identifier or description in json
 - check new setting is not existing setting before running
 
-
 check each object for a prototype and apply defaults from prot, if not existing handle as if no prot
 
 - game data key lookip for common positions and sizes
 - construct game object in data.c
 
 - optional cli arg for log level
+
+- load all fonts and textures cached into lookup table or lazily load them when needed (prob lazy load)
+  - happenning in the engine caching the textures and fonts to a table
+    - take in a arg for caching or try to intelligently decide? (could have int counting how many uses and if its one and we destroy the only we remove it from the table)
+
+game reads fonts and colors into itself and then when gamedata references them, it passes the already loaded font or color to the renderobject
+
+- cache flag on certain json obj fields?
+
+FIX:
+
+- engine relies on one font present
+  - solution: pass in font
+
+- hashmap with void pointers instead of kvp for all game tracking stuff (or possibly defined in engine and extended to game) can be used to cache in engine and game can use to lazily load fonts and colors
+  - how to free fonts and colors when no longer needed? is it valid to drop all loaded fonts and colors when scene changes? (probably)
+
+
+TODO RN:
+
+1. make sure tracking works
+2. track colors and fonts (as they are loaded)
+
+- callback system
+  1. reading from gamedata
+  2. constructing struct passed with wrapper function pointer (this function uses the struct data when called back to game to dispatch callback with parameters to correct function)
+- caching (engine + game)
+  - font + color lazy caching (cleared on scene reset) __Datatsrcture engine thingish
+
+- clean up and split a lot of rendering and organization code from the game (which should only have game loop and entry stuff)
+
+- debug log entries should have more verbose information on calling function with it args
+
+- clean up comments, code qual pass

@@ -11,55 +11,67 @@
 #include "data.h"
 #include "engine/engine.h"
 #include "engine/logging.h"
+#include "engine/graphics.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 /////////////////////////// KVP STUFF ////////////////////////////////
 
-KeyValuePair* trackedObjects = NULL;
-int trackedObjectsCount = 0;
-int trackedObjectsCapacity = 0;
 
-void addObject(const char* key, int value) {
-    char buffer[100];
-    sprintf(buffer, "adding key '%s' with value %d\n", key, value);
-    logMessage(debug, buffer);
-    // Check if capacity is sufficient, otherwise reallocate memory
-    if (trackedObjectsCount >= trackedObjectsCapacity) {
-        // Double the capacity or use a different strategy to resize the array
-        trackedObjectsCapacity = (trackedObjectsCapacity == 0) ? 1 : (trackedObjectsCapacity * 2);
+void addItem(LinkedList* list, const char* key, void* value, Type type) {
+    Node* newNode = malloc(sizeof(Node));
+    newNode->key = malloc((strlen(key) + 1) * sizeof(char));
+    strcpy(newNode->key, key);
+    newNode->type = type;
+    newNode->next = NULL;
 
-        trackedObjects = realloc(trackedObjects, trackedObjectsCapacity * sizeof(KeyValuePair));
+    switch (type) {
+        case INT:
+            newNode->value.intValue = *(int*)value;
+            break;
+        case SDL_COLOR:
+            newNode->value.colorValue = *(SDL_Color*)value;
+            break;
+        case TTF_FONT:
+            newNode->value.fontValue = *(TTF_Font**)value;
+            break;
     }
 
-    // Allocate memory for the key and copy its contents
-    trackedObjects[trackedObjectsCount].key = malloc((strlen(key) + 1) * sizeof(char));
-    strcpy(trackedObjects[trackedObjectsCount].key, key);
-    trackedObjects[trackedObjectsCount].value = value;
-    trackedObjectsCount++;
+    if (list->tail == NULL) {
+        list->head = newNode;
+        list->tail = newNode;
+    } else {
+        list->tail->next = newNode;
+        list->tail = newNode;
+    }
 }
 
-int getValue(const char* key) {
-    // Search for the object in the trackedObjects array based on the key
-    for (int i = 0; i < trackedObjectsCount; i++) {
-        if (strcmp(trackedObjects[i].key, key) == 0) {
-            return trackedObjects[i].value;
+Node* getItem(LinkedList* list, const char* key) {
+    Node* currentNode = list->head;
+    while (currentNode != NULL) {
+        if (strcmp(currentNode->key, key) == 0) {
+            return currentNode;
         }
+        currentNode = currentNode->next;
     }
-
-    // Return a default value if the key is not found
-    return -1;
+    return NULL;
 }
 
-void freeTrackedObjects() {
-    for (int i = 0; i < trackedObjectsCount; i++) {
-        char buffer[100];
-        sprintf(buffer, "freeing '%s'\n", trackedObjects[i].key);
-        logMessage(debug, buffer);
-        free(trackedObjects[i].key);
+void freeLinkedList(LinkedList* list) {
+    Node* currentNode = list->head;
+    while (currentNode != NULL) {
+        Node* nextNode = currentNode->next;
+        free(currentNode->key);
+
+        if (currentNode->type == TTF_FONT) {
+            TTF_CloseFont(currentNode->value.fontValue);
+        }
+
+        free(currentNode);
+        currentNode = nextNode;
     }
-    free(trackedObjects);
-    trackedObjects = NULL;
-    trackedObjectsCount = 0;
-    trackedObjectsCapacity = 0;
+    logMessage(info, "freed linked list\n");
 }
 
 /////////////////////////// JSON STUFF ////////////////////////////////
@@ -241,7 +253,4 @@ void shutdownSaveData(){
     json_decref(pRoot);
 }
 
-// iterates through a scene and sets it up
-// void setupScene(){
-    
-// }
+// WIP: tear out and refactor this whole file
