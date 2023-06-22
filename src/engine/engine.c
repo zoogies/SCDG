@@ -235,9 +235,6 @@ void shutdownEngine(){
     free(pEngineFontColor);
     pEngineFontColor = NULL;
 
-    // remove and free ALL render objects
-    clearAll(true);
-
     // shutdown graphics
     shutdownGraphics();
     logMessage(info, "Shut down graphics.\n");

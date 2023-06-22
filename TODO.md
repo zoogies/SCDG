@@ -121,11 +121,32 @@ FIX:
 
 TODO RN:
 
-1. track colors and fonts (as they are loaded)
-2. caching (engine + game)
-3. callback system
+1. startup font is used only in update text. find a way to check cache and load it from only identifier
+   1. when would it ever not exist in cache but text being updated? change scene but object persist? update text should just take in the font and color just in case.
+   2. make update text a more generic function taking in font and color and value and id (solves this issue)
+   3. that shit should go in graphics
+   4. updating text forces item to be tracked, so it means the color and text it relies on has to be cached because automatic cache clear happens on load which also destroys tracked things (right now) this is true unless someone manually cache clears mid scene.
+2. caching (engine) (lazily)
+   1. ENGINE
+      1. hashmap
+3. baking together static groups of renderObjects intelligently
+4. callback system
    1. reading from gamedata
    2. constructing struct passed with wrapper fn pointer
    3. recieve in wrapper in game and switch statement with enum type and struct params, dispatch to correct handler
-4. clean up and split a lot of rendering and organization code from the game (which should only have game loop and entry stuff)
-5. clean up code comments and organization
+5. clean up and split a lot of rendering and organization code from the game (which should only have game loop and entry stuff)
+6. fix all memory leaks from valgrind, lot of jannson stuff
+7. clean up code comments and organization
+
+thoughts:
+hashmap game side or use engine exposed caching tracking hashmap
+
+minute optimizations:
+
+- fonts specify size in json
+
+construct scene needs to be better structured, it should take in all keys, should manage its own music too since we are passing keys in anyways
+
+cleanup all color usage (it needs it baaaad)
+
+can the game font caching and color caching code be moved to engine? game registers fonts and colors there and just passes id? but game should track its own shit maybe?

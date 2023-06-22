@@ -272,6 +272,10 @@ renderObject *getRenderObject(int identifier) {
 
 // load a font into memory and return a pointer to it
 TTF_Font *loadFont(const char *pFontPath, int fontSize) {
+    if(fontSize > 500){
+        logMessage(error, "ERROR: FONT SIZE TOO LARGE\n");
+        return NULL;
+    }
     TTF_Font *pFont = TTF_OpenFont(getPathStatic(pFontPath), fontSize);
     if (pFont == NULL) {
         char buffer[100];
@@ -859,6 +863,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
 // shuts down all initialzied graphics systems
 void shutdownGraphics(){
+    clearAll(true);
+
     // shutdown TTF
     TTF_Quit();
     logMessage(info, "Shut down TTF.\n");

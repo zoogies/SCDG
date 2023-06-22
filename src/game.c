@@ -62,7 +62,6 @@ enum scenes currentScene = mainmenu;
 
 bool quit = false; // define quit
 
-SDL_Color colorWhite;
 TTF_Font *pStartupFont;
 
 bool gamedebug = false;
@@ -147,9 +146,44 @@ void volumeDown(){
     // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
 }
 
-void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
-    // TODO TODO PLEASE PLEASE FIXME
-    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME FIXME
+TTF_Font *getFont(char *key, json_t *keys){
+    Node *pFontNode = getItem(&trackedFonts,key);
+    if(pFontNode == NULL){
+        // load font and add to trackedFonts
+        addItem(&trackedFonts,key,loadFont(getString(keys,key),100),TTF_FONT);
+        pFontNode = getItem(&trackedFonts,key);
+        logMessage(debug, "Cached a font.\n");
+    }
+    else{
+        logMessage(debug, "Found cached font.\n");
+    }
+    return (TTF_Font*)pFontNode->value.fontValue;
+}
+
+SDL_Color *getColor(char *key, json_t *keys){
+    Node *pColorNode = getItem(&trackedColors,key);
+    if(pColorNode == NULL){
+        json_t *pColorObj = getObject(getObject(keys,"color"),key);
+
+        SDL_Color *pColor = malloc(sizeof(SDL_Color));
+        pColor->r = getInteger(pColorObj,"r");
+        pColor->g = getInteger(pColorObj,"g");
+        pColor->b = getInteger(pColorObj,"b");
+        pColor->a = getInteger(pColorObj,"a");
+
+        addItem(&trackedColors,key,pColor,SDL_COLOR);
+        pColorNode = getItem(&trackedColors,key);
+        logMessage(debug, "Cached a color.\n");
+    }
+    else{
+        logMessage(debug, "Found cached color.\n");
+    }
+    return (SDL_Color*)pColorNode->value.colorValue;
+}
+
+void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
+    json_t *depthKeys = getObject(keys,"depth");
+    json_t *fontKeys = getObject(keys,"font");
 
     // loop through all renderObjects
     // TODO: consider making its own method for protype merging
@@ -195,6 +229,12 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
         
         if(strcmp(type,"text") == 0){
             char *text = getString(obj,"text");
+
+            char *fonttxt = getString(obj,"font");
+            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+
+            char *colortxt = getString(obj,"color");
+            SDL_Color * pColor = getColor(colortxt,keys);
             
             created = createText(
                 depth,
@@ -203,8 +243,8 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
                 w,
                 h,
                 text,
-                pStartupFont,
-                &colorWhite,
+                pFont,
+                pColor,
                 centered
             );
         }
@@ -225,6 +265,12 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
             char *src = getString(obj,"src");
             char *txt = getString(obj,"text");
 
+            char *fonttxt = getString(obj,"font");
+            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+
+            char *colortxt = getString(obj,"color");
+            SDL_Color * pColor = getColor(colortxt,keys);
+
             created = createButton(
                 depth,
                 x,
@@ -232,8 +278,8 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
                 w,
                 h,
                 txt,
-                pStartupFont,
-                &colorWhite,
+                pFont,
+                pColor,
                 centered,
                 src,
                 &callback
@@ -276,7 +322,7 @@ void loadScene(enum scenes scene){
     json_t *scenes = getObject(data,"scenes");
 
     // TODO: FIXME: MAKE GLOBAL
-    json_t *depthKeys = getObject(getObject(data,"keys"),"depth");
+    json_t *keys = getObject(data,"keys");
     json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
     json_t *prototypes = getObject(data,"prototypes");
 
@@ -298,7 +344,7 @@ void loadScene(enum scenes scene){
 
         // get our scene objects and render them all
         pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,depthKeys,prototypes);
+        constructScene(pObjects,keys,prototypes);
         json_decref(pObjects);
         json_decref(_scene);
 
@@ -314,7 +360,7 @@ void loadScene(enum scenes scene){
 
         // get our scene objects and render them all
         pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,depthKeys,prototypes);
+        constructScene(pObjects,keys,prototypes);
         json_decref(pObjects);
         json_decref(_scene);
 
@@ -339,7 +385,7 @@ void loadScene(enum scenes scene){
     }
     json_decref(data);
     json_decref(scenes);
-    json_decref(depthKeys);
+    json_decref(keys);
     json_decref(channelKeys);
 }
 

@@ -16,7 +16,7 @@ typedef struct Node {
     Type type;
     union {
         int intValue;
-        SDL_Color colorValue;
+        SDL_Color* colorValue;
         TTF_Font* fontValue;
     } value;
     struct Node* next;

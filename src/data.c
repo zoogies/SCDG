@@ -30,10 +30,10 @@ void addItem(LinkedList* list, const char* key, void* value, Type type) {
             newNode->value.intValue = *(int*)value;
             break;
         case SDL_COLOR:
-            newNode->value.colorValue = *(SDL_Color*)value;
+            newNode->value.colorValue = (SDL_Color*)value;
             break;
         case TTF_FONT:
-            newNode->value.fontValue = *(TTF_Font**)value;
+            newNode->value.fontValue = (TTF_Font*)value;
             break;
     }
 
@@ -65,6 +65,11 @@ void freeLinkedList(LinkedList* list) {
 
         if (currentNode->type == TTF_FONT) {
             TTF_CloseFont(currentNode->value.fontValue);
+        }
+
+        // TODO FREE COLORS THEY ARE MALLOCED URGERNT FUCKYOU
+        if (currentNode->type == SDL_COLOR) {
+            free(currentNode->value.colorValue);
         }
 
         free(currentNode);

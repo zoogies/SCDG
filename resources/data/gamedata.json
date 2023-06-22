@@ -11,7 +11,9 @@
       "type":"button",
       "src":"images/ui/button-small.png",
       "centered":true,
-      "depth":"ui"
+      "depth":"ui",
+      "font":"nunito",
+      "color":"white"
     }
   },
   "keys":{
