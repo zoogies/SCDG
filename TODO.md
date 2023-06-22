@@ -117,20 +117,15 @@ FIX:
 - hashmap with void pointers instead of kvp for all game tracking stuff (or possibly defined in engine and extended to game) can be used to cache in engine and game can use to lazily load fonts and colors
   - how to free fonts and colors when no longer needed? is it valid to drop all loaded fonts and colors when scene changes? (probably)
 
+- debug log entries should have more verbose information on calling function with it args
 
 TODO RN:
 
-1. make sure tracking works
-2. track colors and fonts (as they are loaded)
-
-- callback system
-  1. reading from gamedata
-  2. constructing struct passed with wrapper function pointer (this function uses the struct data when called back to game to dispatch callback with parameters to correct function)
-- caching (engine + game)
-  - font + color lazy caching (cleared on scene reset) __Datatsrcture engine thingish
-
-- clean up and split a lot of rendering and organization code from the game (which should only have game loop and entry stuff)
-
-- debug log entries should have more verbose information on calling function with it args
-
-- clean up comments, code qual pass
+1. track colors and fonts (as they are loaded)
+2. caching (engine + game)
+3. callback system
+   1. reading from gamedata
+   2. constructing struct passed with wrapper fn pointer
+   3. recieve in wrapper in game and switch statement with enum type and struct params, dispatch to correct handler
+4. clean up and split a lot of rendering and organization code from the game (which should only have game loop and entry stuff)
+5. clean up code comments and organization

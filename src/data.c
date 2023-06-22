@@ -16,8 +16,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-/////////////////////////// KVP STUFF ////////////////////////////////
-
+/////////////////////////// LINKED LIST FUNCS ////////////////////////////////
 
 void addItem(LinkedList* list, const char* key, void* value, Type type) {
     Node* newNode = malloc(sizeof(Node));
@@ -71,21 +70,32 @@ void freeLinkedList(LinkedList* list) {
         free(currentNode);
         currentNode = nextNode;
     }
-    logMessage(info, "freed linked list\n");
+    logMessage(debug, "freed linked list\n");
 }
 
-/////////////////////////// JSON STUFF ////////////////////////////////
+/////////////////////////// JSON FUNCTIONS ////////////////////////////////
 
-// NOTE TODO:
-// certain really common field values should be assumed if they do not exist (tracked false by defualt)
-
-json_t *pRoot = NULL;
-char *savePath = NULL; // should not have globals
-
-// check if save data exists and create it if not
-// Check if the file exists
-json_t *initSaveData(char *path) {
+// load a json file and return its json_t, null if not existant or could not be accessed
+json_t *loadJSONFile(char *path){
     if(access(getPathStatic(path), F_OK) == -1) {
+        char buffer[100];
+        sprintf(buffer, "Could not access file '%s'.\n", path);
+        logMessage(error, buffer);
+        return NULL;
+    }
+
+    json_error_t err;
+    json_t *pRoot = json_load_file(getPathStatic(path), 0, &err);
+    if (!pRoot) {
+        logMessage(error, "Error parsing JSON file.\n");
+    }
+    return pRoot;
+}
+
+// load save data, create it not existant with sensible defaults
+json_t *getSaveData(char *path) {
+    json_t *saveData = loadJSONFile(path);
+    if(saveData == NULL) {
         logMessage(warning, "Save data not found, creating...\n");
 
         // we need to get the screen size to set the defualt resolution
@@ -119,13 +129,12 @@ json_t *initSaveData(char *path) {
         logMessage(info, "Save data found, reading...\n");
     }
 
-    // open the save data json
+    // open save data
     json_error_t err;
-    pRoot = json_load_file(getPathStatic(path), 0, &err);
+    json_t *pRoot = json_load_file(getPathStatic(path), 0, &err);
     if (!pRoot) {
         logMessage(error, "Error parsing JSON file.\n");
     }
-    savePath = getPathStatic(path);
     return pRoot;
 }
 
@@ -141,7 +150,7 @@ json_t *getGameData(char *path){
 json_t *getObject(json_t *parent, char *key){
     json_t *pObject = json_object_get(parent, key);
     if (!pObject) {
-        if(strcmp(key, "prototype") != 0){
+        if(strcmp(key, "prototype") != 0 && strcmp(key, "identifier") != 0){
             char buffer[100];
             sprintf(buffer, "Error parsing JSON file for '%s'.\n", key);
             logMessage(error, buffer);
@@ -168,8 +177,6 @@ bool getBool(json_t *parent, char *key){
     }
     return json_boolean_value(pObject);
 }
-
-// TODO: const all field names?
 
 float getFloat(json_t* parent, const char* field_name) {
     float value = 0.0;
@@ -211,14 +218,13 @@ json_t *getArrayIndex(json_t *parent, int index){
     return pObject;
 }
 
-// TODO: get array item fn pass in type enum
-// return union?
+// array getters
 
 int getArrayInt(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_integer(pObject)) {
         json_decref(pObject);
-        exit(1); // TODO temp fix
+        logMessage(error,"FAILED GETTING ARRAY INT BY INDEX\n");
     }
     return json_integer_value(pObject);
 }
@@ -227,7 +233,7 @@ char *getArrayString(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_string(pObject)) {
         json_decref(pObject);
-        exit(1); // TODO temp fix
+        logMessage(error,"FAILED GETTING ARRAY STRING BY INDEX\n");
     }
     return (char*)json_string_value(pObject);
 }
@@ -239,18 +245,13 @@ void dumpJSON(json_t *parent){
 
 // modification values
 
-void syncChanges(){
-    json_dump_file(pRoot, savePath, JSON_INDENT(2));
+// update our json at path with passed json_t data
+void saveJSONFile(json_t *data, char *path){
+    json_dump_file(data, getPathStatic(path), JSON_INDENT(2));
 }
 
-void writeInt(json_t *parent, char *keyName, int toWrite){
+json_t *writeInt(json_t *parent, char *keyName, int toWrite){
     json_t *newVal = json_integer(toWrite);
     json_object_set(parent, keyName, newVal);
-    syncChanges();
+    return newVal;
 }
-
-void shutdownSaveData(){
-    json_decref(pRoot);
-}
-
-// WIP: tear out and refactor this whole file

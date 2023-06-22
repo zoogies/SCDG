@@ -82,7 +82,7 @@ void callback(){
     // generic callback does nothing TODO
 }
 
-// todo should prob go to other file
+// TODO should prob go to other file (graphics.c)
 void updateText(char *key, char *text){
     SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
     int id = getItem(&trackedObjects,key)->value.intValue;
@@ -108,8 +108,16 @@ void volumeUp(){
     sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
     updateText("volume-text",buffer);
 
-    // write changes to save data
-    writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
+    // write changes to save data TODO: cleanup
+    saveJSONFile(
+        writeInt(
+            getSaveData("data/savedata.json"),
+            "volume",
+            VOLUME
+        )
+        ,"data/savedata.json"
+    );
+    // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
 }
 
 void volumeDown(){
@@ -128,7 +136,15 @@ void volumeDown(){
     updateText("volume-text",buffer);
 
     // write changes to save data
-    writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
+    saveJSONFile(
+        writeInt(
+            getSaveData("data/savedata.json"),
+            "volume",
+            VOLUME
+        )
+        ,"data/savedata.json"
+    );
+    // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
 }
 
 void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
@@ -231,7 +247,9 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
         char *identifier = getString(obj,"identifier");
         if(identifier != NULL){
             // add to kvp (or update?)
-            printf("adding %s to trackedObjects\n",identifier);
+            char buffer[100];
+            sprintf(buffer, "Adding '%s' to tracked objects.\n", identifier);
+            logMessage(debug, buffer);
             addItem(&trackedObjects,identifier,&created,INT); // TODO: TEST IF THIS OVERWRITES DUPLICATES
         }
 
@@ -241,7 +259,7 @@ void constructScene(json_t *pObjects, json_t *depthKeys, json_t *protypes){
 }
 
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
-// OLD LIST CAN GET DESTROYED AFTER WE LOAD THE SCENE FOR LESS LATENCY
+// OLD LIST CAN GET DESTROYED AFTER WE LOAD THE SCENE FOR LESS LATENCY (in new thread?)
 void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
@@ -346,7 +364,7 @@ int mainFunction(int argc, char *argv[])
         and create them if not existing
     */
 
-    json_t *pRoot = initSaveData("data/savedata.json");
+    json_t *pRoot = getSaveData("data/savedata.json");
 
     // Access the "settings" object
     json_t *pSettings = getObject(pRoot, "settings");
@@ -467,12 +485,6 @@ int mainFunction(int argc, char *argv[])
     freeLinkedList(&trackedObjects);
     freeLinkedList(&trackedFonts);
     freeLinkedList(&trackedColors);
-
-    // shutdown our save data and free our LinkedLists
-    shutdownSaveData();
-    free(&trackedObjects);
-    free(&trackedFonts);
-    free(&trackedColors);
 
     // shut down our own game specific stuff
     TTF_CloseFont(pStartupFont);
