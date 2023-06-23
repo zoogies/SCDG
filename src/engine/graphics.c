@@ -372,7 +372,7 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     - formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
     - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
 */
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, void (*callback)(void)) {
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData data) {
     // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
     // int realX = (int)(x * (float)virtualWidth); // + xOffset;
     // int realY = (int)(y * (float)virtualHeight); // + yOffset;
@@ -443,7 +443,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     button *pButton = (button *)malloc(sizeof(button));
     pButton->pObject = pObj;
     pButton->pNext = NULL;
-    pButton->callback = callback;
+    pButton->callbackData = data;
 
     // Add the new button to the linked list
     // (sorted by depth, highest at head)
@@ -717,9 +717,9 @@ void checkClicked(int x, int y){
             y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
         {
             // run the buttons callback if its not null
-            if(pCurrent->callback != NULL){
+            if(pCurrent->callbackData.callback != NULL){
                 logMessage(debug, "Button clicked, running callback\n");
-                pCurrent->callback();
+                pCurrent->callbackData.callback(pCurrent->callbackData);
                 logMessage(debug, "Callback finished\n");
                 return;
             }

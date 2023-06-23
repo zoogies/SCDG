@@ -150,3 +150,11 @@ construct scene needs to be better structured, it should take in all keys, shoul
 cleanup all color usage (it needs it baaaad)
 
 can the game font caching and color caching code be moved to engine? game registers fonts and colors there and just passes id? but game should track its own shit maybe?
+
+callbacks first because can benchmark caching improvements
+
+steamworks SDK
+
+only supports limited parameters for callback (type and amount)
+
+json_t inside callbacks?? why assign manually just to read back out when you can have it anyways?

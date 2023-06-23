@@ -77,7 +77,8 @@ LinkedList trackedColors; // tracks colors loaded for scenes
 // play a sound
 // increment in story defined in json?
 
-void callback(){
+void callback(struct callbackData data){
+    printf("TYPE: %s\n",data.callbackType);
     // generic callback does nothing TODO
 }
 
@@ -271,6 +272,28 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *colortxt = getString(obj,"color");
             SDL_Color * pColor = getColor(colortxt,keys);
 
+            // load callback data from json
+            json_t *pCallback = getObject(obj,"callback");
+
+            // create our callback data struct and let our button know
+            struct callbackData cb;
+            char *callbackType = getString(pCallback,"type");
+            cb.callbackType = callbackType;
+            cb.callback = &callback;
+
+            // procedurally assign callback parameters from json
+            // TODO: can this be cleaned up, outsourced to callback fn
+            if(strcmp(callbackType,"loadscene") == 0){
+                /*
+                    loadscene:
+                    parameter one: scene name
+                */
+               cb.param1.param1str = getString(pCallback,"scene");
+            }
+            else if(strcmp(callbackType,"action") == 0){
+                // if(strcmp(callbackType,"action") == 0)
+            }
+
             created = createButton(
                 depth,
                 x,
@@ -282,7 +305,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 pColor,
                 centered,
                 src,
-                &callback
+                cb
             );
         }
         else{
