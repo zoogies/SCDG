@@ -17,6 +17,9 @@
 #include "audio.h"
 #include "logging.h"
 
+// TODO FIXME BAD BAD BAD BAD
+#include "../data.h"
+
 // define globals for file
 SDL_Window *pWindow = NULL;
 SDL_Surface *pScreenSurface = NULL;
@@ -178,6 +181,11 @@ void removeRenderObject(int identifier) {
 
     // create a temp renderObject pointer to increment the list
     renderObject *pCurrent = pRenderListHead;
+
+    /*
+        [1,x]->[2,x]->[3,0x0]
+    HEAD ^
+    */
 
     // while the next struct is not null and the next identifier is not our desired ID
     while (pCurrent->pNext != NULL && pCurrent->pNext->identifier != identifier) {
@@ -492,40 +500,39 @@ void clearAll(bool includeEngine) {
     // attempt to clear all buttons
     clearAllButtons();
 
-    // Initialize a previous node pointer to update pRenderListHead after deletions
-    renderObject *pPrev = NULL;
-    
     renderObject *pCurrent = pRenderListHead;
+    renderObject *pNext = NULL;
+    renderObject *pPrev = NULL; // Declaration of pPrev
+
     while (pCurrent != NULL) {
+        pNext = pCurrent->pNext;
+
         if (includeEngine || pCurrent->identifier >= 0) {
             // Delete the current object as we are either deleting everything or the current object is always deletable
-            renderObject *pToDelete = pCurrent;
-
             char buffer[100];
-            sprintf(buffer, "Remove render object id#%d\n",pToDelete->identifier);
+            sprintf(buffer, "Remove render object id#%d\n", pCurrent->identifier);
             logMessage(debug, buffer);
 
-            pCurrent = pCurrent->pNext;
-            SDL_DestroyTexture(pToDelete->pTexture);
-            free(pToDelete);
-            // If there was a previous node, update its next pointer
-            if (pPrev != NULL) {
-                pPrev->pNext = pCurrent;
-            } else {
-                // If there was no previous node, we deleted the head, so update pRenderListHead
-                pRenderListHead = pCurrent;
-            }
-
+            SDL_DestroyTexture(pCurrent->pTexture);
+            free(pCurrent);
             objectCount--;
         } else {
             // Pass as we have encountered an engine object that we don't want to delete
             pPrev = pCurrent;
-            pCurrent = pCurrent->pNext;
+        }
+
+        pCurrent = pNext;
+
+        // Update pPrev if necessary
+        if (pPrev != NULL) {
+            pPrev->pNext = pCurrent;
+        } else {
+            pRenderListHead = pCurrent;
         }
     }
 
-    // If we cleared the whole list, set the pRenderListHead to NULL
-    if (includeEngine) {
+    // If we cleared the whole list, set pRenderListHead to NULL
+    if (includeEngine && pPrev == NULL) {
         pRenderListHead = NULL;
     }
 }

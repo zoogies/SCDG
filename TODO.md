@@ -172,3 +172,17 @@ we know this commit stems from the LL caching datastructure (its not callback)
 CACHING:
 
 - need some game side functions for tryGetFont tryGetColor which will look at cache first, then create and add to cache if not existant
+
+removeRenderObject appears to be skipping?
+
+- maybe not, if sorted by depth the buttons can be inserted in weird ways (reverse)
+
+- everything in jansson is wrong
+
+go back to stable fix jansson then merge
+
+go through every single time jannsonn is used and fuck with refs
+
+notes 6/24:
+
+- fix jansson memory valgrind warnings, they are probably the root of the issue. the segfault linked list corruption likely comes from the internals of jansson

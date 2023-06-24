@@ -5,46 +5,6 @@
 
 #include <jansson.h>
 
-typedef enum ValueType {
-    TYPE_COLOR,
-    TYPE_FONT,
-    TYPE_INT
-} ValueType;
-
-typedef struct Value {
-    ValueType type;
-    void* data;
-} Value;
-
-typedef struct Node {
-    char key[20];
-    Value value;
-    struct Node* next;
-} Node;
-
-typedef struct LinkedList {
-    Node* head;
-} LinkedList;
-
-typedef struct TypedLinkedList {
-    LinkedList list;
-    ValueType type;
-} TypedLinkedList;
-
-LinkedList* createLinkedList();
-
-Node* createItem(char* key, ValueType type, void* value_ptr);
-
-void addItem(LinkedList* list, Node* new_node);
-
-void* getItem(LinkedList* list, char* key);
-
-void *getTypedItem(TypedLinkedList *tlist, char *key);
-
-void freeNodes(LinkedList* list);
-
-void freeLinkedList(LinkedList* list);
-
 json_t *loadJSONFile(char *path);
 
 json_t *getSaveData(char *path);
@@ -70,6 +30,8 @@ int getArrayInt(json_t *parent, int index);
 char *getArrayString(json_t *parent, int index);
 
 void dumpJSON(json_t *parent);
+
+void freeJSON(json_t *json);
 
 void saveJSONFile(json_t *data, char *path);
 

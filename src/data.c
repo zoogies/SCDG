@@ -18,105 +18,6 @@
 
 /////////////////////////// LINKED LIST FUNCS ////////////////////////////////
 
-LinkedList* createLinkedList() {
-    LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
-    list->head = NULL;
-    return list;
-}
-
-Node* createItem(char* key, ValueType type, void* value_ptr) {
-    Node* new_node = (Node*)malloc(sizeof(Node));
-    strncpy(new_node->key, key, sizeof(new_node->key));
-    new_node->value.type = type;
-
-    switch (type) {
-        case TYPE_COLOR:
-            new_node->value.data = malloc(sizeof(SDL_Color));
-            memcpy(new_node->value.data, value_ptr, sizeof(SDL_Color));
-            break;
-        case TYPE_FONT:
-            new_node->value.data = value_ptr;
-            break;
-        case TYPE_INT:
-            new_node->value.data = malloc(sizeof(int));
-            memcpy(new_node->value.data, value_ptr, sizeof(int));
-            break;
-        // Add more cases for other data types in the future
-    }
-
-    new_node->next = NULL;
-    return new_node;
-}
-
-void addItem(LinkedList* list, Node* new_node) {
-    if (list->head == NULL) {
-        list->head = new_node;
-    } else {
-        Node* temp = list->head;
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = new_node;
-    }
-}
-
-void* getItem(LinkedList* list, char* key) {
-    Node* temp = list->head;
-    while (temp != NULL) {
-        if (strcmp(temp->key, key) == 0) {
-            return temp->value.data;
-        }
-        temp = temp->next;
-    }
-    return NULL;
-}
-
-void *getTypedItem(TypedLinkedList *tlist, char *key) {
-    void *value = get_value(&tlist->list, key);
-
-    if (value == NULL) {
-        return NULL;
-    }
-
-    switch (tlist->type) {
-        case TYPE_COLOR:
-            return (SDL_Color *)value;
-        case TYPE_FONT:
-            return (TTF_Font *)value;
-        case TYPE_INT:
-            return (int *)value;
-        // Add more cases for other data types in the future
-    }
-
-    return NULL;
-}
-
-void freeNodes(LinkedList* list) {
-    Node* temp;
-    Node* head = list->head;
-    while (head != NULL) {
-        switch (head->value.type) {
-            case TYPE_COLOR:
-            case TYPE_INT:
-                free(head->value.data);
-                break;
-            case TYPE_FONT:
-                TTF_CloseFont((TTF_Font*)head->value.data);
-                break;
-            // Add more cases for other data types in the future
-        }
-
-        temp = head->next;
-        free(head);
-        head = temp;
-    }
-}
-
-void freeLinkedList(LinkedList* list) {
-    freeNodes(list);
-    free(list);
-}
-
 /////////////////////////// JSON FUNCTIONS ////////////////////////////////
 
 // load a json file and return its json_t, null if not existant or could not be accessed
@@ -285,6 +186,16 @@ char *getArrayString(json_t *parent, int index){
 void dumpJSON(json_t *parent){
     json_dumpf(parent, stdout, JSON_INDENT(2));
     printf("\n");
+}
+
+
+void freeJSON(json_t *json) {
+    if (json) {
+        dumpJSON(json);
+        printf("COUNT: %zu\n",json->refcount);
+        json_decref(json);
+        printf("AFTER COUNT: %zu\n",json->refcount);
+    }
 }
 
 // modification values

@@ -68,11 +68,6 @@ bool gamedebug = false;
 
 SDL_Color colorwhite = {255, 255, 255, 255};
 
-// create Linked Lists that game uses to track important things (all are clearing on new scene load for now)
-TypedLinkedList trackedColors;
-TypedLinkedList trackedFonts;
-TypedLinkedList trackedObjects;
-
 // function pointer functions to cover all cases:
 // go to new scene
 // change an internel variable by x amount or to new value
@@ -145,32 +140,32 @@ void volumeDown(){
 }
 
 TTF_Font *getFont(char *key, json_t *keys){
-    Node *pFontNode = getTypedItem(&trackedFonts,key);
-    if(pFontNode == NULL){
-        // load font and add to trackedFonts
-        pFontNode = createItem(key,TYPE_FONT,loadFont(getString(keys,key),100));
-        logMessage(debug, "Cached a font.\n");
-    }
-    else{
-        logMessage(debug, "Found cached font.\n");
-    }
-    return getTypedItem(&trackedFonts,key);
+    // Node *pFontNode = getTypedItem(&trackedFonts,key);
+    // if(pFontNode == NULL){
+    //     // load font and add to trackedFonts
+    //     pFontNode = createItem(key,TYPE_FONT,loadFont(getString(keys,key),100));
+    //     logMessage(debug, "Cached a font.\n");
+    // }
+    // else{
+    //     logMessage(debug, "Found cached font.\n");
+    // }
+    // return getTypedItem(&trackedFonts,key);
 }
 
 SDL_Color *getColor(char *key, json_t *keys){
-    Node *pColorNode = getTypedItem(&trackedColors,key);
-    if(pColorNode == NULL){
-        json_t *pColorObj = getObject(getObject(keys,"color"),key);
+    // Node *pColorNode = getTypedItem(&trackedColors,key);
+    // if(pColorNode == NULL){
+    //     json_t *pColorObj = getObject(getObject(keys,"color"),key);
 
-        SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
+    //     SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
 
-        pColorNode = createItem(key,TYPE_COLOR,&color);
-        logMessage(debug, "Cached a color.\n");
-    }
-    else{
-        logMessage(debug, "Found cached color.\n");
-    }
-    return getTypedItem(&trackedColors,key);
+    //     pColorNode = createItem(key,TYPE_COLOR,&color);
+    //     logMessage(debug, "Cached a color.\n");
+    // }
+    // else{
+    //     logMessage(debug, "Found cached color.\n");
+    // }
+    // return getTypedItem(&trackedColors,key);
 }
 
 void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
@@ -181,6 +176,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
     // TODO: consider making its own method for protype merging
     for(size_t i = 0; i<json_array_size(pObjects); i++){
         json_t *obj = getArrayIndex(pObjects,i);
+        json_t *tmp = NULL;  // Declare a temporary JSON object
 
         // test for prototype field and construct if existant (overwrites obj)
         char *prototypeName = getString(obj,"prototype");
@@ -190,7 +186,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
 
             const char *key;
             json_t *value;
-            json_t *tmp = json_object();
+            tmp = json_object();
 
             // iterate through prototype and add all fields that dont exist in obj
             json_object_foreach(prototype, key, value) {
@@ -223,10 +219,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *text = getString(obj,"text");
 
             char *fonttxt = getString(obj,"font");
-            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            // TTF_Font *pFont = getFont(fonttxt,fontKeys);
 
             char *colortxt = getString(obj,"color");
-            SDL_Color * pColor = getColor(colortxt,keys);
+            // SDL_Color * pColor = getColor(colortxt,keys);
             
             created = createText(
                 depth,
@@ -260,10 +256,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *txt = getString(obj,"text");
 
             char *fonttxt = getString(obj,"font");
-            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            // TTF_Font *pFont = getFont(fonttxt,fontKeys);
 
             char *colortxt = getString(obj,"color");
-            SDL_Color * pColor = getColor(colortxt,keys);
+            // SDL_Color * pColor = getColor(colortxt,keys);
 
             // load callback data from json
             json_t *pCallback = getObject(obj,"callback");
@@ -311,10 +307,16 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char buffer[100];
             sprintf(buffer, "Adding '%s' to tracked objects.\n", identifier);
             logMessage(debug, buffer);
-            createItem(identifier,TYPE_INT,&created);
+            // createItem(identifier,TYPE_INT,&created);
         }
 
-        json_decref(obj);
+        // Call json_decref only if obj was not replaced
+        if (tmp == NULL) {
+            json_decref(obj);
+        } else {
+            // obj was replaced, so we need to free tmp instead
+            json_decref(tmp);
+        }
     }
     json_decref(pObjects);
 }
@@ -380,6 +382,7 @@ void loadScene(enum scenes scene){
         constructScene(pObjects,keys,prototypes);
         json_decref(pObjects);
         json_decref(_scene);
+        json_decref(pMusic);
 
         break;
     case settings:
@@ -396,6 +399,7 @@ void loadScene(enum scenes scene){
         constructScene(pObjects,keys,prototypes);
         json_decref(pObjects);
         json_decref(_scene);
+        json_decref(pMusic);
 
 
 
@@ -461,11 +465,13 @@ int mainFunction(int argc, char *argv[])
 
     // extract the frame cap and validate it
     framecap = getInteger(pSettings, "framecap");
-
+    
     // done with our json (for now until we eventually open it to write values)
     json_decref(pResArray);
     json_decref(pSettings);
     json_decref(pRoot);
+
+    printf("SLKFGJLFKDJGLFDKJG\n");
 
     /*
     Initialize engine, this will cover starting audio as well as splash screen
@@ -481,10 +487,6 @@ int mainFunction(int argc, char *argv[])
 
     // initialize color and font that we are using in the game
     pStartupFont = loadFont("fonts/Nunito-Regular.ttf", 500);
-
-    TypedLinkedList trackedColors = {.list = *createLinkedList(), .type = TYPE_COLOR};
-    TypedLinkedList trackedFonts = {.list = *createLinkedList(), .type = TYPE_FONT};
-    TypedLinkedList trackedObjects = {.list = *createLinkedList(), .type = TYPE_INT};
 
     loadScene(mainmenu);
 
@@ -563,11 +565,6 @@ int mainFunction(int argc, char *argv[])
         // render frame
         renderAll();
     }
-
-    // free shit (does not destroy, just frees nodes)
-    freeLinkedList(&trackedObjects);
-    freeLinkedList(&trackedFonts);
-    freeLinkedList(&trackedColors);
 
     // shut down our own game specific stuff
     TTF_CloseFont(pStartupFont);
