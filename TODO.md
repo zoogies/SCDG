@@ -158,3 +158,17 @@ steamworks SDK
 only supports limited parameters for callback (type and amount)
 
 json_t inside callbacks?? why assign manually just to read back out when you can have it anyways?
+
+jannsonn forced for callbacks?
+
+engine graphics should NOT have callback code in it
+
+clean up ugly conflicting enum and var names
+
+we know this commit stems from the LL caching datastructure (its not callback)
+
+- probably a memory issue
+
+CACHING:
+
+- need some game side functions for tryGetFont tryGetColor which will look at cache first, then create and add to cache if not existant

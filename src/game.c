@@ -66,10 +66,12 @@ TTF_Font *pStartupFont;
 
 bool gamedebug = false;
 
+SDL_Color colorwhite = {255, 255, 255, 255};
+
 // create Linked Lists that game uses to track important things (all are clearing on new scene load for now)
-LinkedList trackedObjects; // tracks scene objects ID's
-LinkedList trackedFonts; // tracks fonts loaded for scenes
-LinkedList trackedColors; // tracks colors loaded for scenes
+TypedLinkedList trackedColors;
+TypedLinkedList trackedFonts;
+TypedLinkedList trackedObjects;
 
 // function pointer functions to cover all cases:
 // go to new scene
@@ -77,19 +79,14 @@ LinkedList trackedColors; // tracks colors loaded for scenes
 // play a sound
 // increment in story defined in json?
 
-void callback(struct callbackData data){
-    printf("TYPE: %s\n",data.callbackType);
-    // generic callback does nothing TODO
-}
-
 // TODO should prob go to other file (graphics.c)
 void updateText(char *key, char *text){
-    SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
-    int id = getItem(&trackedObjects,key)->value.intValue;
-    renderObject *pObject = getRenderObject(id);
-    SDL_Texture *temp = pObject->pTexture;
-    pObject->pTexture = createTextTexture(text,pStartupFont,&colorWhite);
-    SDL_DestroyTexture(temp);
+    // SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
+    // int id = getItem(&trackedObjects,key)->value.intValue;
+    // renderObject *pObject = getRenderObject(id);
+    // SDL_Texture *temp = pObject->pTexture;
+    // pObject->pTexture = createTextTexture(text,pStartupFont,&colorWhite);
+    // SDL_DestroyTexture(temp);
 }
 
 void volumeUp(){
@@ -148,38 +145,32 @@ void volumeDown(){
 }
 
 TTF_Font *getFont(char *key, json_t *keys){
-    Node *pFontNode = getItem(&trackedFonts,key);
+    Node *pFontNode = getTypedItem(&trackedFonts,key);
     if(pFontNode == NULL){
         // load font and add to trackedFonts
-        addItem(&trackedFonts,key,loadFont(getString(keys,key),100),TTF_FONT);
-        pFontNode = getItem(&trackedFonts,key);
+        pFontNode = createItem(key,TYPE_FONT,loadFont(getString(keys,key),100));
         logMessage(debug, "Cached a font.\n");
     }
     else{
         logMessage(debug, "Found cached font.\n");
     }
-    return (TTF_Font*)pFontNode->value.fontValue;
+    return getTypedItem(&trackedFonts,key);
 }
 
 SDL_Color *getColor(char *key, json_t *keys){
-    Node *pColorNode = getItem(&trackedColors,key);
+    Node *pColorNode = getTypedItem(&trackedColors,key);
     if(pColorNode == NULL){
         json_t *pColorObj = getObject(getObject(keys,"color"),key);
 
-        SDL_Color *pColor = malloc(sizeof(SDL_Color));
-        pColor->r = getInteger(pColorObj,"r");
-        pColor->g = getInteger(pColorObj,"g");
-        pColor->b = getInteger(pColorObj,"b");
-        pColor->a = getInteger(pColorObj,"a");
+        SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
 
-        addItem(&trackedColors,key,pColor,SDL_COLOR);
-        pColorNode = getItem(&trackedColors,key);
+        pColorNode = createItem(key,TYPE_COLOR,&color);
         logMessage(debug, "Cached a color.\n");
     }
     else{
         logMessage(debug, "Found cached color.\n");
     }
-    return (SDL_Color*)pColorNode->value.colorValue;
+    return getTypedItem(&trackedColors,key);
 }
 
 void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
@@ -244,8 +235,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 w,
                 h,
                 text,
-                pFont,
-                pColor,
+                // pFont,
+                pStartupFont,
+                // pColor,
+                &colorwhite,
                 centered
             );
         }
@@ -276,23 +269,20 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             json_t *pCallback = getObject(obj,"callback");
 
             // create our callback data struct and let our button know
-            struct callbackData cb;
-            char *callbackType = getString(pCallback,"type");
-            cb.callbackType = callbackType;
-            cb.callback = &callback;
+            struct callbackData *cb = malloc(sizeof(struct callbackData));
+
+            char *callbackType = malloc(strlen(getString(pCallback, "type")) + 1);
+            strcpy(callbackType, getString(pCallback, "type"));
+            cb->callbackType = callbackType;
+            
+            cb->callback = &callbackHandler;
 
             // procedurally assign callback parameters from json
             // TODO: can this be cleaned up, outsourced to callback fn
-            if(strcmp(callbackType,"loadscene") == 0){
-                /*
-                    loadscene:
-                    parameter one: scene name
-                */
-               cb.param1.param1str = getString(pCallback,"scene");
-            }
-            else if(strcmp(callbackType,"action") == 0){
-                // if(strcmp(callbackType,"action") == 0)
-            }
+
+            // deep copy is important to preserve all fields
+            json_t *pCallbackCopy = json_deep_copy(pCallback);
+            cb->pJson = pCallbackCopy;
 
             created = createButton(
                 depth,
@@ -301,8 +291,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 w,
                 h,
                 txt,
-                pFont,
-                pColor,
+                // pFont,
+                pStartupFont,
+                // pColor,
+                &colorwhite,
                 centered,
                 src,
                 cb
@@ -319,12 +311,27 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char buffer[100];
             sprintf(buffer, "Adding '%s' to tracked objects.\n", identifier);
             logMessage(debug, buffer);
-            addItem(&trackedObjects,identifier,&created,INT); // TODO: TEST IF THIS OVERWRITES DUPLICATES
+            createItem(identifier,TYPE_INT,&created);
         }
 
         json_decref(obj);
     }
     json_decref(pObjects);
+}
+
+enum scenes getSceneNameEnum(char *name){
+    if(strcmp(name, "mainmenu") == 0){
+        return mainmenu;
+    }
+    else if(strcmp(name, "settings") == 0){
+        return settings;
+    }
+    else{
+        char buffer[100];
+        sprintf(buffer, "COULD NOT CONVERT STRING TO SCENE ENUM '%s'. RETURNING TO MAIN MENU.\n", name);
+        logMessage(error, buffer);
+        return mainmenu;
+    }
 }
 
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
@@ -334,9 +341,12 @@ void loadScene(enum scenes scene){
     clearAll(false);
 
     // clear all tracked/cached objects
-    freeLinkedList(&trackedObjects);
-    freeLinkedList(&trackedColors);
-    freeLinkedList(&trackedFonts);
+    printf("Clearing tracked objects.\n");
+    // freeLinkedList(&trackedObjects);
+    printf("Clearing tracked colors.\n");
+    // freeLinkedList(&trackedColors);
+    printf("Clearing tracked fonts.\n");
+    // freeLinkedList(&trackedFonts);
 
     currentScene = scene;
 
@@ -471,6 +481,10 @@ int mainFunction(int argc, char *argv[])
 
     // initialize color and font that we are using in the game
     pStartupFont = loadFont("fonts/Nunito-Regular.ttf", 500);
+
+    TypedLinkedList trackedColors = {.list = *createLinkedList(), .type = TYPE_COLOR};
+    TypedLinkedList trackedFonts = {.list = *createLinkedList(), .type = TYPE_FONT};
+    TypedLinkedList trackedObjects = {.list = *createLinkedList(), .type = TYPE_INT};
 
     loadScene(mainmenu);
 

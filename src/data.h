@@ -5,31 +5,43 @@
 
 #include <jansson.h>
 
-typedef enum {
-    INT,
-    SDL_COLOR,
-    TTF_FONT
-} Type;
+typedef enum ValueType {
+    TYPE_COLOR,
+    TYPE_FONT,
+    TYPE_INT
+} ValueType;
+
+typedef struct Value {
+    ValueType type;
+    void* data;
+} Value;
 
 typedef struct Node {
-    char* key;
-    Type type;
-    union {
-        int intValue;
-        SDL_Color* colorValue;
-        TTF_Font* fontValue;
-    } value;
+    char key[20];
+    Value value;
     struct Node* next;
 } Node;
 
-typedef struct {
+typedef struct LinkedList {
     Node* head;
-    Node* tail;
 } LinkedList;
 
-void addItem(LinkedList* list, const char* key, void* value, Type type);
+typedef struct TypedLinkedList {
+    LinkedList list;
+    ValueType type;
+} TypedLinkedList;
 
-Node* getItem(LinkedList* list, const char* key);
+LinkedList* createLinkedList();
+
+Node* createItem(char* key, ValueType type, void* value_ptr);
+
+void addItem(LinkedList* list, Node* new_node);
+
+void* getItem(LinkedList* list, char* key);
+
+void *getTypedItem(TypedLinkedList *tlist, char *key);
+
+void freeNodes(LinkedList* list);
 
 void freeLinkedList(LinkedList* list);
 

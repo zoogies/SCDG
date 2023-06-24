@@ -15,6 +15,8 @@ enum scenes {
 
 void loadScene(enum scenes scene);
 
+enum scenes getSceneNameEnum(char *name);
+
 // main entry point
 int main();
 

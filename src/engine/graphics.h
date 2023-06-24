@@ -1,39 +1,21 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 #include <SDL2/SDL_ttf.h>
+#include <jansson.h>
 
 // TODO PLEASE PLEASE MOVE TO ENGINE CALLBACK HANDLER STUFF FUNCTION FILE
 
 struct callbackData {
     char *callbackType;
-    void (*callback)(struct callbackData data);
-    union {
-        char *param1str;
-        int param1int;
-        float param1float;
-    } param1;
-    union {
-        char *param2str;
-        int param2int;
-        float param2float;
-    } param2;
-    union {
-        char *param3str;
-        int param3int;
-        float param3float;
-    } param3;
-    union {
-        char *param4str;
-        int param4int;
-        float param4float;
-    } param4;
+    void (*callback)(struct callbackData *data);
+    json_t *pJson;
 };
 
 // linked list holding pointers towards button render objects
 typedef struct button {
     struct renderObject *pObject;
     struct button *pNext;
-    struct callbackData callbackData;
+    struct callbackData *callbackData;
 } button;
 
 // SKJDFGLKJSHFGKLFDSGKJHDFKGHDKFJHGKFDJHGKJDFHGKJHSDKHGKFSHGKFDHKGJHDKFJHG
@@ -74,7 +56,7 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
 
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData data);
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data);
 
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);

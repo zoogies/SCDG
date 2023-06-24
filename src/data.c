@@ -18,64 +18,103 @@
 
 /////////////////////////// LINKED LIST FUNCS ////////////////////////////////
 
-void addItem(LinkedList* list, const char* key, void* value, Type type) {
-    Node* newNode = malloc(sizeof(Node));
-    newNode->key = malloc((strlen(key) + 1) * sizeof(char));
-    strcpy(newNode->key, key);
-    newNode->type = type;
-    newNode->next = NULL;
+LinkedList* createLinkedList() {
+    LinkedList* list = (LinkedList*)malloc(sizeof(LinkedList));
+    list->head = NULL;
+    return list;
+}
+
+Node* createItem(char* key, ValueType type, void* value_ptr) {
+    Node* new_node = (Node*)malloc(sizeof(Node));
+    strncpy(new_node->key, key, sizeof(new_node->key));
+    new_node->value.type = type;
 
     switch (type) {
-        case INT:
-            newNode->value.intValue = *(int*)value;
+        case TYPE_COLOR:
+            new_node->value.data = malloc(sizeof(SDL_Color));
+            memcpy(new_node->value.data, value_ptr, sizeof(SDL_Color));
             break;
-        case SDL_COLOR:
-            newNode->value.colorValue = (SDL_Color*)value;
+        case TYPE_FONT:
+            new_node->value.data = value_ptr;
             break;
-        case TTF_FONT:
-            newNode->value.fontValue = (TTF_Font*)value;
+        case TYPE_INT:
+            new_node->value.data = malloc(sizeof(int));
+            memcpy(new_node->value.data, value_ptr, sizeof(int));
             break;
+        // Add more cases for other data types in the future
     }
 
-    if (list->tail == NULL) {
-        list->head = newNode;
-        list->tail = newNode;
+    new_node->next = NULL;
+    return new_node;
+}
+
+void addItem(LinkedList* list, Node* new_node) {
+    if (list->head == NULL) {
+        list->head = new_node;
     } else {
-        list->tail->next = newNode;
-        list->tail = newNode;
+        Node* temp = list->head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = new_node;
     }
 }
 
-Node* getItem(LinkedList* list, const char* key) {
-    Node* currentNode = list->head;
-    while (currentNode != NULL) {
-        if (strcmp(currentNode->key, key) == 0) {
-            return currentNode;
+void* getItem(LinkedList* list, char* key) {
+    Node* temp = list->head;
+    while (temp != NULL) {
+        if (strcmp(temp->key, key) == 0) {
+            return temp->value.data;
         }
-        currentNode = currentNode->next;
+        temp = temp->next;
     }
     return NULL;
 }
 
-void freeLinkedList(LinkedList* list) {
-    Node* currentNode = list->head;
-    while (currentNode != NULL) {
-        Node* nextNode = currentNode->next;
-        free(currentNode->key);
+void *getTypedItem(TypedLinkedList *tlist, char *key) {
+    void *value = get_value(&tlist->list, key);
 
-        if (currentNode->type == TTF_FONT) {
-            TTF_CloseFont(currentNode->value.fontValue);
-        }
-
-        // TODO FREE COLORS THEY ARE MALLOCED URGERNT FUCKYOU
-        if (currentNode->type == SDL_COLOR) {
-            free(currentNode->value.colorValue);
-        }
-
-        free(currentNode);
-        currentNode = nextNode;
+    if (value == NULL) {
+        return NULL;
     }
-    logMessage(debug, "freed linked list\n");
+
+    switch (tlist->type) {
+        case TYPE_COLOR:
+            return (SDL_Color *)value;
+        case TYPE_FONT:
+            return (TTF_Font *)value;
+        case TYPE_INT:
+            return (int *)value;
+        // Add more cases for other data types in the future
+    }
+
+    return NULL;
+}
+
+void freeNodes(LinkedList* list) {
+    Node* temp;
+    Node* head = list->head;
+    while (head != NULL) {
+        switch (head->value.type) {
+            case TYPE_COLOR:
+            case TYPE_INT:
+                free(head->value.data);
+                break;
+            case TYPE_FONT:
+                TTF_CloseFont((TTF_Font*)head->value.data);
+                break;
+            // Add more cases for other data types in the future
+        }
+
+        temp = head->next;
+        free(head);
+        head = temp;
+    }
+}
+
+void freeLinkedList(LinkedList* list) {
+    freeNodes(list);
+    free(list);
 }
 
 /////////////////////////// JSON FUNCTIONS ////////////////////////////////

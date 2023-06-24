@@ -1,8 +1,19 @@
 #include "game.h"
-#include "callbacks.h"
 #include "engine/logging.h"
+#include "engine/graphics.h"
+#include "data.h"
 
-// int callbackHandler(enum callbacks callback){
+void callbackHandler(struct callbackData *data){
+    printf("TYPE: %s\n",data->callbackType);
+    printf("DATA:\n");
+    dumpJSON(data->pJson);
+    if(strcmp(data->callbackType, "loadscene") == 0){
+        // loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
+        loadScene(mainmenu);
+    }
+}
+
+// int (enum callbacks callback){
 //     switch(callback){
 //         case gotoMainMenu:
 //             logMessage(debug, "Going to main menu\n");

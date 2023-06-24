@@ -10,6 +10,8 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+#include <jansson.h>
+
 #include "engine.h"
 #include "graphics.h"
 #include "audio.h"
@@ -221,6 +223,12 @@ void removeButton(int id){
         if(pCurrent->pNext != NULL){
             button *pToDelete = pCurrent->pNext;
             pCurrent->pNext = pToDelete->pNext;
+
+            // including jansson pepega code
+            json_decref(pToDelete->callbackData->pJson);
+            free(pToDelete->callbackData->callbackType);
+            free(pToDelete->callbackData);
+
             free(pToDelete);
             removeRenderObject(id);
         }
@@ -247,6 +255,12 @@ void clearAllButtons(){
             sprintf(buffer, "Remove button object id#%d\n", pToDelete->pObject->identifier);
             logMessage(debug, buffer);
             removeRenderObject(pToDelete->pObject->identifier);
+            
+            // TODO: does this happen auto when we free the object or we manually free every nested field?
+            json_decref(pToDelete->callbackData->pJson);
+            free(pToDelete->callbackData->callbackType);
+            free(pToDelete->callbackData);
+            
             free(pToDelete); // free button object
         }
         pButtonListHead = NULL;
@@ -372,7 +386,7 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     - formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
     - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
 */
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData data) {
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data) {
     // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
     // int realX = (int)(x * (float)virtualWidth); // + xOffset;
     // int realY = (int)(y * (float)virtualHeight); // + yOffset;
@@ -717,9 +731,9 @@ void checkClicked(int x, int y){
             y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
         {
             // run the buttons callback if its not null
-            if(pCurrent->callbackData.callback != NULL){
+            if(pCurrent->callbackData->callback != NULL){
                 logMessage(debug, "Button clicked, running callback\n");
-                pCurrent->callbackData.callback(pCurrent->callbackData);
+                pCurrent->callbackData->callback(pCurrent->callbackData);
                 logMessage(debug, "Callback finished\n");
                 return;
             }
