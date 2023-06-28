@@ -8,3 +8,7 @@ resources/data/debug.log
 # WE ARE GOING TO IGNORE ALL RESOURCES ADDED UNTIL GAME IS FINALIZED
 # IM REALLY HOPING I DONT FORGET AND SWITCH DISTROS AND LOSE EVERYTHING
 resources/*
+
+# stray object files, most from /testing
+*.o
+testing/jansson

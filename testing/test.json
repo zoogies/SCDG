@@ -1,0 +1,11 @@
+{
+    "testing":true,
+    "jansson_status":"the worst",
+    "number":10,
+    "float":10.5,
+    "array":[1,2,3,4,5],
+    "object":{
+        "key":"value",
+        "key2":"value2"
+    }
+}

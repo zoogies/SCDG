@@ -186,3 +186,5 @@ go through every single time jannsonn is used and fuck with refs
 notes 6/24:
 
 - fix jansson memory valgrind warnings, they are probably the root of the issue. the segfault linked list corruption likely comes from the internals of jansson
+
+incorrect path should not error as buffer overflow handle properly
