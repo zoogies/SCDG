@@ -11,13 +11,15 @@ json_t *getSaveData(char *path);
 
 json_t *getGameData(char *path);
 
+// JSON FIELD SPECIFIC ACCESSOR FUNCTIONS: (ALL RETURN BORROWED REFS)
+
 json_t *getObject(json_t *parent, char *key);
 
 int getInteger(json_t *parent, char *key);
 
 bool getBool(json_t *parent, char *key);
 
-float getFloat(json_t* parent, const char* field_name);
+float getFloat(json_t* parent, char* key);
 
 char *getString(json_t *parent, char *key);
 
@@ -31,10 +33,8 @@ char *getArrayString(json_t *parent, int index);
 
 void dumpJSON(json_t *parent);
 
-void freeJSON(json_t *json);
-
 void saveJSONFile(json_t *data, char *path);
 
-json_t *writeInt(json_t *parent, char *keyName, int toWrite);
+void writeInt(json_t *parent, char *keyName, int toWrite);
 
 #endif

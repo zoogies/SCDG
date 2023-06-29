@@ -342,88 +342,99 @@ void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
 
-    // clear all tracked/cached objects
-    printf("Clearing tracked objects.\n");
-    // freeLinkedList(&trackedObjects);
-    printf("Clearing tracked colors.\n");
-    // freeLinkedList(&trackedColors);
-    printf("Clearing tracked fonts.\n");
-    // freeLinkedList(&trackedFonts);
+    // // clear all tracked/cached objects
+    // printf("Clearing tracked objects.\n");
+    // // freeLinkedList(&trackedObjects);
+    // printf("Clearing tracked colors.\n");
+    // // freeLinkedList(&trackedColors);
+    // printf("Clearing tracked fonts.\n");
+    // // freeLinkedList(&trackedFonts);
 
     currentScene = scene;
 
-    // load keys and json scenes dict
-    json_t *data = getGameData("data/gamedata.json");
-    json_t *scenes = getObject(data,"scenes");
+    createText(UI,0,0,.2f,.1f,"Loading...",pStartupFont,&colorwhite,false);
+    createImage(0,.5,.5,1,1,"images/icon.png",true);
 
-    // TODO: FIXME: MAKE GLOBAL
-    json_t *keys = getObject(data,"keys");
-    json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
-    json_t *prototypes = getObject(data,"prototypes");
+    struct callbackData cb = {
+        "test",
+        &callbackHandler,
+        NULL
+    };
 
-    json_t *_scene;
-    json_t *pMusic;
-    json_t *pObjects;
+    createButton(UI,.5,.5,.1,.07,"among us",pStartupFont,&colorwhite,false,"images/icon.png",&cb);
+    // // load keys and json scenes dict
+    // json_t *data = getGameData("data/gamedata.json");
+    // json_t *scenes = getObject(data,"scenes");
+
+    // // TODO: FIXME: MAKE GLOBAL
+    // json_t *keys = getObject(data,"keys");
+    // json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
+    // json_t *prototypes = getObject(data,"prototypes");
+
+    // json_t *_scene;
+    // json_t *pMusic;
+    // json_t *pObjects;
     
-    // TODO: no switch just load from enum string?
-    switch (scene)
-    {
-    case mainmenu:
-        _scene = getObject(scenes,"main menu");
-        logMessage(debug, "Loading main menu scene.\n");
+    // // TODO: no switch just load from enum string?
+    // switch (scene)
+    // {
+    // case mainmenu:
+    //     _scene = getObject(scenes,"main menu");
+    //     logMessage(debug, "Loading main menu scene.\n");
 
-        // load our music TODO: can be run in every scene
-        pMusic = getObject(_scene,"music");
-        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
-        json_decref(pMusic);
+    //     // load our music TODO: can be run in every scene
+    //     pMusic = getObject(_scene,"music");
+    //     playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
+    //     json_decref(pMusic);
 
-        // get our scene objects and render them all
-        pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,keys,prototypes);
-        json_decref(pObjects);
-        json_decref(_scene);
-        json_decref(pMusic);
+    //     // get our scene objects and render them all
+    //     pObjects = getArray(_scene,"renderObjects");
+    //     constructScene(pObjects,keys,prototypes);
+    //     json_decref(pObjects);
+    //     json_decref(_scene);
+    //     json_decref(pMusic);
 
-        break;
-    case settings:
-        _scene = getObject(scenes,"settings");
-        logMessage(debug, "Loading settings scene.\n");
+    //     break;
+    // case settings:
+    //     _scene = getObject(scenes,"settings");
+    //     logMessage(debug, "Loading settings scene.\n");
 
-        // load our music TODO: can be run in every scene
-        pMusic = getObject(_scene,"music");
-        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
-        json_decref(pMusic);
+    //     // load our music TODO: can be run in every scene
+    //     pMusic = getObject(_scene,"music");
+    //     playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
+    //     json_decref(pMusic);
 
-        // get our scene objects and render them all
-        pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,keys,prototypes);
-        json_decref(pObjects);
-        json_decref(_scene);
-        json_decref(pMusic);
-
-
+    //     // get our scene objects and render them all
+    //     pObjects = getArray(_scene,"renderObjects");
+    //     constructScene(pObjects,keys,prototypes);
+    //     json_decref(pObjects);
+    //     json_decref(_scene);
+    //     json_decref(pMusic);
 
 
-        // volume settings
-        // float volY = .45f;
-        // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
-        // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
 
-        // char buffer[100];
-        // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-        // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
-        // addObject("volume-text",vtxt);
 
-        // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
-        // logMessage(debug, "Finished loading settings scene.\n");
-        break;
-    default:
-        break;
-    }
-    json_decref(data);
-    json_decref(scenes);
-    json_decref(keys);
-    json_decref(channelKeys);
+    //     // volume settings
+    //     // float volY = .45f;
+    //     // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
+    //     // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
+
+    //     // char buffer[100];
+    //     // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    //     // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
+    //     // addObject("volume-text",vtxt);
+
+    //     // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
+    //     // logMessage(debug, "Finished loading settings scene.\n");
+    //     break;
+    // default:
+    //     break;
+    // }
+    // json_decref(data);
+    // json_decref(scenes);
+    // json_decref(keys);
+    // json_decref(channelKeys);
+    printf("FUCK YOU\n");
 }
 
 // entry point to the game, which invokes all necessary engine functions by extension
@@ -471,8 +482,6 @@ int mainFunction(int argc, char *argv[])
     json_decref(pSettings);
     json_decref(pRoot);
 
-    printf("SLKFGJLFKDJGLFDKJG\n");
-
     /*
     Initialize engine, this will cover starting audio as well as splash screen
     and manage all subsequent backend rendering and audio playing invoked by the game
@@ -519,6 +528,7 @@ int mainFunction(int argc, char *argv[])
             // this is subject to change when highlight interactions are introduced
             else if (e.type == SDL_MOUSEBUTTONDOWN) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
+                    loadScene(mainmenu); // TODO TEMP FIXME
                     int mouseX = e.button.x;
                     int mouseY = e.button.y;
                     // run checks on if button was clicked and get its id if we did

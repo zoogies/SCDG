@@ -266,8 +266,8 @@ void clearAllButtons(){
             
             // TODO: does this happen auto when we free the object or we manually free every nested field?
             json_decref(pToDelete->callbackData->pJson);
-            free(pToDelete->callbackData->callbackType);
-            free(pToDelete->callbackData);
+            // free(pToDelete->callbackData->callbackType);
+            // free(pToDelete->callbackData); TODO URGENT FIXME: impl proper new json obj for callbacks so can deref
             
             free(pToDelete); // free button object
         }
@@ -738,7 +738,7 @@ void checkClicked(int x, int y){
             y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
         {
             // run the buttons callback if its not null
-            if(pCurrent->callbackData->callback != NULL){
+            if(pCurrent->callbackData->callback != NULL && pCurrent->callbackData != NULL && pCurrent->callbackData->pJson != NULL){
                 logMessage(debug, "Button clicked, running callback\n");
                 pCurrent->callbackData->callback(pCurrent->callbackData);
                 logMessage(debug, "Callback finished\n");

@@ -53,4 +53,18 @@ int main() {
     Solutions:
     - step through game code and look at the refcount of EVERYTHING as it gets created
       (or wrap decref again and print the refcount before and after)... identify the source of the overflow (which is likely from a double free)
+
+    Steps:
+    - verify with GPT everything looks normal
+    - step through game code and identify any strange frees or operations
+    - rewrite game jansson code to be normal and working properly
+        - might entail some kind of global kvp lookup so not working with locally scoped structs and freeing them over and over
 */
+
+/*
+    SOLUTION:
+    - we only need to decref on functions that return new references NOT borrowed references
+    -> go through the code, destroy all pointless decrefs
+       - maybe rewrite our jansson interface functions in data.c to keep top level borrowed refs to the root of our needed files and thats it
+*/
+

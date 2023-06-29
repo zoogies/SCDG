@@ -11,6 +11,9 @@ void callbackHandler(struct callbackData *data){
         // loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
         loadScene(mainmenu);
     }
+    else if(strcmp(data->callbackType, "test") == 0){
+        printf("TEST CALLBACK RECIEVED AND EXECUTED\n");
+    }
 }
 
 // int (enum callbacks callback){

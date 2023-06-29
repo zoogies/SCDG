@@ -188,3 +188,9 @@ notes 6/24:
 - fix jansson memory valgrind warnings, they are probably the root of the issue. the segfault linked list corruption likely comes from the internals of jansson
 
 incorrect path should not error as buffer overflow handle properly
+
+TODO REAL NEWGEN FIX EVERYTHING ARC CRAZY CRAZY CRAZY
+
+- go back through the game code, fix every pointeless decref
+- go through game code and makes sure its using our helper functions correctly and well, they dont need to be non-nested anymore (they dont need decref'd)
+- go through code and callbacks get a new json object which can be decref'd in button destruction
