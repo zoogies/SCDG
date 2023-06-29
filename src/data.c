@@ -125,6 +125,16 @@ json_t *getObject(json_t *parent, char *key) {
     return pObject;
 }
 
+json_t *getObjectNOWARN(json_t *parent, char *key) {
+    json_t *pObject = json_object_get(parent, key);
+
+    if (pObject == NULL) {
+        return NULL;
+    }
+
+    return pObject;
+}
+
 int getInteger(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_integer(pObject)) {
@@ -169,7 +179,15 @@ char *getString(json_t *parent, char *key){
         char buffer[100];
         sprintf(buffer, "Key '%s' was not expected type of string.\n", key);
         logMessage(error, buffer);
-        exit(1);
+        return NULL;
+    }
+    return (char*)json_string_value(pObject);
+}
+
+char *getStringNOWARN(json_t *parent, char *key){
+    json_t *pObject = getObjectNOWARN(parent, key);
+    if (!pObject || !json_is_string(pObject)) {
+        return NULL;
     }
     return (char*)json_string_value(pObject);
 }
@@ -180,7 +198,7 @@ json_t *getArray(json_t *parent, char *key){
         char buffer[100];
         sprintf(buffer, "Key '%s' was not expected type of array.\n", key);
         logMessage(error, buffer);
-        exit(1);
+        return NULL;
     }
     return pObject;
 }
@@ -191,7 +209,7 @@ json_t *getArrayIndex(json_t *parent, int index){
         char buffer[100];
         sprintf(buffer, "Error getting json array index '%d'.\n", index);
         logMessage(error, buffer);
-        exit(1);
+        return NULL;
     }
     return pObject;
 }
@@ -202,7 +220,7 @@ int getArrayInt(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_integer(pObject)) {
         logMessage(error,"FAILED GETTING ARRAY INT BY INDEX\n");
-        exit(1);
+        return NULL;
     }
     return json_integer_value(pObject);
 }
@@ -211,7 +229,7 @@ char *getArrayString(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_string(pObject)) {
         logMessage(error,"FAILED GETTING ARRAY STRING BY INDEX\n");
-        exit(1);
+        return NULL;
     }
     return (char*)json_string_value(pObject);
 }
@@ -239,4 +257,12 @@ void writeInt(json_t *parent, char *keyName, int toWrite){
     EXTREMELY IMPORTANT CRITICAL THOUGHT:
     when we do our callback, this needs to be a NEW json_t object that
     has its own refcount at 1 which is decref'd on button destroy only (lonely HAHA get it?)
+*/
+
+/*
+    NOTE:
+    ANY NEW REFERENCE OR ROOT JSON_T REFERENCE IS WRITTEN IN CAPS
+    json_t *root = getSaveData("data/save.json");
+    ANY BORROWED REFERENCE IS WRITTEN IN LOWERCASE
+    json_t *pObject = getObject(root, "settings");
 */

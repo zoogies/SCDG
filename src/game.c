@@ -84,60 +84,60 @@ void updateText(char *key, char *text){
     // SDL_DestroyTexture(temp);
 }
 
-void volumeUp(){
-    // if we are max vol we dont do anything
-    if(VOLUME == 128){
-        return;
-    }
+// void volumeUp(){
+//     // if we are max vol we dont do anything
+//     if(VOLUME == 128){
+//         return;
+//     }
 
-    VOLUME += 8;
-    if(VOLUME > 128){
-        VOLUME = 128;
-    }
-    setVolume(-1,VOLUME);
-    // update volume-text with "VOLUME%"
-    char buffer[100];
-    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-    updateText("volume-text",buffer);
+//     VOLUME += 8;
+//     if(VOLUME > 128){
+//         VOLUME = 128;
+//     }
+//     setVolume(-1,VOLUME);
+//     // update volume-text with "VOLUME%"
+//     char buffer[100];
+//     sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+//     updateText("volume-text",buffer);
 
-    // write changes to save data TODO: cleanup
-    saveJSONFile(
-        writeInt(
-            getSaveData("data/savedata.json"),
-            "volume",
-            VOLUME
-        )
-        ,"data/savedata.json"
-    );
-    // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
-}
+//     // write changes to save data TODO: cleanup
+//     saveJSONFile(
+//         writeInt(
+//             getSaveData("data/savedata.json"),
+//             "volume",
+//             VOLUME
+//         )
+//         ,"data/savedata.json"
+//     );
+//     // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
+// }
 
-void volumeDown(){
-    // if we are min vol we dont do anything
-    if(VOLUME == 0){
-        return;
-    }
+// void volumeDown(){
+//     // if we are min vol we dont do anything
+//     if(VOLUME == 0){
+//         return;
+//     }
 
-    VOLUME -= 8;
-    if(VOLUME < 0){
-        VOLUME = 0;
-    }
-    setVolume(-1,VOLUME);
-    char buffer[100];
-    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-    updateText("volume-text",buffer);
+//     VOLUME -= 8;
+//     if(VOLUME < 0){
+//         VOLUME = 0;
+//     }
+//     setVolume(-1,VOLUME);
+//     char buffer[100];
+//     sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+//     updateText("volume-text",buffer);
 
-    // write changes to save data
-    saveJSONFile(
-        writeInt(
-            getSaveData("data/savedata.json"),
-            "volume",
-            VOLUME
-        )
-        ,"data/savedata.json"
-    );
-    // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
-}
+//     // write changes to save data
+//     saveJSONFile(
+//         writeInt(
+//             getSaveData("data/savedata.json"),
+//             "volume",
+//             VOLUME
+//         )
+//         ,"data/savedata.json"
+//     );
+//     // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
+// }
 
 TTF_Font *getFont(char *key, json_t *keys){
     // Node *pFontNode = getTypedItem(&trackedFonts,key);
@@ -168,6 +168,7 @@ SDL_Color *getColor(char *key, json_t *keys){
     // return getTypedItem(&trackedColors,key);
 }
 
+// TODO: take in root gamedata and not all json_t?
 void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
     json_t *depthKeys = getObject(keys,"depth");
     json_t *fontKeys = getObject(keys,"font");
@@ -179,7 +180,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         json_t *tmp = NULL;  // Declare a temporary JSON object
 
         // test for prototype field and construct if existant (overwrites obj)
-        char *prototypeName = getString(obj,"prototype");
+        char *prototypeName = getStringNOWARN(obj,"prototype");
         if(prototypeName != NULL){
             // new object for merged result
             json_t *prototype = getObject(protypes,prototypeName);
@@ -256,9 +257,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *txt = getString(obj,"text");
 
             char *fonttxt = getString(obj,"font");
-            // TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            TTF_Font *pFont = loadFont(getString(fontKeys,getString(obj,"font")),300);
+            // TODO FIXME URGENT MEMLEAK: above line is never freed, fix this when caching fonts and colors
 
-            char *colortxt = getString(obj,"color");
+            // char *colortxt = getString(obj,"color"); TODO URGENT
             // SDL_Color * pColor = getColor(colortxt,keys);
 
             // load callback data from json
@@ -277,6 +279,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             // TODO: can this be cleaned up, outsourced to callback fn
 
             // deep copy is important to preserve all fields
+            // CREATES A NEW JSON_T WITH REFCOUNT 1
+            // we HAVE TO decref this when we are done with it
             json_t *pCallbackCopy = json_deep_copy(pCallback);
             cb->pJson = pCallbackCopy;
 
@@ -287,10 +291,9 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 w,
                 h,
                 txt,
-                // pFont,
-                pStartupFont,
+                pFont,
                 // pColor,
-                &colorwhite,
+                &colorwhite, // FIXME: mallocing colors and storing them
                 centered,
                 src,
                 cb
@@ -301,7 +304,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         }
 
         // check if our object has a kvp so we can be tracking it
-        char *identifier = getString(obj,"identifier");
+        char *identifier = getStringNOWARN(obj,"identifier");
         if(identifier != NULL){
             // add to kvp (or update?)
             char buffer[100];
@@ -310,15 +313,11 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             // createItem(identifier,TYPE_INT,&created);
         }
 
-        // Call json_decref only if obj was not replaced
-        if (tmp == NULL) {
-            json_decref(obj);
-        } else {
-            // obj was replaced, so we need to free tmp instead
+        // if we created a new json with a refcount for tmp we need to decref it so it deletes
+        if (tmp != NULL) {
             json_decref(tmp);
         }
     }
-    json_decref(pObjects);
 }
 
 enum scenes getSceneNameEnum(char *name){
@@ -352,89 +351,66 @@ void loadScene(enum scenes scene){
 
     currentScene = scene;
 
-    createText(UI,0,0,.2f,.1f,"Loading...",pStartupFont,&colorwhite,false);
-    createImage(0,.5,.5,1,1,"images/icon.png",true);
+    // load keys and json scenes dict
+    json_t *GAMEDATA = getGameData("data/gamedata.json");
+    json_t *scenes = getObject(GAMEDATA,"scenes");
 
-    struct callbackData cb = {
-        "test",
-        &callbackHandler,
-        NULL
-    };
+    // TODO: FIXME: MAKE GLOBAL
+    json_t *keys = getObject(GAMEDATA,"keys");
+    json_t *channelKeys = getObject(getObject(GAMEDATA,"keys"),"channel");
+    json_t *prototypes = getObject(GAMEDATA,"prototypes");
 
-    createButton(UI,.5,.5,.1,.07,"among us",pStartupFont,&colorwhite,false,"images/icon.png",&cb);
-    // // load keys and json scenes dict
-    // json_t *data = getGameData("data/gamedata.json");
-    // json_t *scenes = getObject(data,"scenes");
-
-    // // TODO: FIXME: MAKE GLOBAL
-    // json_t *keys = getObject(data,"keys");
-    // json_t *channelKeys = getObject(getObject(data,"keys"),"channel");
-    // json_t *prototypes = getObject(data,"prototypes");
-
-    // json_t *_scene;
-    // json_t *pMusic;
-    // json_t *pObjects;
+    json_t *_scene;
+    json_t *pMusic;
+    json_t *pObjects;
     
-    // // TODO: no switch just load from enum string?
-    // switch (scene)
-    // {
-    // case mainmenu:
-    //     _scene = getObject(scenes,"main menu");
-    //     logMessage(debug, "Loading main menu scene.\n");
+    // TODO: no switch just load from enum string?
+    switch (scene)
+    {
+    case mainmenu:
+        _scene = getObject(scenes,"main menu");
+        logMessage(debug, "Loading main menu scene.\n");
 
-    //     // load our music TODO: can be run in every scene
-    //     pMusic = getObject(_scene,"music");
-    //     playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
-    //     json_decref(pMusic);
+        // load our music TODO: can be run in every scene
+        pMusic = getObject(_scene,"music");
+        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
 
-    //     // get our scene objects and render them all
-    //     pObjects = getArray(_scene,"renderObjects");
-    //     constructScene(pObjects,keys,prototypes);
-    //     json_decref(pObjects);
-    //     json_decref(_scene);
-    //     json_decref(pMusic);
+        // get our scene objects and render them all
+        pObjects = getArray(_scene,"renderObjects");
+        constructScene(pObjects,keys,prototypes);
+        break;
+    case settings:
+        _scene = getObject(scenes,"settings");
+        logMessage(debug, "Loading settings scene.\n");
 
-    //     break;
-    // case settings:
-    //     _scene = getObject(scenes,"settings");
-    //     logMessage(debug, "Loading settings scene.\n");
+        // load our music TODO: can be run in every scene
+        pMusic = getObject(_scene,"music");
+        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
 
-    //     // load our music TODO: can be run in every scene
-    //     pMusic = getObject(_scene,"music");
-    //     playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
-    //     json_decref(pMusic);
-
-    //     // get our scene objects and render them all
-    //     pObjects = getArray(_scene,"renderObjects");
-    //     constructScene(pObjects,keys,prototypes);
-    //     json_decref(pObjects);
-    //     json_decref(_scene);
-    //     json_decref(pMusic);
+        // get our scene objects and render them all
+        pObjects = getArray(_scene,"renderObjects");
+        constructScene(pObjects,keys,prototypes);
 
 
 
 
-    //     // volume settings
-    //     // float volY = .45f;
-    //     // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
-    //     // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
+        // volume settings
+        // float volY = .45f;
+        // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
+        // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
 
-    //     // char buffer[100];
-    //     // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-    //     // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
-    //     // addObject("volume-text",vtxt);
+        // char buffer[100];
+        // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+        // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
+        // addObject("volume-text",vtxt);
 
-    //     // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
-    //     // logMessage(debug, "Finished loading settings scene.\n");
-    //     break;
-    // default:
-    //     break;
-    // }
-    // json_decref(data);
-    // json_decref(scenes);
-    // json_decref(keys);
-    // json_decref(channelKeys);
-    printf("FUCK YOU\n");
+        // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
+        // logMessage(debug, "Finished loading settings scene.\n");
+        break;
+    default:
+        break;
+    }
+    json_decref(GAMEDATA); // free only our ROOT json, everything else is borrowed
 }
 
 // entry point to the game, which invokes all necessary engine functions by extension
@@ -458,29 +434,27 @@ int mainFunction(int argc, char *argv[])
         and create them if not existing
     */
 
-    json_t *pRoot = getSaveData("data/savedata.json");
+    json_t *SAVEDATA = getSaveData("data/savedata.json");
 
     // Access the "settings" object
-    json_t *pSettings = getObject(pRoot, "settings");
+    json_t *settings = getObject(SAVEDATA, "settings");
 
     // Extract volume int and validate it
-    VOLUME = getInteger(pSettings, "volume");
+    VOLUME = getInteger(settings, "volume");
 
     // Extract resolution int(s) and validate them
-    json_t *pResArray = getObject(pSettings, "resolution");
-    SCREEN_WIDTH = getArrayInt(pResArray,0);
-    SCREEN_HEIGHT = getArrayInt(pResArray,1);
+    json_t *resolutionArray = getObject(settings, "resolution");
+    SCREEN_WIDTH = getArrayInt(resolutionArray,0);
+    SCREEN_HEIGHT = getArrayInt(resolutionArray,1);
 
     // extract window mode int and validate it
-    windowMode = getInteger(pSettings, "window mode");
+    windowMode = getInteger(settings, "window mode");
 
     // extract the frame cap and validate it
-    framecap = getInteger(pSettings, "framecap");
+    framecap = getInteger(settings, "framecap");
     
-    // done with our json (for now until we eventually open it to write values)
-    json_decref(pResArray);
-    json_decref(pSettings);
-    json_decref(pRoot);
+    // close our ROOT json
+    json_decref(SAVEDATA);
 
     /*
     Initialize engine, this will cover starting audio as well as splash screen

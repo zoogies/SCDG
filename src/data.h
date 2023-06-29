@@ -11,9 +11,8 @@ json_t *getSaveData(char *path);
 
 json_t *getGameData(char *path);
 
-// JSON FIELD SPECIFIC ACCESSOR FUNCTIONS: (ALL RETURN BORROWED REFS)
-
 json_t *getObject(json_t *parent, char *key);
+json_t *getObjectNOWARN(json_t *parent, char *key);
 
 int getInteger(json_t *parent, char *key);
 
@@ -22,6 +21,7 @@ bool getBool(json_t *parent, char *key);
 float getFloat(json_t* parent, char* key);
 
 char *getString(json_t *parent, char *key);
+char *getStringNOWARN(json_t *parent, char *key);
 
 json_t *getArray(json_t *parent, char *key);
 

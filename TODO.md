@@ -189,8 +189,17 @@ notes 6/24:
 
 incorrect path should not error as buffer overflow handle properly
 
-TODO REAL NEWGEN FIX EVERYTHING ARC CRAZY CRAZY CRAZY
+fix pointer notation everything should have p
 
-- go back through the game code, fix every pointeless decref
-- go through game code and makes sure its using our helper functions correctly and well, they dont need to be non-nested anymore (they dont need decref'd)
-- go through code and callbacks get a new json object which can be decref'd in button destruction
+GOOD IDEA ACTUALLY HOLY:
+
+TODO: do this when kvp/hashmap/global game state management implemented
+
+maybe the best decision is to hold our json data globally so we only open and ref it once and dont worry about decref
+
+work on segmenting engine into its own code, submodule? build it separate and link with game (eventully)
+
+impl engine detatched from jansson callbacks.
+
+- unions in a struct (like 10) for parameters
+  - allow as fallback null pointers, so anyone can send in unsupported types. (is this possible?)

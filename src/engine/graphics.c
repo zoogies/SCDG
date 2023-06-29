@@ -264,10 +264,12 @@ void clearAllButtons(){
             logMessage(debug, buffer);
             removeRenderObject(pToDelete->pObject->identifier);
             
-            // TODO: does this happen auto when we free the object or we manually free every nested field?
+            // we decref the json_t object inside the callbackData struct, because its a new ref so it will be freed
             json_decref(pToDelete->callbackData->pJson);
-            // free(pToDelete->callbackData->callbackType);
-            // free(pToDelete->callbackData); TODO URGENT FIXME: impl proper new json obj for callbacks so can deref
+
+            // we free our dynamically allocated fields
+            free(pToDelete->callbackData->callbackType); // free the malloced type string
+            free(pToDelete->callbackData); // free the malloced callbackData struct
             
             free(pToDelete); // free button object
         }
@@ -314,7 +316,7 @@ TTF_Font *loadFont(const char *pFontPath, int fontSize) {
 // Create a texture from text string with specified font and color, returns NULL for failure
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor) {
     // create surface from parameters
-    SDL_Surface *pSurface = TTF_RenderUTF8_Blended(pFont, pText, *pColor);
+    SDL_Surface *pSurface = TTF_RenderUTF8_Blended(pFont, pText, *pColor); // MEMLEAK: valgrind says so but its not my fault, internal in TTF
     
     // error out if surface creation failed
     if (pSurface == NULL) {
