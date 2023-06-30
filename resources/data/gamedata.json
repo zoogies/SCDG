@@ -124,7 +124,7 @@
         },
         {
           "type":"image",
-          "src":"images/backgrounds/settingsbg.png",
+          "src":"images/backgrounds/settingsbg.jpg",
           "x":0.5,
           "y":0.5,
           "w":1,
@@ -133,15 +133,12 @@
           "depth":"bg"
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"Exit",
-          "src":"images/ui/button-small.png",
           "x":0.5,
           "y":0.85,
           "w":0.2,
           "h":0.1,
-          "centered":true,
-          "depth":"ui",
           "callback":{
             "type":"loadscene",
             "scene":"main menu"
@@ -157,15 +154,13 @@
           "centered":false
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"1920x1080",
-          "src":"images/ui/button-small.png",
           "x":0.21,
           "y":0.15,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"resize",
@@ -174,15 +169,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"2560x1440",
-          "src":"images/ui/button-small.png",
           "x":0.41,
           "y":0.15,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"resize",
@@ -191,15 +184,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"3440x1440",
-          "src":"images/ui/button-small.png",
           "x":0.61,
           "y":0.15,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"resize",
@@ -208,15 +199,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"3840x2160",
-          "src":"images/ui/button-small.png",
           "x":0.81,
           "y":0.15,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"resize",
@@ -234,15 +223,13 @@
           "centered":false
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"fullscreen",
-          "src":"images/ui/button-small.png",
           "x":0.21,
           "y":0.25,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeWindowMode",
@@ -250,15 +237,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"borderless",
-          "src":"images/ui/button-small.png",
           "x":0.41,
           "y":0.25,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeWindowMode",
@@ -266,15 +251,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"maximized",
-          "src":"images/ui/button-small.png",
           "x":0.61,
           "y":0.25,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeWindowMode",
@@ -282,15 +265,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"default",
-          "src":"images/ui/button-small.png",
           "x":0.81,
           "y":0.25,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeWindowMode",
@@ -307,15 +288,13 @@
           "centered":false
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"60",
-          "src":"images/ui/button-small.png",
           "x":0.21,
           "y":0.35,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeFPS",
@@ -323,15 +302,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"144",
-          "src":"images/ui/button-small.png",
           "x":0.41,
           "y":0.35,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeFPS",
@@ -339,15 +316,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"vsync",
-          "src":"images/ui/button-small.png",
           "x":0.61,
           "y":0.35,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeFPS",
@@ -355,15 +330,13 @@
           }
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"uncapped",
-          "src":"images/ui/button-small.png",
           "x":0.81,
           "y":0.35,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
             "action":"changeFPS",
@@ -371,55 +344,48 @@
           }
         },
         {
-          "type":"text",
+          "prototype":"text",
           "text":"Volume:",
           "x":0,
           "y":0.45,
           "w":0.2,
           "h":0.1,
-          "centered":false,
-          "depth":"ui"
+          "centered":false
         },
         {
-          "type":"button",
+          "prototype":"small button",
           "text":"-",
-          "src":"images/ui/button-small.png",
           "x":0.21,
           "y":0.45,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
           "callback":{
             "type":"action",
-            "action":"changeFPS",
-            "fps":60
+            "action":"increaseVolume"
           }
         },
         {
           "prototype":"text",
           "text":"0%",
-          "x":0,
-          "y":0.45,
-          "w":0.2,
-          "h":0.1,
-          "centered":false,
-          "identifier":"volume-text"
-        },
-        {
-          "type":"button",
-          "text":"+",
-          "src":"images/ui/button-small.png",
           "x":0.41,
           "y":0.45,
           "w":0.15,
           "h":0.08,
           "centered":false,
-          "depth":"ui",
+          "identifier":"volume-text"
+        },
+        {
+          "prototype":"small button",
+          "text":"+",
+          "x":0.61,
+          "y":0.45,
+          "w":0.15,
+          "h":0.08,
+          "centered":false,
           "callback":{
             "type":"action",
-            "action":"changeFPS",
-            "fps":144
+            "action":"decreaseVolume"
           }
         }
       ]

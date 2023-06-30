@@ -4,6 +4,7 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <math.h>
 
 #include <SDL2/SDL.h>
@@ -300,7 +301,13 @@ TTF_Font *loadFont(const char *pFontPath, int fontSize) {
         logMessage(error, "ERROR: FONT SIZE TOO LARGE\n");
         return NULL;
     }
-    TTF_Font *pFont = TTF_OpenFont(getPathStatic(pFontPath), fontSize);
+    char *fontpath = getPathStatic(pFontPath);
+    if(access(fontpath, F_OK) == -1){
+        char buffer[100];
+        sprintf(buffer, "Could not access file '%s'.\n", fontpath);
+        logMessage(error, buffer);
+    }
+    TTF_Font *pFont = TTF_OpenFont(fontpath, fontSize);
     if (pFont == NULL) {
         char buffer[100];
         sprintf(buffer, "Failed to load font: %s\n", TTF_GetError());
@@ -346,6 +353,13 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
 
 // Create a texture from image path, returns NULL for failure
 SDL_Texture *createImageTexture(const char *pPath) {
+
+    if(access(pPath, F_OK) == -1){
+        char buffer[100];
+        sprintf(buffer, "Could not access file '%s'.\n", pPath);
+        logMessage(error, buffer);
+    }
+
     // create surface from loading the image
     SDL_Surface *pImage_surface = IMG_Load(pPath);
     
@@ -495,7 +509,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 void clearAll(bool includeEngine) {
     // If our render list has zero items
     if (pRenderListHead == NULL) {
-        logMessage(warning, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
+        // logMessage(warning, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
         return; // alarm and exit
     }
 

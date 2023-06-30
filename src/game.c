@@ -320,8 +320,9 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
     }
 }
 
+// TODO: MOVEME
 enum scenes getSceneNameEnum(char *name){
-    if(strcmp(name, "mainmenu") == 0){
+    if(strcmp(name, "main menu") == 0){
         return mainmenu;
     }
     else if(strcmp(name, "settings") == 0){
@@ -390,27 +391,25 @@ void loadScene(enum scenes scene){
         // get our scene objects and render them all
         pObjects = getArray(_scene,"renderObjects");
         constructScene(pObjects,keys,prototypes);
-
-
-
-
-        // volume settings
-        // float volY = .45f;
-        // createText(1,0,volY,.2f,.1f,"Volume:",pStartupFont,&colorWhite,false);
-        // createButton(UI,.21,volY,.15,.08,"-",pStartupFont,&colorWhite,false,smallButton,&volumeDown);
-
-        // char buffer[100];
-        // sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-        // int vtxt = createText(1,.41,volY,.15f,.08f,buffer,pStartupFont,&colorWhite,false);
-        // addObject("volume-text",vtxt);
-
-        // createButton(UI,.61,volY,.15,.08,"+",pStartupFont,&colorWhite,false,smallButton,&volumeUp);
-        // logMessage(debug, "Finished loading settings scene.\n");
         break;
     default:
         break;
     }
     json_decref(GAMEDATA); // free only our ROOT json, everything else is borrowed
+}
+
+// shuts down the game
+int shutdownGame(){
+    // shut down our own game specific stuff
+    TTF_CloseFont(pStartupFont);
+
+    // main game loop has finished: shutdown engine and subsequently the game
+    shutdownEngine();
+
+    // shutdown rich presence
+    shutdown_discord_rich_presence();
+    
+    return 0;
 }
 
 // entry point to the game, which invokes all necessary engine functions by extension
@@ -502,7 +501,6 @@ int mainFunction(int argc, char *argv[])
             // this is subject to change when highlight interactions are introduced
             else if (e.type == SDL_MOUSEBUTTONDOWN) {
                 if (e.button.button == SDL_BUTTON_LEFT) {
-                    loadScene(mainmenu); // TODO TEMP FIXME
                     int mouseX = e.button.x;
                     int mouseY = e.button.y;
                     // run checks on if button was clicked and get its id if we did
@@ -550,21 +548,12 @@ int mainFunction(int argc, char *argv[])
         renderAll();
     }
 
-    // shut down our own game specific stuff
-    TTF_CloseFont(pStartupFont);
-
-    // main game loop has finished: shutdown engine and subsequently the game
-    shutdownEngine();
-
-    // shutdown rich presence
-    shutdown_discord_rich_presence();
-
     // we dont get logging here as its already been shutdown but should be fine
     // TODO: persist logging
     // give it its own sdl instance path or some failsafe to write to a file
     
     // graceful exit
-    return 0;
+    return shutdownGame();
 }
 
 // make sure when compiling regardless of platform main has correct entry point

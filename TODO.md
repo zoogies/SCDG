@@ -187,8 +187,6 @@ notes 6/24:
 
 - fix jansson memory valgrind warnings, they are probably the root of the issue. the segfault linked list corruption likely comes from the internals of jansson
 
-incorrect path should not error as buffer overflow handle properly
-
 fix pointer notation everything should have p
 
 GOOD IDEA ACTUALLY HOLY:
@@ -203,3 +201,14 @@ impl engine detatched from jansson callbacks.
 
 - unions in a struct (like 10) for parameters
   - allow as fallback null pointers, so anyone can send in unsupported types. (is this possible?)
+
+main menu is double loading
+
+6/29/23 NOTES:
+
+- callback handler needs work. we need to pass struct of union params and not json_t (maybe can be pushed off to later task but why not just do now)
+- actual implementation of callback system with switches
+- volume controls and updating text
+- take measurements of performance and see if we can improve after caching
+- KVP hashmap global state system for caching
+- engine baking layers together optimization

@@ -17,6 +17,8 @@ void loadScene(enum scenes scene);
 
 enum scenes getSceneNameEnum(char *name);
 
+int shutdownGame();
+
 // main entry point
 int main();
 

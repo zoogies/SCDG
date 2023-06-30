@@ -4,12 +4,15 @@
 #include "data.h"
 
 void callbackHandler(struct callbackData *data){
-    printf("TYPE: %s\n",data->callbackType);
-    printf("DATA:\n");
-    dumpJSON(data->pJson);
+    // printf("TYPE: %s\n",data->callbackType);
+    // printf("DATA:\n");
+    // dumpJSON(data->pJson);
     if(strcmp(data->callbackType, "loadscene") == 0){
-        // loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
-        loadScene(mainmenu);
+        loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
+    }
+    else if(strcmp(data->callbackType, "action") == 0){
+        // TODO: send to action handler, for now we will just handle the action
+        exit(shutdownGame());
     }
     else if(strcmp(data->callbackType, "test") == 0){
         printf("TEST CALLBACK RECIEVED AND EXECUTED\n");
