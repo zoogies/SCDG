@@ -212,3 +212,9 @@ main menu is double loading
 - take measurements of performance and see if we can improve after caching
 - KVP hashmap global state system for caching
 - engine baking layers together optimization
+
+WHAT IVE BEEN WORKING ON:
+
+- settings buttons changing things
+- ive discovered that we actually should shut down the graphics subsystems and then re initialize them to make these changes without destroying everything
+  - implement the ability to destroy window + renderer and create them again
