@@ -37,4 +37,8 @@ void saveJSONFile(json_t *data, char *path);
 
 void writeInt(json_t *parent, char *keyName, int toWrite);
 
+void writeArrayInt(json_t *parent, size_t index, int toWrite);
+
+void writeString(json_t *parent, char *keyName, char *toWrite);
+
 #endif

@@ -57,6 +57,9 @@ int yOffset = 0;
 
 bool forceRefresh = false;
 
+int currentResolutionWidth = 1920;
+int currentResolutionHeight = 1080;
+
 // helper function to get renderObjectType as a string from the enum name
 char *getRenderObjectTypeString(renderObjectType type) {
     switch (type) {
@@ -135,14 +138,14 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     }
     
     if(centered){
-        char buffer[100];
-        sprintf(buffer, "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
-        logMessage(debug, buffer);
+        // char buffer[100];
+        // sprintf(buffer, "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        // logMessage(debug, buffer);
     }
     else{
-        char buffer[100];
-        sprintf(buffer, "Added renderObject %s id#%d absolutely at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
-        logMessage(debug, buffer);
+        // char buffer[100];
+        // sprintf(buffer, "Added renderObject %s id#%d absolutely at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        // logMessage(debug, buffer);
     }
     objectCount++;
 }
@@ -150,9 +153,9 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
 // remove a render object from the queue by its identifier
 void removeRenderObject(int identifier) {
     // debug output
-    char buffer[100];
-    sprintf(buffer, "Remove render object id#%d\n",identifier);
-    logMessage(debug, buffer);
+    // char buffer[100];
+    // sprintf(buffer, "Remove render object id#%d\n",identifier);
+    // logMessage(debug, buffer);
     
     // if our render list has zero items
     if (pRenderListHead == NULL) {
@@ -260,9 +263,9 @@ void clearAllButtons(){
             button *pToDelete = pCurrent;
             pCurrent = pCurrent->pNext;
 
-            char buffer[100];
-            sprintf(buffer, "Remove button object id#%d\n", pToDelete->pObject->identifier);
-            logMessage(debug, buffer);
+            // char buffer[100];
+            // sprintf(buffer, "Remove button object id#%d\n", pToDelete->pObject->identifier);
+            // logMessage(debug, buffer);
             removeRenderObject(pToDelete->pObject->identifier);
             
             // we decref the json_t object inside the callbackData struct, because its a new ref so it will be freed
@@ -525,9 +528,9 @@ void clearAll(bool includeEngine) {
 
         if (includeEngine || pCurrent->identifier >= 0) {
             // Delete the current object as we are either deleting everything or the current object is always deletable
-            char buffer[100];
-            sprintf(buffer, "Remove render object id#%d\n", pCurrent->identifier);
-            logMessage(debug, buffer);
+            // char buffer[100];
+            // sprintf(buffer, "Remove render object id#%d\n", pCurrent->identifier);
+            // logMessage(debug, buffer);
 
             SDL_DestroyTexture(pCurrent->pTexture);
             free(pCurrent);
@@ -810,6 +813,101 @@ void setViewport(int screenWidth, int screenHeight){
     viewport.h = virtualHeight;
     SDL_RenderSetViewport(pRenderer, &viewport);
 }
+
+// /*
+//     method to change the window mode, flag passed in will set the window mode
+//     method will also change the resolution to match the new window mode:
+//     fullscreen - will auto detect screen resolution and set it
+//     windowed - will set the resolution to 1920x1080
+// */
+// void changeWindowMode(Uint32 flag)
+// {
+//     int success = SDL_SetWindowFullscreen(pWindow, flag);
+//     if(success < 0) 
+//     {
+//         logMessage(error, "ERROR: COULD NOT CHANGE WINDOW MODE\n");
+//         return;
+//     }
+//     else
+//     {
+//         logMessage(info, "Changed window mode.\n");
+//     }
+
+//     if(flag == 0){
+//         changeResolution(1920, 1080);
+//     }
+//     else{
+//         SDL_DisplayMode displayMode;
+//         if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
+//             logMessage(error, "SDL_GetCurrentDisplayMode failed!\n");
+//             return;
+//         }
+//         int screenWidth = displayMode.w;
+//         int screenHeight = displayMode.h;
+        
+//         char buffer[100];
+//         sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
+//         logMessage(debug, buffer);
+
+//         changeResolution(screenWidth, screenHeight);
+//     }
+// }
+
+// /*
+//     Shuts down current renderer, creates a new renderer with or withou
+//     vsync according to passed bool
+// */
+// void setVsync(bool enabled) {
+//     SDL_DestroyRenderer(pRenderer);
+//     logMessage(debug, "Renderer destroyed to toggle vsync.\n");
+
+//     uint32_t flags = SDL_RENDERER_ACCELERATED;
+//     if (enabled) {
+//         flags |= SDL_RENDERER_PRESENTVSYNC;
+//     }
+
+//     pRenderer = SDL_CreateRenderer(pWindow, -1, flags);
+//     logMessage(debug, "Renderer re-created.\n");
+
+//     if (pRenderer == NULL) {
+//         logMessage(warning,"ERROR RE-CREATING RENDERER\n");     
+//         exit(1);
+//     }
+
+//     setViewport(currentResolutionWidth,currentResolutionHeight);
+// }
+
+// /*
+//     Changes the game fps cap to the passed integer
+//     TODO: add checks for if we need to change vsync to save performance
+// */
+// void changeFPS(int cap){
+//     toggleOverlay(); // NOTE: overlay bugs out when we change renderer so we have to toggle it twice
+//     if(cap == -1){
+//         setVsync(true);
+//     }
+//     else{
+//         setVsync(false);
+//         fpscap = cap;
+//         desiredFrameTime = 1000 / fpscap;
+//     }
+//     toggleOverlay();
+// }
+
+// struct ScreenSize getCurrentResolution(){
+//     struct ScreenSize screensize = {currentResolutionWidth,currentResolutionHeight}; // TODO: this sucks
+//     return screensize;
+// }
+
+// /*
+//     Changes the game resolution to the passed width and height
+// */
+// void changeResolution(int width, int height) {
+//     SDL_SetWindowSize(pWindow, width, height);
+//     setViewport(width, height);
+//     currentResolutionWidth = width;
+//     currentResolutionHeight = height;
+// }
 
 // initialize graphics
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap){

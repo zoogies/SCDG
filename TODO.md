@@ -40,10 +40,6 @@
 - [ ] macOS port? (difficult bc need dev tools but will look into for ben)
 - [ ] convert all spaces to tabs and setup auto formatter
 
-can i just shutdown engine systems from the game and then reset them? like if i want to change the window size or mode i could end the renderer and then restart it with the new settings? or would that be too slow? i think it would be fine but i need to test it
-
-goal has shifted, we no longer really care about drop in json game data changing the whole entire game easily, it should still be on the mind but its ok to hard code some things into the game code it doesnt all have to be read in the json
-
 - json loads in static and starter data, then game looks towards scene flow descriptor in json which is a list of events and awaits which control how the game flows, for non standard things (unprecedented events like minigame chess) control is explicitely handed over to game function to handle and then resolved back to the scene flow descriptor
 
 some sort of level editor where i can place buttons and text and stuff and then it will generate the json for me
@@ -218,3 +214,23 @@ WHAT IVE BEEN WORKING ON:
 - settings buttons changing things
 - ive discovered that we actually should shut down the graphics subsystems and then re initialize them to make these changes without destroying everything
   - implement the ability to destroy window + renderer and create them again
+
+- save on exit
+- update screen res when fullscreened (exists in game)
+
+SETTINGS TODO:
+
+- allow custom resolutions
+
+change all exit(1) non criticals to returns so we can keep going.
+
+debug_verbose keyword: go through and change whats logging and whats not (so many debugs rn)
+
+soft reload scenes without restarting music (useful for settings or seamless reload)
+
+7/1/23:
+
+- we added a bunch of backend stuff to change window mode fps and res, but its all pretty garbage so will have to look at later.
+- i think itll be easier to implement this with some sort of global game state manager (implement this first)
+- do the caching stuff before we worry about state
+- then do the engine caching (eventually) after state

@@ -3,61 +3,112 @@
 #include "engine/graphics.h"
 #include "data.h"
 
+// NOTE: when we change a setting like this, its annoying to go through our LL
+// and update screen points, so lets just reload settings
+
+// NOTE/WARN: only save settings if the user successfully exits the settings menu
+
+// struct all fields null, update fields that arent?
+
+// bool changed_resolution = false;
+// bool changed_windowMode = false;
+// bool changed_fpsCap = false;
+
+// int new_resolution_w = 0;
+// int new_resolution_h = 0;
+// char *new_windowMode = "";
+// int new_fpsCap = 0;
+
+void actionHandler(struct callbackData *_data){
+    json_t *data = _data->pJson;
+    if(strcmp(getString(data, "action"), "quit") == 0){
+        exit(shutdownGame());
+    }
+    // else if(strcmp(getString(data, "action"), "resize") == 0){
+    //     int w = getInteger(data, "width");
+    //     int h = getInteger(data, "height");
+
+    //     changeResolution(w,h);
+    //     updateGameScreenSize();
+    //     new_resolution_w = w;
+    //     new_resolution_h = h;
+    //     changed_resolution = true;
+    //     loadScene(settings);
+    // }
+    // else if(strcmp(getString(data, "action"), "changeWindowMode") == 0){
+    //     char *mode = getString(data,"mode");
+    //     if(strcmp(mode,"windowed") == 0){
+    //         changeWindowMode(SDL_FALSE);
+    //         new_windowMode = "windowed";
+    //     }
+    //     else if(strcmp(mode,"fullscreen") == 0){
+    //         changeWindowMode(SDL_WINDOW_FULLSCREEN_DESKTOP);
+    //         new_windowMode = "fullscreen";
+    //     }
+    //     // else if(strcmp(mode,"borderless") == 0){
+    //     //     changeWindowMode(SDL_WINDOW_BORDERLESS);
+    //     // }
+    //     // else if(strcmp(mode,"maximized") == 0){
+    //     //     changeWindowMode(SDL_WINDOW_MAXIMIZED);
+    //     // }
+    //     else{
+    //         logMessage(warning, "Invalid window mode, defaulting to windowed.\n");
+    //         changeWindowMode(SDL_FALSE);
+    //         loadScene(settings);
+    //         return;
+    //     }
+    //     changed_windowMode = true;
+    //     updateGameScreenSize();
+    //     loadScene(settings);
+    // }
+    // else if(strcmp(getString(data, "action"), "changeFPS") == 0){
+    //     int cap = getInteger(data, "fps");
+    //     changeFPS(cap);
+    //     new_fpsCap = cap;
+    //     changed_fpsCap = true;
+    //     loadScene(settings);
+    // }
+}
+
 void callbackHandler(struct callbackData *data){
     // printf("TYPE: %s\n",data->callbackType);
     // printf("DATA:\n");
     // dumpJSON(data->pJson);
     if(strcmp(data->callbackType, "loadscene") == 0){
+
+        // -------------------------------------------------------------------------
+
+        // TODO FIXME URGENT:
+        // we should only update our save data settings 
+        // if the user clicks the exit button when in the settings menu
+        // we are waiting for global state to fix this
+        // json_t *SAVEDATA = getSaveData("data/savedata.json");
+        // if(changed_fpsCap){
+        //     writeInt(getObject(SAVEDATA,"settings"),"framecap",new_fpsCap);
+        // }
+        // else if(changed_windowMode){
+        //     writeString(getObject(SAVEDATA,"settings"),"window mode",new_windowMode);
+        // }
+        // else if(changed_resolution){
+        //     json_t *arr = getArray(getObject(SAVEDATA,"settings"),"resolution");
+        //     writeArrayInt(arr,0,new_resolution_w);
+        //     writeArrayInt(arr,1,new_resolution_h);
+        // }
+        // saveJSONFile(SAVEDATA,"data/savedata.json");
+
+        // json_decref(SAVEDATA);
+        // changed_fpsCap = false;
+        // changed_windowMode = false;
+        // changed_resolution = false;
+        
+        // -------------------------------------------------------------------------
+
         loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
     }
     else if(strcmp(data->callbackType, "action") == 0){
-        // TODO: send to action handler, for now we will just handle the action
-        exit(shutdownGame());
+        actionHandler(data);
     }
     else if(strcmp(data->callbackType, "test") == 0){
         printf("TEST CALLBACK RECIEVED AND EXECUTED\n");
     }
 }
-
-// int (enum callbacks callback){
-//     switch(callback){
-//         case gotoMainMenu:
-//             logMessage(debug, "Going to main menu\n");
-//             loadScene(mainmenu);
-//             break;
-//         case gotoSettings:
-//             logMessage(debug, "Going to settings\n");
-//             loadScene(settings);
-//             break;
-//         case quitGame:
-//             logMessage(debug, "Quitting game\n");
-//             quit=true;
-//             break;
-//         default:
-//             logMessage(error, "Invalid callback\n");
-//             break;
-//     }
-//     return 0;
-// }
-
-// callback data has function pointer inside of it
-
-// move callback stuff defs to engine
-
-// move callbackData to engine and enum becomes param looked up by string?
-
-// strcmp switch statement
-
-// recieve json_t "callback" field and look at its "type" field, return function pointer to callback function
-
-
-
-// callbacktype = generic, loadscene
-/*
-    "callback":{
-        "type":"loadscene",
-        "scene":"mainmenu"
-    }
-*/
-
-// 

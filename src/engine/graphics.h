@@ -71,6 +71,14 @@ void checkClicked(int x, int y);
 
 void setViewport(int screenWidth, int screenHeight);
 
+// void changeWindowMode(Uint32 mode);
+
+// void changeFPS(int cap);
+
+// struct ScreenSize getCurrentResolution();
+
+// void changeResolution(int width, int height);
+
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);
 
 void shutdownGraphics();

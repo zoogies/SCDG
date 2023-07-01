@@ -238,7 +238,7 @@
         },
         {
           "prototype":"small button",
-          "text":"borderless",
+          "text":"windowed",
           "x":0.41,
           "y":0.25,
           "w":0.15,
@@ -247,35 +247,7 @@
           "callback":{
             "type":"action",
             "action":"changeWindowMode",
-            "mode":"borderless"
-          }
-        },
-        {
-          "prototype":"small button",
-          "text":"maximized",
-          "x":0.61,
-          "y":0.25,
-          "w":0.15,
-          "h":0.08,
-          "centered":false,
-          "callback":{
-            "type":"action",
-            "action":"changeWindowMode",
-            "mode":"maximized"
-          }
-        },
-        {
-          "prototype":"small button",
-          "text":"default",
-          "x":0.81,
-          "y":0.25,
-          "w":0.15,
-          "h":0.08,
-          "centered":false,
-          "callback":{
-            "type":"action",
-            "action":"changeWindowMode",
-            "mode":"default"
+            "mode":"windowed"
           }
         },
         {

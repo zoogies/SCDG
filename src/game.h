@@ -13,6 +13,8 @@ enum scenes {
     settings = 2
 };
 
+// void updateGameScreenSize();
+
 void loadScene(enum scenes scene);
 
 enum scenes getSceneNameEnum(char *name);

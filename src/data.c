@@ -240,7 +240,9 @@ void dumpJSON(json_t *parent){
     printf("\n");
 }
 
+// ---------------------------------------------------------------------------------------
 // modification functions
+// ---------------------------------------------------------------------------------------
 
 // update our json at path with passed json_t data
 void saveJSONFile(json_t *data, char *path){
@@ -250,6 +252,16 @@ void saveJSONFile(json_t *data, char *path){
 // modified the passed parent and adds an int at the keyname
 void writeInt(json_t *parent, char *keyName, int toWrite){
     json_t *newVal = json_integer(toWrite);
+    json_object_set(parent, keyName, newVal);
+}
+
+void writeArrayInt(json_t *parent, size_t index, int toWrite){
+    json_t *newVal = json_integer(toWrite);
+    json_array_set(parent, index, newVal);
+}
+
+void writeString(json_t *parent, char *keyName, char *toWrite){
+    json_t *newVal = json_string(toWrite);
     json_object_set(parent, keyName, newVal);
 }
 

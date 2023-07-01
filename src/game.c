@@ -39,11 +39,11 @@ int SCREEN_HEIGHT = 720;
 int VOLUME = 128;
 
 // define window mode
-// 0   -> windowed
-// 1   -> fullscreen
-// 16  -> borderless
-// 128 -> maximized
-int windowMode = 0;
+// SDL_FALSE                        -> windowed
+// SDL_WINDOW_FULLSCREEN_DESKTOP    -> fullscreen
+// SDL_WINDOW_BORDERLESS            -> borderless
+// SDL_WINDOW_MAXIMIZED             -> maximized
+int windowMode = SDL_FALSE;
 
 // vsync is -1, all else is a number
 int framecap = -1;
@@ -73,6 +73,20 @@ SDL_Color colorwhite = {255, 255, 255, 255};
 // change an internel variable by x amount or to new value
 // play a sound
 // increment in story defined in json?
+
+// /*
+//     will poll the engine for the current screen resolution and
+//     update the internal game globals
+// */
+// void updateGameScreenSize(){
+//     struct ScreenSize size = getCurrentResolution();
+//     SCREEN_WIDTH = size.width;
+//     SCREEN_HEIGHT = size.height;
+
+//     char buffer[100];
+//     sprintf(buffer,"updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
+//     logMessage(debug, buffer);
+// }
 
 // TODO should prob go to other file (graphics.c)
 void updateText(char *key, char *text){
@@ -447,7 +461,24 @@ int mainFunction(int argc, char *argv[])
     SCREEN_HEIGHT = getArrayInt(resolutionArray,1);
 
     // extract window mode int and validate it
-    windowMode = getInteger(settings, "window mode");
+    char *mode = getString(settings,"window mode");
+    printf("WINDOW MODE: %s\n",mode);
+    if(strcmp(mode,"windowed") == 0){
+        windowMode = SDL_FALSE;
+    }
+    else if(strcmp(mode,"fullscreen") == 0){
+        windowMode = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    }
+    else if(strcmp(mode,"borderless") == 0){
+        windowMode = SDL_WINDOW_BORDERLESS;
+    }
+    else if(strcmp(mode,"maximized") == 0){
+        windowMode = SDL_WINDOW_MAXIMIZED;
+    }
+    else{
+        logMessage(warning, "Invalid window mode, defaulting to windowed.\n");
+        windowMode = SDL_FALSE;
+    }
 
     // extract the frame cap and validate it
     framecap = getInteger(settings, "framecap");
