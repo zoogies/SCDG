@@ -12,3 +12,4 @@ resources/*
 # stray object files, most from /testing
 *.o
 testing/jansson
+src/engine/uthash/uthash.h

@@ -220,7 +220,7 @@ int getArrayInt(json_t *parent, int index){
     json_t *pObject = getArrayIndex(parent, index);
     if (!pObject || !json_is_integer(pObject)) {
         logMessage(error,"FAILED GETTING ARRAY INT BY INDEX\n");
-        return NULL;
+        return NULL; // TODO FIXME
     }
     return json_integer_value(pObject);
 }

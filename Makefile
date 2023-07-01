@@ -24,7 +24,7 @@ linux: dirs $(BUILD_DIR_LINUX)/game_linux
 debug: CFLAGS += -g
 debug: dirs $(BUILD_DIR_LINUX)/game_linux
 
-$(BUILD_DIR_LINUX)/game_linux: $(BUILD_DIR_LINUX)/game.o $(BUILD_DIR_LINUX)/engine.o $(BUILD_DIR_LINUX)/audio.o $(BUILD_DIR_LINUX)/graphics.o $(BUILD_DIR_LINUX)/logging.o $(BUILD_DIR_LINUX)/discord.o $(BUILD_DIR_WINDOWS)/callbacks.o $(BUILD_DIR_WINDOWS)/data.o
+$(BUILD_DIR_LINUX)/game_linux: $(BUILD_DIR_LINUX)/game.o $(BUILD_DIR_LINUX)/engine.o $(BUILD_DIR_LINUX)/variant.o $(BUILD_DIR_LINUX)/audio.o $(BUILD_DIR_LINUX)/graphics.o $(BUILD_DIR_LINUX)/logging.o $(BUILD_DIR_LINUX)/discord.o $(BUILD_DIR_WINDOWS)/callbacks.o $(BUILD_DIR_WINDOWS)/data.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 	rm -f $(BUILD_DIR_LINUX)/*.o
 
@@ -33,7 +33,7 @@ windows: CC = $(CC_WIN)
 windows: LIBS = $(LIBS_WIN)
 windows: dirs $(BUILD_DIR_WINDOWS)/game_windows.exe copy_resources_windows
 
-$(BUILD_DIR_WINDOWS)/game_windows.exe: $(BUILD_DIR_WINDOWS)/game.o $(BUILD_DIR_WINDOWS)/engine.o $(BUILD_DIR_WINDOWS)/audio.o $(BUILD_DIR_WINDOWS)/graphics.o $(BUILD_DIR_LINUX)/logging.o $(BUILD_DIR_WINDOWS)/discord.o $(BUILD_DIR_WINDOWS)/callbacks.o $(BUILD_DIR_WINDOWS)/data.o
+$(BUILD_DIR_WINDOWS)/game_windows.exe: $(BUILD_DIR_WINDOWS)/game.o $(BUILD_DIR_WINDOWS)/engine.o $(BUILD_DIR_LINUX)/variant.o $(BUILD_DIR_WINDOWS)/audio.o $(BUILD_DIR_WINDOWS)/graphics.o $(BUILD_DIR_LINUX)/logging.o $(BUILD_DIR_WINDOWS)/discord.o $(BUILD_DIR_WINDOWS)/callbacks.o $(BUILD_DIR_WINDOWS)/data.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 	rm -f $(BUILD_DIR_WINDOWS)/*.o
 

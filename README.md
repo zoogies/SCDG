@@ -11,6 +11,7 @@ A joke "Dating" game starring friends from a discord server, made as an intro to
 - [SDL2](https://www.libsdl.org/)
 - [jansson](https://github.com/akheron/jansson)
 - [discord SDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide)
+- [uthash](https://github.com/troydhanson/uthash)
 
 ## Credit
 

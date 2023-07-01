@@ -17,6 +17,7 @@
 #include "engine/audio.h"
 #include "engine/graphics.h"
 #include "engine/logging.h"
+#include "engine/variant.h"
 
 #include "game.h"
 #include "discord.h"
@@ -67,6 +68,9 @@ TTF_Font *pStartupFont;
 bool gamedebug = false;
 
 SDL_Color colorwhite = {255, 255, 255, 255};
+
+// global state variant collections
+VariantCollection* cache;
 
 // function pointer functions to cover all cases:
 // go to new scene
@@ -154,32 +158,42 @@ void updateText(char *key, char *text){
 // }
 
 TTF_Font *getFont(char *key, json_t *keys){
-    // Node *pFontNode = getTypedItem(&trackedFonts,key);
-    // if(pFontNode == NULL){
-    //     // load font and add to trackedFonts
-    //     pFontNode = createItem(key,TYPE_FONT,loadFont(getString(keys,key),100));
-    //     logMessage(debug, "Cached a font.\n");
-    // }
-    // else{
-    //     logMessage(debug, "Found cached font.\n");
-    // }
-    // return getTypedItem(&trackedFonts,key);
+    Variant *v = getVariant(cache, key);
+    if(v == NULL){
+        Variant fontVariant;
+        fontVariant.type = VARIANT_FONT;
+        fontVariant.fontValue = loadFont(getString(keys,key),100);
+
+        addVariant(cache, key, fontVariant);
+        logMessage(debug, "Cached a font.\n");
+        v = getVariant(cache, key);
+    }
+    else{
+        logMessage(debug, "Found cached font.\n");
+    }
+    return v->fontValue;
 }
 
 SDL_Color *getColor(char *key, json_t *keys){
-    // Node *pColorNode = getTypedItem(&trackedColors,key);
-    // if(pColorNode == NULL){
-    //     json_t *pColorObj = getObject(getObject(keys,"color"),key);
+    Variant *v = getVariant(cache, key);
+    if(v == NULL){
+        json_t *pColorObj = getObject(getObject(keys,"color"),key);
 
-    //     SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
+        SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
 
-    //     pColorNode = createItem(key,TYPE_COLOR,&color);
-    //     logMessage(debug, "Cached a color.\n");
-    // }
-    // else{
-    //     logMessage(debug, "Found cached color.\n");
-    // }
-    // return getTypedItem(&trackedColors,key);
+        Variant colorVariant;
+        colorVariant.type = VARIANT_COLOR;
+        colorVariant.colorValue = color;
+
+        addVariant(cache, key, colorVariant);
+        logMessage(debug, "Cached a color.\n");
+        v = getVariant(cache, key);
+    }
+    else{
+        logMessage(debug, "Found cached color.\n");
+    }
+    SDL_Color *pColor = &v->colorValue;
+    return pColor;
 }
 
 // TODO: take in root gamedata and not all json_t?
@@ -234,10 +248,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *text = getString(obj,"text");
 
             char *fonttxt = getString(obj,"font");
-            // TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            TTF_Font *pFont = getFont(fonttxt,fontKeys);
 
             char *colortxt = getString(obj,"color");
-            // SDL_Color * pColor = getColor(colortxt,keys);
+            SDL_Color * pColor = getColor(colortxt,keys);
             
             created = createText(
                 depth,
@@ -246,10 +260,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 w,
                 h,
                 text,
-                // pFont,
-                pStartupFont,
-                // pColor,
-                &colorwhite,
+                pFont,
+                pColor,
                 centered
             );
         }
@@ -271,11 +283,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *txt = getString(obj,"text");
 
             char *fonttxt = getString(obj,"font");
-            TTF_Font *pFont = loadFont(getString(fontKeys,getString(obj,"font")),300);
-            // TODO FIXME URGENT MEMLEAK: above line is never freed, fix this when caching fonts and colors
+            TTF_Font *pFont = getFont(fonttxt,fontKeys);
 
-            // char *colortxt = getString(obj,"color"); TODO URGENT
-            // SDL_Color * pColor = getColor(colortxt,keys);
+            char *colortxt = getString(obj,"color");
+            SDL_Color * pColor = getColor(colortxt,keys);
 
             // load callback data from json
             json_t *pCallback = getObject(obj,"callback");
@@ -306,8 +317,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 h,
                 txt,
                 pFont,
-                // pColor,
-                &colorwhite, // FIXME: mallocing colors and storing them
+                pColor,
                 centered,
                 src,
                 cb
@@ -353,16 +363,16 @@ enum scenes getSceneNameEnum(char *name){
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
 // OLD LIST CAN GET DESTROYED AFTER WE LOAD THE SCENE FOR LESS LATENCY (in new thread?)
 void loadScene(enum scenes scene){
+    // we are going to start a counter to see how long the scene takes to load
+    Uint32 startTime = SDL_GetTicks();
+
     // clear all game objects to prep for switching scenes
     clearAll(false);
 
-    // // clear all tracked/cached objects
-    // printf("Clearing tracked objects.\n");
-    // // freeLinkedList(&trackedObjects);
-    // printf("Clearing tracked colors.\n");
-    // // freeLinkedList(&trackedColors);
-    // printf("Clearing tracked fonts.\n");
-    // // freeLinkedList(&trackedFonts);
+    // clear cache before scene load TODO: do we need to do this at all?
+    // in the future there will be a lot of unique textures so we should, but
+    // right now its not beneficial. hybrid system tracking and pruning stale cache would be best
+    clearVariantCollection(cache);
 
     currentScene = scene;
 
@@ -410,12 +420,20 @@ void loadScene(enum scenes scene){
         break;
     }
     json_decref(GAMEDATA); // free only our ROOT json, everything else is borrowed
+
+    Uint32 endTime = SDL_GetTicks();
+
+    // Calculate the elapsed time
+    Uint32 elapsedTime = endTime - startTime;
+
+    // Print the elapsed time in milliseconds
+    printf("Elapsed time: %u ms\n", elapsedTime);
 }
 
 // shuts down the game
 int shutdownGame(){
-    // shut down our own game specific stuff
-    TTF_CloseFont(pStartupFont);
+    // clear cache
+    destroyVariantCollection(cache);
 
     // main game loop has finished: shutdown engine and subsequently the game
     shutdownEngine();
@@ -441,6 +459,9 @@ int mainFunction(int argc, char *argv[])
         } 
         // other flags can be implemented here in the future
     }
+
+    // initialize cache
+    cache = createVariantCollection();
 
     /*
         Get some neccessary values from game data to startup the game
@@ -536,29 +557,10 @@ int mainFunction(int argc, char *argv[])
                     int mouseY = e.button.y;
                     // run checks on if button was clicked and get its id if we did
                     checkClicked(mouseX, mouseY);
-                    //if(buttonClicked != intFail){
-                    //    char buffer[100];
-                    //    sprintf(buffer, "Left click event at (%d, %d) hit button id#%d\n", mouseX, mouseY,buttonClicked);
-                    //    logMessage(debug, buffer);
-                    //}
-                    //else{
-                        char buffer[100];
-                        sprintf(buffer, "Left click event at (%d, %d)\n", mouseX, mouseY);
-                        logMessage(debug, buffer);
-                    //}
 
-                    // if buttonClicked getValue
-                    if(currentScene == mainmenu){
-                        // if(buttonClicked == getValue("playbtn")){
-                        //     loadScene(game);
-                        // }
-                        // else if(buttonClicked == getValue("settingsbtn")){
-                        //     loadScene(settings);
-                        // }
-                        // else if(buttonClicked == getValue("quitbtn")){
-                        //     quit = true;
-                        // }
-                    }
+                    char buffer[100];
+                    sprintf(buffer, "Left click event at (%d, %d)\n", mouseX, mouseY);
+                    logMessage(debug, buffer);
                 }
             }
             else if (e.type == SDL_KEYDOWN) {

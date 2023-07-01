@@ -234,3 +234,10 @@ soft reload scenes without restarting music (useful for settings or seamless rel
 - i think itll be easier to implement this with some sort of global game state manager (implement this first)
 - do the caching stuff before we worry about state
 - then do the engine caching (eventually) after state
+
+make our own hashmap implementation
+
+pre optimization settings load takes 250ms
+font caching cut 40ms
+
+cache size debug overlay counter
