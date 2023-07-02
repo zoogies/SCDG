@@ -13,6 +13,10 @@ enum scenes {
     settings = 2
 };
 
+void volumeUp();
+
+void volumeDown();
+
 void updateGameScreenSize();
 
 void loadScene(enum scenes scene);

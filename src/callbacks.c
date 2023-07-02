@@ -49,6 +49,12 @@ void actionHandler(struct callbackData *_data){
         changed_fpsCap = true;
         loadScene(settings);
     }
+    else if(strcmp(getString(data, "action"), "increaseVolume") == 0){
+        volumeUp();
+    }
+    else if(strcmp(getString(data, "action"), "decreaseVolume") == 0){
+        volumeDown();
+    }
 }
 
 void callbackHandler(struct callbackData *data){

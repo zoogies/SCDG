@@ -265,7 +265,7 @@
           "centered":false,
           "callback":{
             "type":"action",
-            "action":"increaseVolume"
+            "action":"decreaseVolume"
           }
         },
         {
@@ -288,7 +288,7 @@
           "centered":false,
           "callback":{
             "type":"action",
-            "action":"decreaseVolume"
+            "action":"increaseVolume"
           }
         }
       ]

@@ -273,3 +273,12 @@ linux specific weird visual bug when fullscreen->windowed
 re add resolution choices
 
 custom cursor?
+
+THOUGHTS:
+
+- font cache should use path instead of name to access
+- we need some kind of global game object tracker
+  - denotes what type each object is and relevant meta
+    - how to reconstruct this object (font, color, etc)
+  - maybe its not just a game object tracker but a global state manager in general
+    - state.c, can hold game objects, current scene, other relevant info from enum denoting type

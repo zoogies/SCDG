@@ -102,60 +102,48 @@ void updateText(char *key, char *text){
     // SDL_DestroyTexture(temp);
 }
 
-// void volumeUp(){
-//     // if we are max vol we dont do anything
-//     if(VOLUME == 128){
-//         return;
-//     }
+void volumeUp(){
+    // if we are max vol we dont do anything
+    if(VOLUME == 128){
+        return;
+    }
 
-//     VOLUME += 8;
-//     if(VOLUME > 128){
-//         VOLUME = 128;
-//     }
-//     setVolume(-1,VOLUME);
-//     // update volume-text with "VOLUME%"
-//     char buffer[100];
-//     sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-//     updateText("volume-text",buffer);
+    VOLUME += 8;
+    if(VOLUME > 128){
+        VOLUME = 128;
+    }
+    setVolume(-1,VOLUME);
+    // update volume-text with "VOLUME%"
+    char buffer[100];
+    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    //updateText("volume-text",buffer);
+    printf("%s",buffer);
+    json_t *SAVEDATA = getSaveData("data/savedata.json");
+    writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
+    saveJSONFile(SAVEDATA,"data/savedata.json");
+    json_decref(SAVEDATA); // destroy our root json_t*
+}
 
-//     // write changes to save data TODO: cleanup
-//     saveJSONFile(
-//         writeInt(
-//             getSaveData("data/savedata.json"),
-//             "volume",
-//             VOLUME
-//         )
-//         ,"data/savedata.json"
-//     );
-//     // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
-// }
+void volumeDown(){
+    // if we are min vol we dont do anything
+    if(VOLUME == 0){
+        return;
+    }
 
-// void volumeDown(){
-//     // if we are min vol we dont do anything
-//     if(VOLUME == 0){
-//         return;
-//     }
-
-//     VOLUME -= 8;
-//     if(VOLUME < 0){
-//         VOLUME = 0;
-//     }
-//     setVolume(-1,VOLUME);
-//     char buffer[100];
-//     sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
-//     updateText("volume-text",buffer);
-
-//     // write changes to save data
-//     saveJSONFile(
-//         writeInt(
-//             getSaveData("data/savedata.json"),
-//             "volume",
-//             VOLUME
-//         )
-//         ,"data/savedata.json"
-//     );
-//     // writeInt(getObject(initSaveData("data/savedata.json"), "settings"),"volume",VOLUME);
-// }
+    VOLUME -= 8;
+    if(VOLUME < 0){
+        VOLUME = 0;
+    }
+    setVolume(-1,VOLUME);
+    char buffer[100];
+    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    // updateText("volume-text",buffer);
+    printf("%s",buffer);
+    json_t *SAVEDATA = getSaveData("data/savedata.json");
+    writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
+    saveJSONFile(SAVEDATA,"data/savedata.json");
+    json_decref(SAVEDATA); // destroy our root json_t*
+}
 
 TTF_Font *getFont(char *key, json_t *keys){
     Variant *v = getVariant(cache, key);
