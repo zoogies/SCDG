@@ -239,5 +239,37 @@ make our own hashmap implementation
 
 pre optimization settings load takes 250ms
 font caching cut 40ms
+texture caching cut 10ms
 
 cache size debug overlay counter
+
+move font and texture caching to engine so game doesnt have to manage
+
+auto load common textures from gamedata into cache
+
+make a generic timer function so we can add timers to get elapsed with label for things for benchmarking
+
+MUSIC FOR SETTINGS WAS TAKING 184MS!!!!!!!!!!!!!!
+
+audio takes long to load with large files
+
+- in the future, thread audio (its ok if it starts playing 200ms after the scene, most songs start from silence)
+- audio needs caching support for files in the future (cut out the overhead of loading character voice clips)
+
+TODO TOMORROW:
+
+- audio threading? (prob dont do this yet)
+- re implement audio
+- text aspect ratio preservation
+- go through and change all functions taking in a lot of params and stuff to use structs and flags
+- timing code for benchmarking how long things take
+- cleanup log messages (there are too many)
+- global state holding id's
+- buttons dimming when not active
+- baking layers together optimization? (would be interesting but would be time consuming and break everything so prob not ever going to do unless bored)
+- should be better automatic control reading from files on what needs cached and not, we dont want to cache single use items. maybe that means we just cache textures referenced in prototypes and keys?
+
+linux specific weird visual bug when fullscreen->windowed
+re add resolution choices
+
+custom cursor?

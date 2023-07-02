@@ -1,6 +1,7 @@
 #include "game.h"
 #include "engine/logging.h"
 #include "engine/graphics.h"
+#include "engine/engine.h"
 #include "data.h"
 
 // NOTE: when we change a setting like this, its annoying to go through our LL
@@ -10,64 +11,44 @@
 
 // struct all fields null, update fields that arent?
 
-// bool changed_resolution = false;
-// bool changed_windowMode = false;
-// bool changed_fpsCap = false;
+bool changed_windowMode = false;
+bool changed_fpsCap = false;
 
-// int new_resolution_w = 0;
-// int new_resolution_h = 0;
-// char *new_windowMode = "";
-// int new_fpsCap = 0;
+char *new_windowMode = "";
+int new_fpsCap = 0;
 
 void actionHandler(struct callbackData *_data){
     json_t *data = _data->pJson;
     if(strcmp(getString(data, "action"), "quit") == 0){
         exit(shutdownGame());
     }
-    // else if(strcmp(getString(data, "action"), "resize") == 0){
-    //     int w = getInteger(data, "width");
-    //     int h = getInteger(data, "height");
-
-    //     changeResolution(w,h);
-    //     updateGameScreenSize();
-    //     new_resolution_w = w;
-    //     new_resolution_h = h;
-    //     changed_resolution = true;
-    //     loadScene(settings);
-    // }
-    // else if(strcmp(getString(data, "action"), "changeWindowMode") == 0){
-    //     char *mode = getString(data,"mode");
-    //     if(strcmp(mode,"windowed") == 0){
-    //         changeWindowMode(SDL_FALSE);
-    //         new_windowMode = "windowed";
-    //     }
-    //     else if(strcmp(mode,"fullscreen") == 0){
-    //         changeWindowMode(SDL_WINDOW_FULLSCREEN_DESKTOP);
-    //         new_windowMode = "fullscreen";
-    //     }
-    //     // else if(strcmp(mode,"borderless") == 0){
-    //     //     changeWindowMode(SDL_WINDOW_BORDERLESS);
-    //     // }
-    //     // else if(strcmp(mode,"maximized") == 0){
-    //     //     changeWindowMode(SDL_WINDOW_MAXIMIZED);
-    //     // }
-    //     else{
-    //         logMessage(warning, "Invalid window mode, defaulting to windowed.\n");
-    //         changeWindowMode(SDL_FALSE);
-    //         loadScene(settings);
-    //         return;
-    //     }
-    //     changed_windowMode = true;
-    //     updateGameScreenSize();
-    //     loadScene(settings);
-    // }
-    // else if(strcmp(getString(data, "action"), "changeFPS") == 0){
-    //     int cap = getInteger(data, "fps");
-    //     changeFPS(cap);
-    //     new_fpsCap = cap;
-    //     changed_fpsCap = true;
-    //     loadScene(settings);
-    // }
+    else if(strcmp(getString(data, "action"), "changeWindowMode") == 0){
+        char *mode = getString(data,"mode");
+        if(strcmp(mode,"windowed") == 0){
+            changeWindowMode(SDL_FALSE);
+            new_windowMode = "windowed";
+        }
+        else if(strcmp(mode,"fullscreen") == 0){
+            changeWindowMode(SDL_WINDOW_FULLSCREEN_DESKTOP);
+            new_windowMode = "fullscreen";
+        }
+        else{
+            logMessage(warning, "Invalid window mode, defaulting to windowed.\n");
+            changeWindowMode(SDL_FALSE);
+            loadScene(settings);
+            return;
+        }
+        changed_windowMode = true;
+        updateGameScreenSize();
+        loadScene(settings);
+    }
+    else if(strcmp(getString(data, "action"), "changeFPS") == 0){
+        int cap = getInteger(data, "fps");
+        changeFPS(cap);
+        new_fpsCap = cap;
+        changed_fpsCap = true;
+        loadScene(settings);
+    }
 }
 
 void callbackHandler(struct callbackData *data){
@@ -82,24 +63,24 @@ void callbackHandler(struct callbackData *data){
         // we should only update our save data settings 
         // if the user clicks the exit button when in the settings menu
         // we are waiting for global state to fix this
-        // json_t *SAVEDATA = getSaveData("data/savedata.json");
-        // if(changed_fpsCap){
-        //     writeInt(getObject(SAVEDATA,"settings"),"framecap",new_fpsCap);
-        // }
-        // else if(changed_windowMode){
-        //     writeString(getObject(SAVEDATA,"settings"),"window mode",new_windowMode);
-        // }
-        // else if(changed_resolution){
-        //     json_t *arr = getArray(getObject(SAVEDATA,"settings"),"resolution");
-        //     writeArrayInt(arr,0,new_resolution_w);
-        //     writeArrayInt(arr,1,new_resolution_h);
-        // }
-        // saveJSONFile(SAVEDATA,"data/savedata.json");
+        json_t *SAVEDATA = getSaveData("data/savedata.json");
+        if(changed_fpsCap){
+            writeInt(getObject(SAVEDATA,"settings"),"framecap",new_fpsCap);
+        }
+        else if(changed_windowMode){
+            writeString(getObject(SAVEDATA,"settings"),"window mode",new_windowMode);
 
-        // json_decref(SAVEDATA);
-        // changed_fpsCap = false;
-        // changed_windowMode = false;
-        // changed_resolution = false;
+            // if we changed window mode we also changed resolution (for now)
+            json_t *arr = getArray(getObject(SAVEDATA,"settings"),"resolution");
+            struct ScreenSize size = getCurrentResolution();
+            writeArrayInt(arr,0,size.width);
+            writeArrayInt(arr,1,size.height);
+        }
+        saveJSONFile(SAVEDATA,"data/savedata.json");
+
+        json_decref(SAVEDATA);
+        changed_fpsCap = false;
+        changed_windowMode = false;
         
         // -------------------------------------------------------------------------
 

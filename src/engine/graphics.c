@@ -17,6 +17,7 @@
 #include "graphics.h"
 #include "audio.h"
 #include "logging.h"
+#include "variant.h"
 
 // TODO FIXME BAD BAD BAD BAD
 #include "../data.h"
@@ -28,6 +29,9 @@ SDL_Renderer *pRenderer = NULL;
 
 renderObject *pRenderListHead = NULL;
 button *pButtonListHead = NULL;
+
+// texture cache
+VariantCollection *pTextureCache;
 
 // int that increments each renderObject created, allowing new unique id's to be assigned
 int global_id = 0;
@@ -76,7 +80,7 @@ char *getRenderObjectTypeString(renderObjectType type) {
 
 // constructor for render objects, invoked internally by createText() and createImage()
 // NOTE: this function inserts highest depth objects at the front of the list
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered) {
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered, bool cachedTexture) {
     // translate our relative floats into actual screen coordinates for rendering
     // TODO: consider genericizing this into a function
     int objX = (int)(x * (float)virtualWidth); // + xOffset;
@@ -103,6 +107,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     pObj->depth = depth;
     pObj->pNext = NULL;
     pObj->type = type;
+    pObj->cachedTexture = cachedTexture;
 
     // if there are no renderObjects in the list, or the depth of this object is lower than the head
     if (pRenderListHead == NULL || pObj->depth < pRenderListHead->depth) {
@@ -172,8 +177,10 @@ void removeRenderObject(int identifier) {
         // set our head to the previous 2nd item
         pRenderListHead = pRenderListHead->pNext;
 
-        // delete the texture of our previous head
-        SDL_DestroyTexture(pToDelete->pTexture);
+        // delete the texture of our previous head (if its not cached)
+        if(!pToDelete->cachedTexture){
+            SDL_DestroyTexture(pToDelete->pTexture);
+        } // this allows any cache textures to be freed separately
 
         // free our previous head from memory
         free(pToDelete);
@@ -205,8 +212,10 @@ void removeRenderObject(int identifier) {
         // set our current next to what the deleted next pointed to
         pCurrent->pNext = pToDelete->pNext;
 
-        // destroy the texture of our node to be deleted
-        SDL_DestroyTexture(pToDelete->pTexture);
+        // destroy the texture of our node to be deleted (if its not cached)
+        if(!pToDelete->cachedTexture){
+            SDL_DestroyTexture(pToDelete->pTexture);
+        } // this allows any cache textures to be freed separately
 
         // free our node from memory
         free(pToDelete);
@@ -354,54 +363,92 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
     return pTexture;
 }
 
-// Create a texture from image path, returns NULL for failure
-SDL_Texture *createImageTexture(const char *pPath) {
+// Create a texture from image path, returns its texture pointer and a flag on whether
+// or not the texture is also cached
+struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
 
-    if(access(pPath, F_OK) == -1){
-        char buffer[100];
-        sprintf(buffer, "Could not access file '%s'.\n", pPath);
-        logMessage(error, buffer);
+    // try to get it from cache TODO: should we wrap this in if shouldCache?
+    Variant *pVariant = getVariant(pTextureCache, pPath);
+
+    if (pVariant != NULL) { // found in cache
+        // logMessage(debug, "Found texture in cache\n");
+
+        struct textureInfo ret = {pVariant->textureValue, true};
+
+        return ret;
     }
+    else{ // not found in cache
+        if(access(getPathStatic(pPath), F_OK) == -1){
+            char buffer[100];
+            sprintf(buffer, "Could not access file '%s'.\n", pPath);
+            logMessage(error, buffer);
+        }
 
-    // create surface from loading the image
-    SDL_Surface *pImage_surface = IMG_Load(pPath);
-    
-    // error out if surface load failed
-    if (!pImage_surface) {
-        char buffer[100];
-        sprintf(buffer, "Error loading image: %s\n", IMG_GetError());
-        logMessage(error, buffer);
-        return NULL;
+        // create surface from loading the image
+        SDL_Surface *pImage_surface = IMG_Load(getPathStatic(pPath));
+        
+        // error out if surface load failed
+        if (!pImage_surface) {
+            char buffer[100];
+            sprintf(buffer, "Error loading image: %s\n", IMG_GetError());
+            logMessage(error, buffer);
+            exit(1); // FIXME
+        }
+
+        // create texture from surface
+        SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, pImage_surface);
+        
+        // error out if texture creation failed
+        if (!pTexture) {
+            char buffer[100];
+            sprintf(buffer, "Error creating texture: %s\n", SDL_GetError());
+            logMessage(error, buffer);
+            exit(1); // FIXME
+        }
+
+        // release surface from memory
+        SDL_FreeSurface(pImage_surface);
+        if(shouldCache){ // we are going to cache it
+            // cache the texture
+            Variant variant;
+            variant.type = VARIANT_TEXTURE;
+            variant.textureValue = pTexture;
+
+            addVariant(pTextureCache, pPath, variant);
+
+            char buffer[100];
+            sprintf(buffer, "Cached a texture. key: %s\n", pPath);
+            logMessage(debug, buffer);
+
+            if(getVariant(pTextureCache, pPath) == NULL){
+                logMessage(error, "ERROR CACHING TEXTURE\n");
+            }
+
+            struct textureInfo ret = {pTexture, true};
+            
+            // return the created texture
+            return ret;
+
+        }
+        else{ // we are not going to cache it
+            struct textureInfo ret = {pTexture, false}; 
+
+            return ret;
+        }
     }
-
-    // create texture from surface
-    SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, pImage_surface);
-    
-    // error out if texture creation failed
-    if (!pTexture) {
-        char buffer[100];
-        sprintf(buffer, "Error creating texture: %s\n", SDL_GetError());
-        logMessage(error, buffer);
-        return NULL;
-    }
-
-    // release surface from memory
-    SDL_FreeSurface(pImage_surface);
-    
-    // return the created texture
-    return pTexture;
 }
 
 // add text to the render queue, returns the engine assigned ID of the object
 int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered){
-    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(pText,pFont,pColor),centered);
+    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(pText,pFont,pColor),centered,false); // FIXME: temp false flag here text is never cached, pass in struct?
     global_id++; // increment the global ID for next object
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 // add an image to the render queue, returns the engine assigned ID of the object
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,createImageTexture(getPathStatic(pPath)),centered);
+    struct textureInfo info = createImageTexture(pPath,true);
+    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,info.pTexture,centered,info.cached);
     global_id++;
     return global_id - 1;
 }
@@ -427,7 +474,8 @@ int createButton(int depth, float x, float y, float width, float height, char *p
         return intFail;
     }
 
-    SDL_Texture *pImageTexture = createImageTexture(getPathStatic(pBackgroundPath));
+    struct textureInfo info = createImageTexture(pBackgroundPath,true);
+    SDL_Texture *pImageTexture = info.pTexture;
 
     if(pImageTexture == NULL){
         logMessage(error, "ERROR CREATING IMAGE TEXTURE FOR BUTTON\n");
@@ -476,7 +524,7 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
     global_id++; // to stay consistant, increment now and refer to global_id - 1 when accessing ID
 
-    addRenderObject(global_id - 1,renderType_Button,depth,x,y,width,height,buttonTexture,centered);
+    addRenderObject(global_id - 1,renderType_Button,depth,x,y,width,height,buttonTexture,centered,false); // NOTE: HARD CODED NOCACHE
 
     renderObject *pObj = getRenderObject(global_id - 1);
 
@@ -502,7 +550,6 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
     // Cleanup
     SDL_DestroyTexture(textTexture);
-    SDL_DestroyTexture(pImageTexture);
 
     return global_id - 1; // for consistancy
 }
@@ -510,6 +557,8 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 // function that clears all non engine render objects (depth >= 0)
 // TODO: refactor this and removeRenderObject() to send pointers to nodes to another function to genericise this
 void clearAll(bool includeEngine) {
+
+
     // If our render list has zero items
     if (pRenderListHead == NULL) {
         // logMessage(warning, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
@@ -532,7 +581,11 @@ void clearAll(bool includeEngine) {
             // sprintf(buffer, "Remove render object id#%d\n", pCurrent->identifier);
             // logMessage(debug, buffer);
 
-            SDL_DestroyTexture(pCurrent->pTexture);
+            // Delete the texture of our current object (if its not cached)
+            if(!pCurrent->cachedTexture){
+                SDL_DestroyTexture(pCurrent->pTexture);
+            } // this allows any cache textures to be freed separately
+            
             free(pCurrent);
             objectCount--;
         } else {
@@ -554,6 +607,8 @@ void clearAll(bool includeEngine) {
     if (includeEngine && pPrev == NULL) {
         pRenderListHead = NULL;
     }
+    // clear cache
+    clearVariantCollection(pTextureCache);
 }
 
 // function to allow externel signal to force display refresh for debug overlay
@@ -820,94 +875,98 @@ void setViewport(int screenWidth, int screenHeight){
 //     fullscreen - will auto detect screen resolution and set it
 //     windowed - will set the resolution to 1920x1080
 // */
-// void changeWindowMode(Uint32 flag)
-// {
-//     int success = SDL_SetWindowFullscreen(pWindow, flag);
-//     if(success < 0) 
-//     {
-//         logMessage(error, "ERROR: COULD NOT CHANGE WINDOW MODE\n");
-//         return;
-//     }
-//     else
-//     {
-//         logMessage(info, "Changed window mode.\n");
-//     }
+void changeWindowMode(Uint32 flag)
+{
+    int success = SDL_SetWindowFullscreen(pWindow, flag);
+    if(success < 0) 
+    {
+        logMessage(error, "ERROR: COULD NOT CHANGE WINDOW MODE\n");
+        return;
+    }
+    else
+    {
+        logMessage(info, "Changed window mode.\n");
+    }
 
-//     if(flag == 0){
-//         changeResolution(1920, 1080);
-//     }
-//     else{
-//         SDL_DisplayMode displayMode;
-//         if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
-//             logMessage(error, "SDL_GetCurrentDisplayMode failed!\n");
-//             return;
-//         }
-//         int screenWidth = displayMode.w;
-//         int screenHeight = displayMode.h;
+    if(flag == 0){
+        changeResolution(1920, 1080);
+    }
+    else{
+        SDL_DisplayMode displayMode;
+        if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
+            logMessage(error, "SDL_GetCurrentDisplayMode failed!\n");
+            return;
+        }
+        int screenWidth = displayMode.w;
+        int screenHeight = displayMode.h;
         
-//         char buffer[100];
-//         sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
-//         logMessage(debug, buffer);
+        char buffer[100];
+        sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
+        logMessage(debug, buffer);
 
-//         changeResolution(screenWidth, screenHeight);
-//     }
-// }
+        changeResolution(screenWidth, screenHeight);
+    }
+}
 
 // /*
 //     Shuts down current renderer, creates a new renderer with or withou
 //     vsync according to passed bool
 // */
-// void setVsync(bool enabled) {
-//     SDL_DestroyRenderer(pRenderer);
-//     logMessage(debug, "Renderer destroyed to toggle vsync.\n");
+void setVsync(bool enabled) {
+    SDL_DestroyRenderer(pRenderer);
+    logMessage(debug, "Renderer destroyed to toggle vsync.\n");
 
-//     uint32_t flags = SDL_RENDERER_ACCELERATED;
-//     if (enabled) {
-//         flags |= SDL_RENDERER_PRESENTVSYNC;
-//     }
+    uint32_t flags = SDL_RENDERER_ACCELERATED;
+    if (enabled) {
+        flags |= SDL_RENDERER_PRESENTVSYNC;
+    }
 
-//     pRenderer = SDL_CreateRenderer(pWindow, -1, flags);
-//     logMessage(debug, "Renderer re-created.\n");
+    pRenderer = SDL_CreateRenderer(pWindow, -1, flags);
+    logMessage(debug, "Renderer re-created.\n");
 
-//     if (pRenderer == NULL) {
-//         logMessage(warning,"ERROR RE-CREATING RENDERER\n");     
-//         exit(1);
-//     }
+    if (pRenderer == NULL) {
+        logMessage(warning,"ERROR RE-CREATING RENDERER\n");     
+        exit(1);
+    }
 
-//     setViewport(currentResolutionWidth,currentResolutionHeight);
-// }
+    // NOTE: in fullscreen, resetting the render means we need to reset our viewport
+    setViewport(currentResolutionWidth,currentResolutionHeight);
+}
 
 // /*
 //     Changes the game fps cap to the passed integer
 //     TODO: add checks for if we need to change vsync to save performance
 // */
-// void changeFPS(int cap){
-//     toggleOverlay(); // NOTE: overlay bugs out when we change renderer so we have to toggle it twice
-//     if(cap == -1){
-//         setVsync(true);
-//     }
-//     else{
-//         setVsync(false);
-//         fpscap = cap;
-//         desiredFrameTime = 1000 / fpscap;
-//     }
-//     toggleOverlay();
-// }
+void changeFPS(int cap){
+    toggleOverlay(); // NOTE: overlay bugs out when we change renderer so we have to toggle it twice
+    if(cap == -1){
+        setVsync(true);
+    }
+    else{
+        setVsync(false);
+        fpscap = cap;
+        desiredFrameTime = 1000 / fpscap;
+    }
+    toggleOverlay();
+}
 
-// struct ScreenSize getCurrentResolution(){
-//     struct ScreenSize screensize = {currentResolutionWidth,currentResolutionHeight}; // TODO: this sucks
-//     return screensize;
-// }
+/*
+    returns a ScreenSize struct of the current resolution w,h
+*/
+struct ScreenSize getCurrentResolution(){
+    struct ScreenSize screensize = {currentResolutionWidth,currentResolutionHeight}; // TODO: this sucks
+    return screensize;
+}
 
-// /*
-//     Changes the game resolution to the passed width and height
-// */
-// void changeResolution(int width, int height) {
-//     SDL_SetWindowSize(pWindow, width, height);
-//     setViewport(width, height);
-//     currentResolutionWidth = width;
-//     currentResolutionHeight = height;
-// }
+/*
+    Changes the game resolution to the passed width and height
+*/
+void changeResolution(int width, int height) {
+    SDL_SetWindowSize(pWindow, width, height);
+    setViewport(width, height);
+    currentResolutionWidth = width;
+    currentResolutionHeight = height;
+}
 
 // initialize graphics
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap){
@@ -976,6 +1035,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     }
     logMessage(info, "IMG initialized.\n");
 
+    pTextureCache = createVariantCollection();
+
     // load icon to surface
     SDL_Surface *pIconSurface = IMG_Load(getPathStatic("images/icon.png"));
     if (pIconSurface == NULL) {
@@ -999,6 +1060,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 // shuts down all initialzied graphics systems
 void shutdownGraphics(){
     clearAll(true);
+
+    destroyVariantCollection(pTextureCache);
 
     // shutdown TTF
     TTF_Quit();

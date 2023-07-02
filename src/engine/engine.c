@@ -110,25 +110,26 @@ void toggleOverlay(){
         removeRenderObject(-5);
         removeRenderObject(-900);
     }
-    else{
+    else{ // NOTE: lots of hard coded falses for texture caching
         logMessage(debug, "Toggled Debug Overlay On.\n");
         // add fps counter manually to render stack with a custom id
-        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .12f, .08f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false);
+        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .12f, .08f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false,false);
 
         // add object counter (only updates when changed)
-        addRenderObject(-2, renderType_Text, 998, .0f, .07f, .12f, .08f, createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor),false);
+        addRenderObject(-2, renderType_Text, 998, .0f, .07f, .12f, .08f, createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor),false,false);
 
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-3, renderType_Text, 997, .0f, .14f, .12f, .08f, createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor),false);
+        addRenderObject(-3, renderType_Text, 997, .0f, .14f, .12f, .08f, createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor),false,false);
         
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-4, renderType_Text, 997, .0f, .21f, .12f, .08f, createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor),false);
+        addRenderObject(-4, renderType_Text, 997, .0f, .21f, .12f, .08f, createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor),false,false);
 
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-5, renderType_Text, 997, .0f, .28f, .12f, .08f, createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor),false);
+        addRenderObject(-5, renderType_Text, 997, .0f, .28f, .12f, .08f, createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor),false,false);
     
         // add back panel to debug overlay
-        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, createImageTexture(getPathStatic("images/ui/dimpanel.png")),false);
+        struct textureInfo info = createImageTexture("images/ui/dimpanel.png",false);
+        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, info.pTexture,false,info.cached);
 
         // force overlay refresh or text will be default
         debugForceRefresh();

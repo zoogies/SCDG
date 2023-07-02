@@ -1,6 +1,5 @@
 /*
     AUDIO TODO:
-    - volume control
     - allow channel to be specified or auto assigned
     - returning out of this file what channel a sound was assigned to so it can be interrupted
       or maybe even not do this, just let the game play on predefined channels which will auto interrup anyways

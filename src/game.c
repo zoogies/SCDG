@@ -82,15 +82,15 @@ VariantCollection* cache;
 //     will poll the engine for the current screen resolution and
 //     update the internal game globals
 // */
-// void updateGameScreenSize(){
-//     struct ScreenSize size = getCurrentResolution();
-//     SCREEN_WIDTH = size.width;
-//     SCREEN_HEIGHT = size.height;
+void updateGameScreenSize(){
+    struct ScreenSize size = getCurrentResolution();
+    SCREEN_WIDTH = size.width;
+    SCREEN_HEIGHT = size.height;
 
-//     char buffer[100];
-//     sprintf(buffer,"updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
-//     logMessage(debug, buffer);
-// }
+    char buffer[100];
+    sprintf(buffer,"updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
+    logMessage(debug, buffer);
+}
 
 // TODO should prob go to other file (graphics.c)
 void updateText(char *key, char *text){
@@ -165,11 +165,13 @@ TTF_Font *getFont(char *key, json_t *keys){
         fontVariant.fontValue = loadFont(getString(keys,key),100);
 
         addVariant(cache, key, fontVariant);
-        logMessage(debug, "Cached a font.\n");
+        char buffer[100];
+        sprintf(buffer, "Cached a font. key: %s\n", key);
+        logMessage(debug, buffer);
         v = getVariant(cache, key);
     }
     else{
-        logMessage(debug, "Found cached font.\n");
+        // logMessage(debug, "Found cached font.\n");
     }
     return v->fontValue;
 }
@@ -186,11 +188,13 @@ SDL_Color *getColor(char *key, json_t *keys){
         colorVariant.colorValue = color;
 
         addVariant(cache, key, colorVariant);
-        logMessage(debug, "Cached a color.\n");
+        char buffer[100];
+        sprintf(buffer, "Cached a color. key: %s\n", key);
+        logMessage(debug, buffer);
         v = getVariant(cache, key);
     }
     else{
-        logMessage(debug, "Found cached color.\n");
+        // logMessage(debug, "Found cached color.\n");
     }
     SDL_Color *pColor = &v->colorValue;
     return pColor;
@@ -325,6 +329,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         }
         else{
             logMessage(error, "Invalid renderObject type in main menu scene.\n");
+            (void)created;
         }
 
         // check if our object has a kvp so we can be tracking it
@@ -388,7 +393,7 @@ void loadScene(enum scenes scene){
     json_t *_scene;
     json_t *pMusic;
     json_t *pObjects;
-    
+
     // TODO: no switch just load from enum string?
     switch (scene)
     {
@@ -483,7 +488,6 @@ int mainFunction(int argc, char *argv[])
 
     // extract window mode int and validate it
     char *mode = getString(settings,"window mode");
-    printf("WINDOW MODE: %s\n",mode);
     if(strcmp(mode,"windowed") == 0){
         windowMode = SDL_FALSE;
     }
@@ -573,7 +577,7 @@ int mainFunction(int argc, char *argv[])
             else if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
                     // Reset the viewport when the game window regains focus
-                    setViewport(SCREEN_WIDTH, SCREEN_HEIGHT);
+                    // setViewport(SCREEN_WIDTH, SCREEN_HEIGHT);
                 }
             }
         }

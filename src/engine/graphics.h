@@ -36,10 +36,11 @@ typedef struct renderObject {
     SDL_Texture *pTexture;
     SDL_Rect rect;
     struct renderObject *pNext;
+    bool cachedTexture;
 } renderObject;
 
 
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered);
+void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered, bool cachedTexture);
 
 void removeRenderObject(int identifier);
 
@@ -47,8 +48,14 @@ renderObject *getRenderObject(int identifier);
 
 TTF_Font *loadFont(const char *pFontPath, int fontSize);
 
+// struct holding info on texture creations
+struct textureInfo {
+    SDL_Texture *pTexture;
+    bool cached;
+};
+
 // Create a texture from image path, returns NULL for failure
-SDL_Texture *createImageTexture(const char *pPath);
+struct textureInfo createImageTexture(char *pPath, bool shouldCache);
 
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor);
 
@@ -71,13 +78,13 @@ void checkClicked(int x, int y);
 
 void setViewport(int screenWidth, int screenHeight);
 
-// void changeWindowMode(Uint32 mode);
+void changeWindowMode(Uint32 mode);
 
-// void changeFPS(int cap);
+void changeFPS(int cap);
 
-// struct ScreenSize getCurrentResolution();
+struct ScreenSize getCurrentResolution();
 
-// void changeResolution(int width, int height);
+void changeResolution(int width, int height);
 
 void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap);
 

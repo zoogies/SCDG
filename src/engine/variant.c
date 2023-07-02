@@ -54,7 +54,7 @@ void clearVariant(Variant* variant) {
     else if(variant->type == VARIANT_FONT) {
         TTF_CloseFont(variant->fontValue);
     }
-    // Add more type-specific cleanup if necessary
-    variant->type = VARIANT_INT;  // Reset the type to INT
+    else if(variant->type == VARIANT_TEXTURE) {
+        SDL_DestroyTexture(variant->textureValue);
+    }
 }
-

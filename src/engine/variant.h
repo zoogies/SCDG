@@ -22,6 +22,7 @@ typedef struct {
         char* stringValue;
         SDL_Color colorValue;
         TTF_Font* fontValue;
+        SDL_Texture* textureValue;
     };
 } Variant;
 
