@@ -44,7 +44,7 @@
 json_t *loadJSONFile(char *path){
     if(access(getPathStatic(path), F_OK) == -1) {
         char buffer[100];
-        sprintf(buffer, "Could not access file '%s'.\n", path);
+        snprintf(buffer, sizeof(buffer),  "Could not access file '%s'.\n", path);
         logMessage(error, buffer);
         return NULL;
     }
@@ -117,7 +117,7 @@ json_t *getObject(json_t *parent, char *key) {
 
     if (pObject == NULL) {
         char buffer[100];
-        sprintf(buffer, "Error parsing JSON file for '%s'.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Error parsing JSON file for '%s'.\n", key);
         logMessage(error, buffer);
         return NULL;
     }
@@ -139,7 +139,7 @@ int getInteger(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_integer(pObject)) {
         char buffer[100];
-        sprintf(buffer, "Key '%s' was not expected type of integer.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Key '%s' was not expected type of integer.\n", key);
         logMessage(error, buffer);
         exit(1);
     }
@@ -150,7 +150,7 @@ bool getBool(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_boolean(pObject)) {
         char buffer[100];
-        sprintf(buffer, "Key '%s' was not expected type of boolean.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Key '%s' was not expected type of boolean.\n", key);
         logMessage(error, buffer);
         exit(1);
     }
@@ -166,7 +166,7 @@ float getFloat(json_t* parent, char* key) {
     }
     else{
         char buffer[100];
-        sprintf(buffer, "Key '%s' encountered error converting to float.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Key '%s' encountered error converting to float.\n", key);
         logMessage(error, buffer);
     }
 
@@ -177,7 +177,7 @@ char *getString(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_string(pObject)) {
         char buffer[100];
-        sprintf(buffer, "Key '%s' was not expected type of string.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Key '%s' was not expected type of string.\n", key);
         logMessage(error, buffer);
         return NULL;
     }
@@ -196,7 +196,7 @@ json_t *getArray(json_t *parent, char *key){
     json_t *pObject = getObject(parent, key);
     if (!pObject || !json_is_array(pObject)) {
         char buffer[100];
-        sprintf(buffer, "Key '%s' was not expected type of array.\n", key);
+        snprintf(buffer, sizeof(buffer),  "Key '%s' was not expected type of array.\n", key);
         logMessage(error, buffer);
         return NULL;
     }
@@ -207,7 +207,7 @@ json_t *getArrayIndex(json_t *parent, int index){
     json_t *pObject = json_array_get(parent, index);
     if (!pObject) {
         char buffer[100];
-        sprintf(buffer, "Error getting json array index '%d'.\n", index);
+        snprintf(buffer, sizeof(buffer),  "Error getting json array index '%d'.\n", index);
         logMessage(error, buffer);
         return NULL;
     }

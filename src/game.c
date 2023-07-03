@@ -88,7 +88,7 @@ void updateGameScreenSize(){
     SCREEN_HEIGHT = size.height;
 
     char buffer[100];
-    sprintf(buffer,"updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
+    snprintf(buffer, sizeof(buffer), "updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
     logMessage(debug, buffer);
 }
 
@@ -115,7 +115,7 @@ void volumeUp(){
     setVolume(-1,VOLUME);
     // update volume-text with "VOLUME%"
     char buffer[100];
-    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
     //updateText("volume-text",buffer);
     printf("%s",buffer);
     json_t *SAVEDATA = getSaveData("data/savedata.json");
@@ -136,7 +136,7 @@ void volumeDown(){
     }
     setVolume(-1,VOLUME);
     char buffer[100];
-    sprintf(buffer, "%d%%",(int)((float) VOLUME / 128 * 100));
+    snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
     // updateText("volume-text",buffer);
     printf("%s",buffer);
     json_t *SAVEDATA = getSaveData("data/savedata.json");
@@ -154,7 +154,7 @@ TTF_Font *getFont(char *key, json_t *keys){
 
         addVariant(cache, key, fontVariant);
         char buffer[100];
-        sprintf(buffer, "Cached a font. key: %s\n", key);
+        snprintf(buffer, sizeof(buffer),  "Cached a font. key: %s\n", key);
         logMessage(debug, buffer);
         v = getVariant(cache, key);
     }
@@ -177,7 +177,7 @@ SDL_Color *getColor(char *key, json_t *keys){
 
         addVariant(cache, key, colorVariant);
         char buffer[100];
-        sprintf(buffer, "Cached a color. key: %s\n", key);
+        snprintf(buffer, sizeof(buffer),  "Cached a color. key: %s\n", key);
         logMessage(debug, buffer);
         v = getVariant(cache, key);
     }
@@ -325,7 +325,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         if(identifier != NULL){
             // add to kvp (or update?)
             char buffer[100];
-            sprintf(buffer, "Adding '%s' to tracked objects.\n", identifier);
+            snprintf(buffer, sizeof(buffer),  "Adding '%s' to tracked objects.\n", identifier);
             logMessage(debug, buffer);
             // createItem(identifier,TYPE_INT,&created);
         }
@@ -347,7 +347,7 @@ enum scenes getSceneNameEnum(char *name){
     }
     else{
         char buffer[100];
-        sprintf(buffer, "COULD NOT CONVERT STRING TO SCENE ENUM '%s'. RETURNING TO MAIN MENU.\n", name);
+        snprintf(buffer, sizeof(buffer),  "COULD NOT CONVERT STRING TO SCENE ENUM '%s'. RETURNING TO MAIN MENU.\n", name);
         logMessage(error, buffer);
         return mainmenu;
     }
@@ -551,7 +551,7 @@ int mainFunction(int argc, char *argv[])
                     checkClicked(mouseX, mouseY);
 
                     char buffer[100];
-                    sprintf(buffer, "Left click event at (%d, %d)\n", mouseX, mouseY);
+                    snprintf(buffer, sizeof(buffer),  "Left click event at (%d, %d)\n", mouseX, mouseY);
                     logMessage(debug, buffer);
                 }
             }

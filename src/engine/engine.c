@@ -54,7 +54,7 @@ struct ScreenSize getScreenSize(){
     int screenHeight = displayMode.h;
     
     char buffer[100];
-    sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
+    snprintf(buffer, sizeof(buffer),  "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
     logMessage(debug, buffer);
 
     // return a ScreenSize struct with the screen width and height

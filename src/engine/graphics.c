@@ -144,12 +144,12 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
     
     if(centered){
         // char buffer[100];
-        // sprintf(buffer, "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        // snprintf(buffer, sizeof(buffer),  "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
         // logMessage(debug, buffer);
     }
     else{
         // char buffer[100];
-        // sprintf(buffer, "Added renderObject %s id#%d absolutely at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        // snprintf(buffer, sizeof(buffer),  "Added renderObject %s id#%d absolutely at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
         // logMessage(debug, buffer);
     }
     objectCount++;
@@ -159,7 +159,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
 void removeRenderObject(int identifier) {
     // debug output
     // char buffer[100];
-    // sprintf(buffer, "Remove render object id#%d\n",identifier);
+    // snprintf(buffer, sizeof(buffer),  "Remove render object id#%d\n",identifier);
     // logMessage(debug, buffer);
     
     // if our render list has zero items
@@ -225,7 +225,7 @@ void removeRenderObject(int identifier) {
     else{
         // if we couldnt find the ID, alarm
         char buffer[100];
-        sprintf(buffer, "ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE\n",identifier);
+        snprintf(buffer, sizeof(buffer),  "ERROR: COULD NOT FIND RENDER OBJECT WITH ID='%d' TO DELETE\n",identifier);
         logMessage(error, buffer);
     }
 }
@@ -255,7 +255,7 @@ void removeButton(int id){
         }
         else{
             char buffer[100];
-            sprintf(buffer, "ERROR: COULD NOT FIND BUTTON WITH ID#%d TO DELETE\n",id);
+            snprintf(buffer, sizeof(buffer),  "ERROR: COULD NOT FIND BUTTON WITH ID#%d TO DELETE\n",id);
             logMessage(error, buffer);
         }
     }
@@ -273,7 +273,7 @@ void clearAllButtons(){
             pCurrent = pCurrent->pNext;
 
             // char buffer[100];
-            // sprintf(buffer, "Remove button object id#%d\n", pToDelete->pObject->identifier);
+            // snprintf(buffer, sizeof(buffer),  "Remove button object id#%d\n", pToDelete->pObject->identifier);
             // logMessage(debug, buffer);
             removeRenderObject(pToDelete->pObject->identifier);
             
@@ -316,18 +316,18 @@ TTF_Font *loadFont(const char *pFontPath, int fontSize) {
     char *fontpath = getPathStatic(pFontPath);
     if(access(fontpath, F_OK) == -1){
         char buffer[100];
-        sprintf(buffer, "Could not access file '%s'.\n", fontpath);
+        snprintf(buffer, sizeof(buffer),  "Could not access file '%s'.\n", fontpath);
         logMessage(error, buffer);
     }
     TTF_Font *pFont = TTF_OpenFont(fontpath, fontSize);
     if (pFont == NULL) {
         char buffer[100];
-        sprintf(buffer, "Failed to load font: %s\n", TTF_GetError());
+        snprintf(buffer, sizeof(buffer),  "Failed to load font: %s\n", TTF_GetError());
         logMessage(error, buffer);
         return NULL;
     }
     char buffer[100];
-    sprintf(buffer, "Loaded font: %s\n", pFontPath);
+    snprintf(buffer, sizeof(buffer),  "Loaded font: %s\n", pFontPath);
     logMessage(debug, buffer);
     return pFont;
 }
@@ -340,7 +340,7 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
     // error out if surface creation failed
     if (pSurface == NULL) {
         char buffer[100];
-        sprintf(buffer, "Failed to render text: %s\n", TTF_GetError());
+        snprintf(buffer, sizeof(buffer),  "Failed to render text: %s\n", TTF_GetError());
         logMessage(error, buffer);
         return NULL;
     }
@@ -351,7 +351,7 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
     // error out if texture creation failed
     if (pTexture == NULL) {
         char buffer[100];
-        sprintf(buffer, "Failed to create texture: %s\n", SDL_GetError());
+        snprintf(buffer, sizeof(buffer),  "Failed to create texture: %s\n", SDL_GetError());
         logMessage(error, buffer);
         return NULL;
     }
@@ -380,7 +380,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
     else{ // not found in cache
         if(access(getPathStatic(pPath), F_OK) == -1){
             char buffer[100];
-            sprintf(buffer, "Could not access file '%s'.\n", pPath);
+            snprintf(buffer, sizeof(buffer),  "Could not access file '%s'.\n", pPath);
             logMessage(error, buffer);
         }
 
@@ -390,7 +390,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
         // error out if surface load failed
         if (!pImage_surface) {
             char buffer[100];
-            sprintf(buffer, "Error loading image: %s\n", IMG_GetError());
+            snprintf(buffer, sizeof(buffer),  "Error loading image: %s\n", IMG_GetError());
             logMessage(error, buffer);
             exit(1); // FIXME
         }
@@ -401,7 +401,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
         // error out if texture creation failed
         if (!pTexture) {
             char buffer[100];
-            sprintf(buffer, "Error creating texture: %s\n", SDL_GetError());
+            snprintf(buffer, sizeof(buffer),  "Error creating texture: %s\n", SDL_GetError());
             logMessage(error, buffer);
             exit(1); // FIXME
         }
@@ -417,7 +417,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             addVariant(pTextureCache, pPath, variant);
 
             char buffer[100];
-            sprintf(buffer, "Cached a texture. key: %s\n", pPath);
+            snprintf(buffer, sizeof(buffer),  "Cached a texture. key: %s\n", pPath);
             logMessage(debug, buffer);
 
             if(getVariant(pTextureCache, pPath) == NULL){
@@ -578,7 +578,7 @@ void clearAll(bool includeEngine) {
         if (includeEngine || pCurrent->identifier >= 0) {
             // Delete the current object as we are either deleting everything or the current object is always deletable
             // char buffer[100];
-            // sprintf(buffer, "Remove render object id#%d\n", pCurrent->identifier);
+            // snprintf(buffer, sizeof(buffer),  "Remove render object id#%d\n", pCurrent->identifier);
             // logMessage(debug, buffer);
 
             // Delete the texture of our current object (if its not cached)
@@ -853,11 +853,11 @@ void setViewport(int screenWidth, int screenHeight){
 
     // debug outputs
     char buffer[100];
-    sprintf(buffer, "Targeting aspect ratio: %f\n",targetAspectRatio);
+    snprintf(buffer, sizeof(buffer),  "Targeting aspect ratio: %f\n",targetAspectRatio);
     logMessage(debug, buffer);
-    sprintf(buffer, "Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
+    snprintf(buffer, sizeof(buffer),  "Virtual Resolution: %dx%d\n",virtualWidth,virtualHeight);
     logMessage(debug, buffer);
-    sprintf(buffer, "(unused) offset: %dx%d\n",xOffset,yOffset);
+    snprintf(buffer, sizeof(buffer),  "(unused) offset: %dx%d\n",xOffset,yOffset);
     logMessage(debug, buffer);
 
     // setup viewport with our virtual resolutions
@@ -901,7 +901,7 @@ void changeWindowMode(Uint32 flag)
         int screenHeight = displayMode.h;
         
         char buffer[100];
-        sprintf(buffer, "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
+        snprintf(buffer, sizeof(buffer),  "Inferred screen size: %dx%d\n", screenWidth, screenHeight);
         logMessage(debug, buffer);
 
         changeResolution(screenWidth, screenHeight);
@@ -973,7 +973,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     // test for video init, alarm if failed
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         char buffer[100];
-        sprintf(buffer, "SDL initialization failed: %s\n", SDL_GetError());
+        snprintf(buffer, sizeof(buffer),  "SDL initialization failed: %s\n", SDL_GetError());
         logMessage(debug, buffer);
         exit(1);
     }
@@ -984,7 +984,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     pWindow = SDL_CreateWindow("Stardust Crusaders Dating Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN | windowMode);
     if (pWindow == NULL) {
         char buffer[100];
-        sprintf(buffer, "Window creation failed: %s\n", SDL_GetError());
+        snprintf(buffer, sizeof(buffer),  "Window creation failed: %s\n", SDL_GetError());
         logMessage(debug, buffer);
         exit(1);
     }
@@ -1003,14 +1003,14 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     }
     else {
         char buffer[100];
-        sprintf(buffer, "Starting renderer with maxfps %d... \n",framecap);
+        snprintf(buffer, sizeof(buffer),  "Starting renderer with maxfps %d... \n",framecap);
         logMessage(debug, buffer);
         pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED);
     }
 
     if (pRenderer == NULL) {
         char buffer[100];
-        sprintf(buffer, "Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+        snprintf(buffer, sizeof(buffer),  "Renderer could not be created! SDL Error: %s\n", SDL_GetError());
         logMessage(error, buffer);
         exit(1);
     }
@@ -1021,7 +1021,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     // test for TTF init, alarm if failed
     if (TTF_Init() == -1) {
         char buffer[100];
-        sprintf(buffer, "SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
+        snprintf(buffer, sizeof(buffer),  "SDL2_ttf could not initialize! SDL2_ttf Error: %s\n", TTF_GetError());
         logMessage(error, buffer);
         exit(1);
     }
@@ -1029,7 +1029,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
         char buffer[100];
-        sprintf(buffer, "IMG_Init error: %s", IMG_GetError());
+        snprintf(buffer, sizeof(buffer),  "IMG_Init error: %s", IMG_GetError());
         logMessage(error, buffer);
         exit(1);
     }
@@ -1041,7 +1041,7 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     SDL_Surface *pIconSurface = IMG_Load(getPathStatic("images/icon.png"));
     if (pIconSurface == NULL) {
         char buffer[100];
-        sprintf(buffer, "IMG_Load error: %s", IMG_GetError());
+        snprintf(buffer, sizeof(buffer),  "IMG_Load error: %s", IMG_GetError());
         logMessage(error, buffer);
         exit(1);
     }

@@ -28,7 +28,7 @@ void initAudio(){
     {
         // catch failure
         char buffer[100];
-        sprintf(buffer, "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        snprintf(buffer, sizeof(buffer),  "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         logMessage(error, buffer);
     }
     // allocate our desired max channels to the mixer
@@ -43,7 +43,7 @@ void free_audio_chunk(int channel) {
     // if the channel is invalid
     if (channel < 0 || channel >= MAX_CHANNELS) {
         char buffer[100];
-        sprintf(buffer, "Invalid channel (%d) to free audio chunk.\n", channel);
+        snprintf(buffer, sizeof(buffer),  "Invalid channel (%d) to free audio chunk.\n", channel);
         logMessage(error, buffer);
         return; // pass
     }
@@ -68,7 +68,7 @@ void playSound(const char *pFilename, int chan, int loops) {
     // if opening failed
     if (pSound == NULL) {
         char buffer[100];
-        sprintf(buffer, "Error loading audio file: %s\n", Mix_GetError());
+        snprintf(buffer, sizeof(buffer),  "Error loading audio file: %s\n", Mix_GetError());
         logMessage(error, buffer);
         return; // alarm in console and pass
     }
@@ -80,7 +80,7 @@ void playSound(const char *pFilename, int chan, int loops) {
     // if playing failed (assigned channel -1)
     if (channel == -1) {
         char buffer[100];
-        sprintf(buffer, "Error playing audio file: %s\n", Mix_GetError());
+        snprintf(buffer, sizeof(buffer),  "Error playing audio file: %s\n", Mix_GetError());
         logMessage(error, buffer);
         Mix_FreeChunk(pSound);
         return; // alarm in console, free the allocated chunk and pass
@@ -106,7 +106,7 @@ void playSound(const char *pFilename, int chan, int loops) {
 // set a specific (or all channels if passed -1) volume level 0-128 
 void setVolume(int channel, int volume){
     char buffer[100];
-    sprintf(buffer, "Setting volume of channel %d to %d.\n",channel,volume);
+    snprintf(buffer, sizeof(buffer),  "Setting volume of channel %d to %d.\n",channel,volume);
     logMessage(debug, buffer);
     Mix_Volume(channel,volume);
 }
