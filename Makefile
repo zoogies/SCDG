@@ -58,4 +58,12 @@ copy_resources_windows:
 clean:
 	rm -rf $(BUILD_DIR_LINUX) $(BUILD_DIR_WINDOWS)
 
-.PHONY: all dirs clean linux windows copy_resources_windows debug
+# Debug with GDB
+gdb: clean debug
+	gdb ./$(BUILD_DIR_LINUX)/game_linux
+
+# Debug with Valgrind
+valgrind: clean debug
+	valgrind --leak-check=full ./$(BUILD_DIR_LINUX)/game_linux
+
+.PHONY: all dirs clean linux windows copy_resources_windows debug gdb valgrind
