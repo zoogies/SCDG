@@ -145,12 +145,16 @@ void volumeDown(){
     json_decref(SAVEDATA); // destroy our root json_t*
 }
 
-TTF_Font *getFont(char *key, json_t *keys){
+/*
+    takes in a key (relative resource path to a font) and returns a 
+    pointer to the loaded font (caches the font if it doesnt exist in cache)
+*/
+TTF_Font *getFont(char *key){
     Variant *v = getVariant(cache, key);
     if(v == NULL){
         Variant fontVariant;
         fontVariant.type = VARIANT_FONT;
-        fontVariant.fontValue = loadFont(getString(keys,key),100);
+        fontVariant.fontValue = loadFont(key,100);
 
         addVariant(cache, key, fontVariant);
         char buffer[100];
@@ -239,8 +243,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         if(strcmp(type,"text") == 0){
             char *text = getString(obj,"text");
 
-            char *fonttxt = getString(obj,"font");
-            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            char *fontpath = getString(getObject(keys, "font"),getString(obj,"font"));
+            TTF_Font *pFont = getFont(fontpath);
 
             char *colortxt = getString(obj,"color");
             SDL_Color * pColor = getColor(colortxt,keys);
@@ -274,8 +278,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char *src = getString(obj,"src");
             char *txt = getString(obj,"text");
 
-            char *fonttxt = getString(obj,"font");
-            TTF_Font *pFont = getFont(fonttxt,fontKeys);
+            char *fonttxt = getString(getObject(keys, "font"),getString(obj,"font"));
+            TTF_Font *pFont = getFont(fonttxt);
 
             char *colortxt = getString(obj,"color");
             SDL_Color * pColor = getColor(colortxt,keys);
