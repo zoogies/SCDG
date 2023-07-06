@@ -30,9 +30,6 @@ SDL_Renderer *pRenderer = NULL;
 renderObject *pRenderListHead = NULL;
 button *pButtonListHead = NULL;
 
-// texture cache
-VariantCollection *pTextureCache;
-
 // int that increments each renderObject created, allowing new unique id's to be assigned
 int global_id = 0;
 int objectCount = 0;
@@ -63,6 +60,9 @@ bool forceRefresh = false;
 
 int currentResolutionWidth = 1920;
 int currentResolutionHeight = 1080;
+
+// create a cache to hold textures colors and fonts
+VariantCollection* cache;
 
 // helper function to get renderObjectType as a string from the enum name
 char *getRenderObjectTypeString(renderObjectType type) {
@@ -308,6 +308,7 @@ renderObject *getRenderObject(int identifier) {
 }
 
 // load a font into memory and return a pointer to it
+// TODO: evaluate where this stands in relation to getFont functionality, does this just extend the backend of get Font?
 TTF_Font *loadFont(const char *pFontPath, int fontSize) {
     if(fontSize > 500){
         logMessage(error, "ERROR: FONT SIZE TOO LARGE\n");
@@ -368,7 +369,7 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
 struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
 
     // try to get it from cache TODO: should we wrap this in if shouldCache?
-    Variant *pVariant = getVariant(pTextureCache, pPath);
+    Variant *pVariant = getVariant(cache, pPath);
 
     if (pVariant != NULL) { // found in cache
         // logMessage(debug, "Found texture in cache\n");
@@ -414,13 +415,13 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             variant.type = VARIANT_TEXTURE;
             variant.textureValue = pTexture;
 
-            addVariant(pTextureCache, pPath, variant);
+            addVariant(cache, pPath, variant);
 
             char buffer[100];
             snprintf(buffer, sizeof(buffer),  "Cached a texture. key: %s\n", pPath);
             logMessage(debug, buffer);
 
-            if(getVariant(pTextureCache, pPath) == NULL){
+            if(getVariant(cache, pPath) == NULL){
                 logMessage(error, "ERROR CACHING TEXTURE\n");
             }
 
@@ -436,6 +437,57 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             return ret;
         }
     }
+}
+
+/*
+    takes in a key (relative resource path to a font) and returns a 
+    pointer to the loaded font (caches the font if it doesnt exist in cache)
+*/
+TTF_Font *getFont(char *key){
+    Variant *v = getVariant(cache, key);
+    if(v == NULL){
+        Variant fontVariant;
+        fontVariant.type = VARIANT_FONT;
+        fontVariant.fontValue = loadFont(key,100);
+
+        addVariant(cache, key, fontVariant);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer),  "Cached a font. key: %s\n", key);
+        logMessage(debug, buffer);
+        v = getVariant(cache, key);
+    }
+    else{
+        // logMessage(debug, "Found cached font.\n");
+    }
+    return v->fontValue;
+}
+
+/*
+    takes in a key (relative resource path to a font) and returns a 
+    pointer to the loaded font (caches the font if it doesnt exist in cache)
+
+    This is mainly here for the game, the engine cant utilize this super well as
+    it doesnt have an understanding of named colors, it can just cache them for quick
+    access by the game
+*/
+SDL_Color *getColor(char *key, SDL_Color color){
+    Variant *v = getVariant(cache, key);
+    if(v == NULL){
+        Variant colorVariant;
+        colorVariant.type = VARIANT_COLOR;
+        colorVariant.colorValue = color;
+
+        addVariant(cache, key, colorVariant);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer),  "Cached a color. key: %s\n", key);
+        logMessage(debug, buffer);
+        v = getVariant(cache, key);
+    }
+    else{
+        // logMessage(debug, "Found cached color.\n");
+    }
+    SDL_Color *pColor = &v->colorValue;
+    return pColor;
 }
 
 // add text to the render queue, returns the engine assigned ID of the object
@@ -608,7 +660,7 @@ void clearAll(bool includeEngine) {
         pRenderListHead = NULL;
     }
     // clear cache
-    clearVariantCollection(pTextureCache);
+    clearVariantCollection(cache); // TODO: evaluate when cache should be cleared intelligently with refcounts
 }
 
 // function to allow externel signal to force display refresh for debug overlay
@@ -1035,7 +1087,8 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
     }
     logMessage(info, "IMG initialized.\n");
 
-    pTextureCache = createVariantCollection();
+    // initialize cache
+    cache = createVariantCollection();
 
     // load icon to surface
     SDL_Surface *pIconSurface = IMG_Load(getPathStatic("images/icon.png"));
@@ -1059,9 +1112,11 @@ void initGraphics(int screenWidth,int screenHeight, int windowMode, int framecap
 
 // shuts down all initialzied graphics systems
 void shutdownGraphics(){
+    // remove all render objects and free everything (including cache)
     clearAll(true);
-
-    destroyVariantCollection(pTextureCache);
+    
+    // destroy cache
+    destroyVariantCollection(cache);
 
     // shutdown TTF
     TTF_Quit();

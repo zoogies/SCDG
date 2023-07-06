@@ -59,6 +59,10 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache);
 
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor);
 
+TTF_Font *getFont(char *key);
+
+SDL_Color *getColor(char *key, SDL_Color color);
+
 int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered);
 
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);

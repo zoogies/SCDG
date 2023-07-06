@@ -69,8 +69,19 @@ bool gamedebug = false;
 
 SDL_Color colorwhite = {255, 255, 255, 255};
 
-// global state variant collections
-VariantCollection* cache;
+// wrapper for engine getFont
+TTF_Font *useFont(char *key){
+    return getFont(key);
+}
+
+// wrapper for engine getColor that unpacks color from json_t for us
+SDL_Color *useColor(char *key, json_t *keys){
+    json_t *pColorObj = getObject(getObject(keys,"color"),key);
+
+    SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
+
+    return getColor(key, color);
+}
 
 // function pointer functions to cover all cases:
 // go to new scene
@@ -145,53 +156,6 @@ void volumeDown(){
     json_decref(SAVEDATA); // destroy our root json_t*
 }
 
-/*
-    takes in a key (relative resource path to a font) and returns a 
-    pointer to the loaded font (caches the font if it doesnt exist in cache)
-*/
-TTF_Font *getFont(char *key){
-    Variant *v = getVariant(cache, key);
-    if(v == NULL){
-        Variant fontVariant;
-        fontVariant.type = VARIANT_FONT;
-        fontVariant.fontValue = loadFont(key,100);
-
-        addVariant(cache, key, fontVariant);
-        char buffer[100];
-        snprintf(buffer, sizeof(buffer),  "Cached a font. key: %s\n", key);
-        logMessage(debug, buffer);
-        v = getVariant(cache, key);
-    }
-    else{
-        // logMessage(debug, "Found cached font.\n");
-    }
-    return v->fontValue;
-}
-
-SDL_Color *getColor(char *key, json_t *keys){
-    Variant *v = getVariant(cache, key);
-    if(v == NULL){
-        json_t *pColorObj = getObject(getObject(keys,"color"),key);
-
-        SDL_Color color = {getInteger(pColorObj,"r"),getInteger(pColorObj,"g"),getInteger(pColorObj,"b"),getInteger(pColorObj,"a")};
-
-        Variant colorVariant;
-        colorVariant.type = VARIANT_COLOR;
-        colorVariant.colorValue = color;
-
-        addVariant(cache, key, colorVariant);
-        char buffer[100];
-        snprintf(buffer, sizeof(buffer),  "Cached a color. key: %s\n", key);
-        logMessage(debug, buffer);
-        v = getVariant(cache, key);
-    }
-    else{
-        // logMessage(debug, "Found cached color.\n");
-    }
-    SDL_Color *pColor = &v->colorValue;
-    return pColor;
-}
-
 // TODO: take in root gamedata and not all json_t?
 void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
     json_t *depthKeys = getObject(keys,"depth");
@@ -243,11 +207,11 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         if(strcmp(type,"text") == 0){
             char *text = getString(obj,"text");
 
-            char *fontpath = getString(getObject(keys, "font"),getString(obj,"font"));
+            char *fontpath = getString(fontKeys,getString(obj,"font"));
             TTF_Font *pFont = getFont(fontpath);
 
             char *colortxt = getString(obj,"color");
-            SDL_Color * pColor = getColor(colortxt,keys);
+            SDL_Color * pColor = useColor(colortxt,keys);
             
             created = createText(
                 depth,
@@ -282,7 +246,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             TTF_Font *pFont = getFont(fonttxt);
 
             char *colortxt = getString(obj,"color");
-            SDL_Color * pColor = getColor(colortxt,keys);
+            SDL_Color * pColor = useColor(colortxt,keys);
 
             // load callback data from json
             json_t *pCallback = getObject(obj,"callback");
@@ -366,11 +330,6 @@ void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
 
-    // clear cache before scene load TODO: do we need to do this at all?
-    // in the future there will be a lot of unique textures so we should, but
-    // right now its not beneficial. hybrid system tracking and pruning stale cache would be best
-    clearVariantCollection(cache);
-
     currentScene = scene;
 
     // load keys and json scenes dict
@@ -424,14 +383,13 @@ void loadScene(enum scenes scene){
     Uint32 elapsedTime = endTime - startTime;
 
     // Print the elapsed time in milliseconds
-    printf("Elapsed time: %u ms\n", elapsedTime);
+    char buffer[100];
+    snprintf(buffer, sizeof(buffer),  "Scene loaded in %ums.\n", elapsedTime);
+    logMessage(debug, buffer);
 }
 
 // shuts down the game
 int shutdownGame(){
-    // clear cache
-    destroyVariantCollection(cache);
-
     // main game loop has finished: shutdown engine and subsequently the game
     shutdownEngine();
 
@@ -456,9 +414,6 @@ int mainFunction(int argc, char *argv[])
         } 
         // other flags can be implemented here in the future
     }
-
-    // initialize cache
-    cache = createVariantCollection();
 
     /*
         Get some neccessary values from game data to startup the game
