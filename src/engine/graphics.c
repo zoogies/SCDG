@@ -333,6 +333,45 @@ TTF_Font *loadFont(const char *pFontPath, int fontSize) {
     return pFont;
 }
 
+/*
+    https://gamedev.stackexchange.com/questions/119642/how-to-use-sdl-ttfs-outlines
+    
+    NOTE: The actual width modifier depends on the resolution of the passed font.
+    if we want to allow better consistency over the width between different res,
+    we need to identify the font by its loaded width (can be stored with its data in cache)
+    and then we could pass in a relative width modifier
+*/
+SDL_Texture *createTextTextureWithOutline(const char *pText, int width, TTF_Font *pFont, SDL_Color *pColor, SDL_Color *pOutlineColor) {
+    int temp = TTF_GetFontOutline(pFont);
+
+    SDL_Surface *fg_surface = TTF_RenderText_Blended(pFont, pText, *pColor); 
+
+    TTF_SetFontOutline(pFont, width);
+    
+    SDL_Surface *bg_surface = TTF_RenderText_Blended(pFont, pText, *pOutlineColor); 
+    
+    SDL_Rect rect = {width, width, fg_surface->w, fg_surface->h}; 
+
+    /* blit text onto its outline */ 
+    SDL_SetSurfaceBlendMode(fg_surface, SDL_BLENDMODE_BLEND); 
+    SDL_BlitSurface(fg_surface, NULL, bg_surface, &rect); 
+    SDL_FreeSurface(fg_surface); 
+    SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, bg_surface);
+    SDL_FreeSurface(bg_surface);
+    
+    // error out if texture creation failed
+    if (pTexture == NULL) {
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer),  "Failed to create texture: %s\n", SDL_GetError());
+        logMessage(error, buffer);
+        return NULL;
+    }
+    
+    TTF_SetFontOutline(pFont, temp);
+
+    return pTexture;
+}
+
 // Create a texture from text string with specified font and color, returns NULL for failure
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor) {
     // create surface from parameters

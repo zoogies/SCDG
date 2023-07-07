@@ -68,8 +68,9 @@ TTF_Font *pStartupFont;
 bool gamedebug = false;
 
 SDL_Color colorwhite = {255, 255, 255, 255};
+SDL_Color colorRed = {255, 0, 0, 255};
 
-// wrapper for engine getFont
+// wrapper for engine getFont TODO remove
 TTF_Font *useFont(char *key){
     return getFont(key);
 }

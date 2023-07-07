@@ -57,6 +57,8 @@ struct textureInfo {
 // Create a texture from image path, returns NULL for failure
 struct textureInfo createImageTexture(char *pPath, bool shouldCache);
 
+SDL_Texture *createTextTextureWithOutline();
+
 SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pColor);
 
 TTF_Font *getFont(char *key);
