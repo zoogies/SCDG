@@ -27,28 +27,6 @@ typedef enum {
     renderType_Button,
 } renderObjectType;
 
-/*
-    NOTES FOR FUTURE SELF:
-    basically what im thinking is a union in the renderObject which holds a bunch of
-    typedef'd structs for metadata for specific types of renderobjects
-    this is a good way to track important meta without requiring it scattered in
-    different places, it also almost makes me want to call renderObjects gameObjects
-    instead, because now they have more infomration assosciated with them and could
-    just have a single struct inside them for rending info, which actually could be
-    the move int the future is to just wrap this renderObject struct in a gameObject
-    struct. idk
-
-    These meta are important for re-creating the renderObject should we need to
-    manually intervene. (we could leverage this capability to not reload the scene
-    when we change resolution or windowMode) but also are critically important for
-    things like updating text and images on the fly without manually identifying
-    renderObjects with their meta stored elsewhere
-    ie: game only tracks ID and type with a key and can just refer to the engine to
-    update by ID
-
-    BASICALLY STORE THE META SO WE CAN UPDATE TEXT AND THINGS WHEN WE NEED TO
-*/
-
 typedef struct TextData {
     TTF_Font *pFont;
     int outlineSize;
@@ -122,6 +100,8 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
 
 int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data);
+
+void updateText(int id, char *pText);
 
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);

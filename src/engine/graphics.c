@@ -562,7 +562,7 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 // add an image to the render queue, returns the engine assigned ID of the object
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
     struct textureInfo info = createImageTexture(pPath,true);
-    
+
     // construct a staging object and throw it to addRenderObject()
     renderObject staging = {
         global_id,
@@ -720,6 +720,38 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     return global_id - 1; // for consistancy
 }
 
+/*
+    Update text by id
+*/
+void updateTextByObj(renderObject *pObj, char *pText){
+    if(pObj == NULL){
+        logMessage(error, "ERROR UPDATING TEXT: RENDER OBJECT NOT FOUND\n");
+        return;
+    }
+    if(pObj->type != renderType_Text){
+        logMessage(error, "ERROR UPDATING TEXT: RENDER OBJECT IS NOT TEXT\n");
+        return;
+    }
+    SDL_DestroyTexture(pObj->pTexture);
+    pObj->pTexture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor); // TODO: update for outlined text
+    pObj->TextData.pText = pText;
+}
+
+void updateText(int id, char *pText){
+    renderObject *pObj = getRenderObject(id);
+    if(pObj == NULL){
+        logMessage(error, "ERROR UPDATING TEXT: RENDER OBJECT NOT FOUND\n");
+        return;
+    }
+    if(pObj->type != renderType_Text){
+        logMessage(error, "ERROR UPDATING TEXT: RENDER OBJECT IS NOT TEXT\n");
+        return;
+    }
+    SDL_DestroyTexture(pObj->pTexture);
+    pObj->pTexture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor); // TODO: update for outlined text
+    pObj->TextData.pText = pText;
+}
+
 // function that clears all non engine render objects (depth >= 0)
 // TODO: refactor this and removeRenderObject() to send pointers to nodes to another function to genericise this
 void clearAll(bool includeEngine) {
@@ -826,7 +858,7 @@ void renderAll() {
             }
 
             // Update texture with the new text TODO FIXME
-            pCurrent->pTexture = createTextTexture(str, pEngineFont2, pEngineFontColor);
+            updateTextByObj(pCurrent, str);
         }
 
         // check if current item is the render object counter
@@ -848,7 +880,7 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strObjCount, pEngineFont2, pEngineFontColor);
+                updateTextByObj(pCurrent, strObjCount);
             }
         }
 
@@ -871,7 +903,7 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strChkCount, pEngineFont2, pEngineFontColor);
+                updateTextByObj(pCurrent, strChkCount);
             }
         }
 
@@ -895,7 +927,7 @@ void renderAll() {
                 }
 
                 // Update texture with the new text TODO FIXME
-                pCurrent->pTexture = createTextTexture(strLinCount, pEngineFont2, pEngineFontColor);
+                updateTextByObj(pCurrent, strLinCount);
             }
         }
 
