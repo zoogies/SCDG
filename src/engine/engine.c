@@ -112,24 +112,73 @@ void toggleOverlay(){
     }
     else{ // NOTE: lots of hard coded falses for texture caching
         logMessage(debug, "Toggled Debug Overlay On.\n");
+        
+        // construct a prototype renderObject to pass to addRenderObject() which we modify each time
+        renderObject staging = {
+            -1, // we set ID each time
+            999,
+            renderType_Text,
+            createTextTexture("fps: 0",pEngineFont,pEngineFontColor), // we set texture each time
+            (SDL_Rect){0,0,0,0}, // dummy rect
+            NULL, 
+            false, // no cache
+            0,0,.12f,.08f,
+            false, // not centered
+            .TextData = {
+                pEngineFont,
+                0,
+                pEngineFontColor,
+                NULL, // no outline color
+                "fps: 0",
+            }
+        };
+        
         // add fps counter manually to render stack with a custom id
-        addRenderObject(-1, renderType_Text, 999, .0f, .0f, .12f, .08f, createTextTexture("fps: 0",pEngineFont,pEngineFontColor),false,false);
+        addRenderObject(staging);
 
         // add object counter (only updates when changed)
-        addRenderObject(-2, renderType_Text, 998, .0f, .07f, .12f, .08f, createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor),false,false);
+        staging.identifier = -2;
+        staging.relY = .07f;
+        staging.pTexture = createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor);
+        addRenderObject(staging);
 
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-3, renderType_Text, 997, .0f, .14f, .12f, .08f, createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor),false,false);
+        staging.identifier = -3;
+        staging.relY = .14f;
+        staging.pTexture = createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor);
+        addRenderObject(staging);
         
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-4, renderType_Text, 997, .0f, .21f, .12f, .08f, createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor),false,false);
+        staging.identifier = -4;
+        staging.relY = .21f;
+        staging.pTexture = createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor);
+        addRenderObject(staging);
 
         // add audio chunk counter (only updates when changed)
-        addRenderObject(-5, renderType_Text, 997, .0f, .28f, .12f, .08f, createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor),false,false);
+        staging.identifier = -5;
+        staging.relY = .28f;
+        staging.pTexture = createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor);
+        addRenderObject(staging);
     
         // add back panel to debug overlay
         struct textureInfo info = createImageTexture("images/ui/dimpanel.png",false);
-        addRenderObject(-900, renderType_Image, 900, .0f, .0f, .13f, .4f, info.pTexture,false,info.cached);
+        
+        renderObject panel = {
+            -900, // we set ID each time
+            900,
+            renderType_Image,
+            info.pTexture,
+            (SDL_Rect){0,0,0,0}, // dummy rect
+            NULL, 
+            true, // cache this (eventually between scene loads we will want to keep it, actually we might already)
+            0,0,.13f,.4f,
+            false, // not centered
+            .ImageData = {
+                "images/ui/dimpanel.png"
+            }
+        };
+        
+        addRenderObject(panel);
 
         // force overlay refresh or text will be default
         debugForceRefresh();

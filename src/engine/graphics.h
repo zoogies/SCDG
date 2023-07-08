@@ -27,8 +27,47 @@ typedef enum {
     renderType_Button,
 } renderObjectType;
 
+/*
+    NOTES FOR FUTURE SELF:
+    basically what im thinking is a union in the renderObject which holds a bunch of
+    typedef'd structs for metadata for specific types of renderobjects
+    this is a good way to track important meta without requiring it scattered in
+    different places, it also almost makes me want to call renderObjects gameObjects
+    instead, because now they have more infomration assosciated with them and could
+    just have a single struct inside them for rending info, which actually could be
+    the move int the future is to just wrap this renderObject struct in a gameObject
+    struct. idk
+
+    These meta are important for re-creating the renderObject should we need to
+    manually intervene. (we could leverage this capability to not reload the scene
+    when we change resolution or windowMode) but also are critically important for
+    things like updating text and images on the fly without manually identifying
+    renderObjects with their meta stored elsewhere
+    ie: game only tracks ID and type with a key and can just refer to the engine to
+    update by ID
+
+    BASICALLY STORE THE META SO WE CAN UPDATE TEXT AND THINGS WHEN WE NEED TO
+*/
+
+typedef struct TextData {
+    TTF_Font *pFont;
+    int outlineSize;
+    SDL_Color *pColor;
+    SDL_Color *pOutlineColor;
+    char *pText;
+} TextData;
+
+typedef struct ImageData {
+    char *pPath;
+} ImageData;
+
+typedef struct ButtonData {
+    TextData TextData; // nested text for button label
+    ImageData ImageData; // nested image for button background
+} ButtonData;
+
 // struct defining renderObject(s)
-typedef struct renderObject {
+typedef struct renderObject { // TODO: do we have to set each field each time or .access for only what we need
     // common to every render object
     int identifier;
     int depth;
@@ -37,10 +76,23 @@ typedef struct renderObject {
     SDL_Rect rect;
     struct renderObject *pNext;
     bool cachedTexture;
+
+    // we want to remember our prior meta for reconstruction
+    float relX;
+    float relY;
+    float relW;
+    float relH;
+    bool centered;
+
+    // union holding data specific to recreating that renderObject
+    union {
+        TextData TextData;
+        ImageData ImageData;
+        ButtonData ButtonData;
+    };
 } renderObject;
 
-
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered, bool cachedTexture);
+void addRenderObject(renderObject staging);
 
 void removeRenderObject(int identifier);
 

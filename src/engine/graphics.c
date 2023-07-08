@@ -78,36 +78,34 @@ char *getRenderObjectTypeString(renderObjectType type) {
     }
 }
 
-// constructor for render objects, invoked internally by createText() and createImage()
-// NOTE: this function inserts highest depth objects at the front of the list
-void addRenderObject(int identifier, renderObjectType type, int depth, float x, float y, float width, float height, SDL_Texture *pTexture, bool centered, bool cachedTexture) {
+/*
+    definitive render object creator.
+    will take in a staged render object, will fill out REAL rect coordinate values
+    and will insert the render object into the renderObject queue in order of depth.
+    everything except relative rect coords needs to be filled out in the staging object
+*/
+void addRenderObject(renderObject staging) {
     // translate our relative floats into actual screen coordinates for rendering
     // TODO: consider genericizing this into a function
-    int objX = (int)(x * (float)virtualWidth); // + xOffset;
-    int objY = (int)(y * (float)virtualHeight); // + yOffset;
-    int objWidth = (int)(width * (float)virtualWidth);
-    int objHeight = (int)(height * (float)virtualHeight);
+    int objX = (int)(staging.relX * (float)virtualWidth); // + xOffset;
+    int objY = (int)(staging.relY * (float)virtualHeight); // + yOffset;
+    int objWidth = (int)(staging.relW * (float)virtualWidth);
+    int objHeight = (int)(staging.relH * (float)virtualHeight);
 
     // modify our coordinates if we want to render at its center
-    if(centered){
+    if(staging.centered){
         objX = objX - (objWidth / 2);
         objY = objY - (objHeight / 2);
     }
 
-    // create bounding rect from parameters
-    SDL_Rect rect = {objX, objY, objWidth, objHeight};
+    // create real bounding rect from parameters
+    staging.rect = (SDL_Rect){objX, objY, objWidth, objHeight};
 
     // construct and malloc new object
     renderObject *pObj = (renderObject *)malloc(sizeof(renderObject));
 
-    // self explanatory assignment of fields from parameters
-    pObj->identifier = identifier;
-    pObj->pTexture = pTexture;
-    pObj->rect = rect;
-    pObj->depth = depth;
-    pObj->pNext = NULL;
-    pObj->type = type;
-    pObj->cachedTexture = cachedTexture;
+    // assign our staged renderObject to our new heap object
+    *pObj = staging; // TODO: does this work?
 
     // if there are no renderObjects in the list, or the depth of this object is lower than the head
     if (pRenderListHead == NULL || pObj->depth < pRenderListHead->depth) {
@@ -142,7 +140,7 @@ void addRenderObject(int identifier, renderObjectType type, int depth, float x, 
         */
     }
     
-    if(centered){
+    if(pObj->centered){
         // char buffer[100];
         // snprintf(buffer, sizeof(buffer),  "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
         // logMessage(debug, buffer);
@@ -531,7 +529,32 @@ SDL_Color *getColor(char *key, SDL_Color color){
 
 // add text to the render queue, returns the engine assigned ID of the object
 int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered){
-    addRenderObject(global_id,renderType_Text,depth,x,y,width,height,createTextTexture(pText,pFont,pColor),centered,false); // FIXME: temp false flag here text is never cached, pass in struct?
+    // construct a staging object and throw it to addRenderObject()
+    renderObject staging = {
+        global_id,
+        depth,
+        renderType_Text,
+        createTextTexture(pText,pFont,pColor),
+        (SDL_Rect){x,y,width,height},
+        NULL,
+        false, // text textures never cached
+        x,
+        y,
+        width,
+        height,
+        centered,
+        {
+            .TextData = {
+                .pFont = pFont,
+                .outlineSize = 0,
+                .pColor = pColor,
+                .pOutlineColor = NULL,
+                .pText = pText
+            }
+        } // TODO: update for createTextWithOutline
+    };
+    
+    addRenderObject(staging);
     global_id++; // increment the global ID for next object
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
@@ -539,9 +562,31 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
 // add an image to the render queue, returns the engine assigned ID of the object
 int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
     struct textureInfo info = createImageTexture(pPath,true);
-    addRenderObject(global_id,renderType_Image,depth,x,y,width,height,info.pTexture,centered,info.cached);
-    global_id++;
-    return global_id - 1;
+    
+    // construct a staging object and throw it to addRenderObject()
+    renderObject staging = {
+        global_id,
+        depth,
+        renderType_Text,
+        info.pTexture,
+        (SDL_Rect){x,y,width,height},
+        NULL,
+        info.cached,
+        x,
+        y,
+        width,
+        height,
+        centered,
+        {
+            .ImageData = {
+                .pPath = pPath
+            }
+        }
+    };
+    
+    addRenderObject(staging);
+    global_id++; // increment the global ID for next object
+    return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
 /*
@@ -550,6 +595,7 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     CONSIDERATIONS / TODO: 
     - formatting the text such that it can be passed left, center, or right aligned and does not stretch to fill 
     - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
+    - eventually we need to support outlined text in buttons, think about the best way to accomplish that
 */
 int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data) {
     // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
@@ -615,7 +661,36 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
     global_id++; // to stay consistant, increment now and refer to global_id - 1 when accessing ID
 
-    addRenderObject(global_id - 1,renderType_Button,depth,x,y,width,height,buttonTexture,centered,false); // NOTE: HARD CODED NOCACHE
+    renderObject staging = {
+        global_id - 1,
+        depth,
+        renderType_Button,
+        buttonTexture,
+        (SDL_Rect){x,y,width,height},
+        NULL,
+        false, // total baked button texture should never be cached
+        x,
+        y,
+        width,
+        height,
+        centered,
+        {
+            .ButtonData = {
+                .TextData = {
+                    .pFont = pFont,
+                    .outlineSize = 0,
+                    .pColor = pColor,
+                    .pOutlineColor = NULL,
+                    .pText = pText
+                },
+                .ImageData = {
+                    .pPath = pBackgroundPath,
+                }
+            }
+        }
+    };
+
+    addRenderObject(staging);
 
     renderObject *pObj = getRenderObject(global_id - 1);
 
