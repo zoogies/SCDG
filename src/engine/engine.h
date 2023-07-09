@@ -32,6 +32,8 @@ char *getPathStatic(const char *path);
 
 char *getPathDynamic(const char *path);
 
+void toggleConsole();
+
 void toggleOverlay();
 
 // entry point to the engine, initializes all subsystems

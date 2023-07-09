@@ -67,6 +67,10 @@ TTF_Font *pStartupFont;
 
 bool gamedebug = false;
 
+// tracks whether the console is open or not
+bool consoleOpen = false;
+char consoleString[100];
+
 SDL_Color colorwhite = {255, 255, 255, 255};
 SDL_Color colorRed = {255, 0, 0, 255};
 
@@ -102,16 +106,6 @@ void updateGameScreenSize(){
     char buffer[100];
     snprintf(buffer, sizeof(buffer), "updated game tracked screen size: %dx%d\n",SCREEN_WIDTH,SCREEN_HEIGHT);
     logMessage(debug, buffer);
-}
-
-// TODO should prob go to other file (graphics.c)
-void updateText(char *key, char *text){
-    // SDL_Color colorWhite = {255, 255, 255, 255}; // FIXME
-    // int id = getItem(&trackedObjects,key)->value.intValue;
-    // renderObject *pObject = getRenderObject(id);
-    // SDL_Texture *temp = pObject->pTexture;
-    // pObject->pTexture = createTextTexture(text,pStartupFont,&colorWhite);
-    // SDL_DestroyTexture(temp);
 }
 
 void volumeUp(){
@@ -496,36 +490,84 @@ int mainFunction(int argc, char *argv[])
         // something something rich presence
         run_discord_callbacks();
 
-        while(SDL_PollEvent(&e)){ // while there is an event polled
-            //TODO: optimization would be to make this chain of else ifs into a switch
-            if(e.type == SDL_QUIT){ // check if event is to quit
-                quit = true; // quit
-            }
-            // for now, we will only check bounds if there was a click,
-            // this is subject to change when highlight interactions are introduced
-            else if (e.type == SDL_MOUSEBUTTONDOWN) {
-                if (e.button.button == SDL_BUTTON_LEFT) {
-                    int mouseX = e.button.x;
-                    int mouseY = e.button.y;
-                    // run checks on if button was clicked and get its id if we did
-                    checkClicked(mouseX, mouseY);
-
-                    char buffer[100];
-                    snprintf(buffer, sizeof(buffer),  "Left click event at (%d, %d)\n", mouseX, mouseY);
-                    logMessage(debug, buffer);
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+                case SDL_QUIT: {
+                    quit = true;
+                    break;
                 }
-            }
-            else if (e.type == SDL_KEYDOWN) {
-                // if key is backtick we want to toggle debug overlay
-                if (e.key.keysym.sym == SDLK_BACKQUOTE) {
-                    // Backtick key is pressed
-                    toggleOverlay();
+                case SDL_MOUSEBUTTONDOWN: {
+                    if (e.button.button == SDL_BUTTON_LEFT) {
+                        int mouseX = e.button.x;
+                        int mouseY = e.button.y;
+                        checkClicked(mouseX, mouseY);
+                        
+                        char buffer[100];
+                        snprintf(buffer, sizeof(buffer), "Left click event at (%d, %d)\n", mouseX, mouseY);
+                        logMessage(debug, buffer);
+                    }
+                    break;
                 }
-            }
-            else if (e.type == SDL_WINDOWEVENT) {
-                if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                    // Reset the viewport when the game window regains focus
-                    // setViewport(SCREEN_WIDTH, SCREEN_HEIGHT);
+                case SDL_KEYDOWN: {
+                    switch (e.key.keysym.sym) {
+                        case SDLK_BACKQUOTE: {
+                            toggleOverlay();
+                            break;
+                        }
+                        case SDLK_TAB: {
+                            consoleString[0] = '>';
+                            consoleString[1] = '\0';
+                            toggleConsole();
+                            consoleOpen = !consoleOpen;
+                            break;
+                        }
+                        default: {
+                            if (consoleOpen) {
+                                if (e.key.keysym.sym != SDLK_RETURN) {
+                                    if (e.key.keysym.sym == SDLK_BACKSPACE) {
+                                        size_t bufferLength = strlen(consoleString);
+                                        if (bufferLength > 1) {
+                                            consoleString[bufferLength - 1] = '\0';
+                                            updateText(-902, consoleString);
+                                        }
+                                    } else {
+                                        if (strlen(consoleString) < 100 - 1) {
+                                            strncat(consoleString, (char*)&e.key.keysym.sym, 1);
+                                            updateText(-902, consoleString);
+                                        } else {
+                                            logMessage(error, "Buffer at max length!\n");
+                                            playSound("sfx/pipe.mp3", -1, 0);
+                                        }
+                                    }
+                                } else {
+                                    char* token = strtok(consoleString, " ");
+                                    if (token != NULL) {
+                                        if (strcmp(token, ">load") == 0) {
+                                            token = strtok(NULL, " ");
+                                            if (token != NULL) {
+                                                loadScene(getSceneNameEnum(token));
+                                            }
+                                        } else {
+                                            logMessage(error, "Invalid command!\n");
+                                            playSound("sfx/pipe.mp3", -1, 0);
+                                        }
+                                    }
+                                    consoleString[0] = '>';
+                                    consoleString[1] = '\0';
+                                    updateText(-902, consoleString);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case SDL_WINDOWEVENT: {
+                    if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                        // Reset the viewport when the game window regains focus
+                        // setViewport(SCREEN_WIDTH, SCREEN_HEIGHT);
+                    }
+                    break;
                 }
             }
         }

@@ -34,6 +34,9 @@ TTF_Font *pEngineFont2 = NULL;
 // debug overlay state controller
 bool debugOverlay = false;
 
+// console overlay state controller
+bool consoleOverlay = false;
+
 // helper function to get the screen size
 // TODO: consider moving graphics.c
 struct ScreenSize getScreenSize(){
@@ -99,6 +102,59 @@ char *getPathDynamic(const char *path) {
     return path_buffer;
 }
 
+void toggleConsole(){
+    if(consoleOverlay){
+        logMessage(debug, "Toggled Console Overlay Off.\n");
+        removeRenderObject(-901);
+        removeRenderObject(-902);
+    }
+    else{
+        logMessage(debug, "Toggled Console Overlay On.\n");
+
+        // add back panel to debug overlay
+        struct textureInfo info = createImageTexture("images/ui/dimpanel.png",false);
+
+        renderObject panel = {
+            -901, // we set ID each time
+            900,
+            renderType_Image,
+            info.pTexture,
+            (SDL_Rect){0,0,0,0}, // dummy rect
+            NULL, 
+            true, // cache this (eventually between scene loads we will want to keep it, actually we might already)
+            0,.9f,.4f,.1f,
+            false, // not centered
+            .ImageData = {
+                "images/ui/dimpanel.png"
+            }
+        };
+        
+        addRenderObject(panel);
+
+        renderObject text = {
+            -902, // we set ID each time
+            901,
+            renderType_Text,
+            createTextTexture(">",pEngineFont,pEngineFontColor), // we set texture each time
+            (SDL_Rect){0,0,0,0}, // dummy rect
+            NULL, 
+            false, // no cache
+            0,.9f,.4f,.1f,
+            false, // not centered
+            .TextData = {
+                pEngineFont2,
+                0,
+                pEngineFontColor,
+                NULL, // no outline color
+                ">",
+            }
+        };
+        
+        addRenderObject(text);
+    }
+    consoleOverlay = !consoleOverlay;
+}
+
 void toggleOverlay(){
     if(debugOverlay){
         logMessage(debug, "Toggled Debug Overlay Off.\n");
@@ -125,7 +181,7 @@ void toggleOverlay(){
             0,0,.12f,.08f,
             false, // not centered
             .TextData = {
-                pEngineFont,
+                pEngineFont2,
                 0,
                 pEngineFontColor,
                 NULL, // no outline color
