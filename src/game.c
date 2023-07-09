@@ -71,6 +71,9 @@ bool gamedebug = false;
 bool consoleOpen = false;
 char consoleString[100];
 
+// used to track the 
+Uint32 sceneLoadTime;
+
 SDL_Color colorwhite = {255, 255, 255, 255};
 SDL_Color colorRed = {255, 0, 0, 255};
 
@@ -316,11 +319,29 @@ enum scenes getSceneNameEnum(char *name){
     }
 }
 
+/*
+    Function to update playtime, compares the passed stamp against the global sceneLoadTime
+    and adds the difference to the savedata, and resets the count
+*/
+void updatePlaytime(Uint32 startTime){
+    // add our time played since last scene load to the playtime in savedata
+    json_t *SAVEDATA = getSaveData("data/savedata.json");
+    json_t *userdata = getObject(SAVEDATA,"user");
+    int currentPlaytime = getInteger(userdata,"playtime");
+    currentPlaytime += (int)((float)(startTime - sceneLoadTime) / 1000);
+    writeInt(userdata,"playtime",currentPlaytime);
+    saveJSONFile(SAVEDATA,"data/savedata.json");
+    json_decref(SAVEDATA); // destroy our root json_t*
+    sceneLoadTime = startTime; // update our scene load time
+}
+
 // TODO: FOR FASTER SCENE SWITCHING, WE POP OUT THE CURRENT RENDERLIST AND REPLACE IT WITH OUR NEW ONE TO APPEND OBJECTS TO
 // OLD LIST CAN GET DESTROYED AFTER WE LOAD THE SCENE FOR LESS LATENCY (in new thread?)
 void loadScene(enum scenes scene){
     // we are going to start a counter to see how long the scene takes to load
-    Uint32 startTime = SDL_GetTicks();
+    Uint32 startTime = SDL_GetTicks(); // get the current time (we will use this also to calculate playtime)
+
+    updatePlaytime(startTime);
 
     // clear all game objects to prep for switching scenes
     clearAll(false);
@@ -339,6 +360,7 @@ void loadScene(enum scenes scene){
     json_t *_scene;
     json_t *pMusic;
     json_t *pObjects;
+
 
     // TODO: no switch just load from enum string?
     switch (scene)
@@ -385,6 +407,9 @@ void loadScene(enum scenes scene){
 
 // shuts down the game
 int shutdownGame(){
+    // update playtime
+    updatePlaytime(SDL_GetTicks());
+
     // main game loop has finished: shutdown engine and subsequently the game
     shutdownEngine();
 

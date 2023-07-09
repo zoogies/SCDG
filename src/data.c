@@ -18,12 +18,8 @@
 
 /*
     TODO:
-    - re implement LL functions
     - json functions dont exit(1)
-    - callback functions use new json_t objects
 */
-
-/////////////////////////// LINKED LIST FUNCS ////////////////////////////////
 
 /////////////////////////// JSON FUNCTIONS ////////////////////////////////
 
@@ -71,12 +67,15 @@ json_t *getSaveData(char *path) {
 
         // Create sensible defaults for the game data
         // creates new json_t with refcount 1
-        saveData = json_pack("{s:{s:[i,i], s:i, s:i, s:i}}",
+        saveData = json_pack("{s:{s:[i,i], s:s, s:i, s:i}s:{s:s,s:i}}",
                                         "settings",
                                         "resolution", size.width, size.height,
-                                        "window mode", 1,
-                                        "volume", 128,
-                                        "framecap", -1);
+                                        "window mode", "fullscreen",
+                                        "volume", 16,
+                                        "framecap", -1,
+                                        "user",
+                                        "name","unknown",
+                                        "playtime",0);
 
         // Save JSON object to file
         if (saveData != NULL) {
