@@ -23,6 +23,7 @@
 #include "discord.h"
 #include "callbacks.h"
 #include "data.h"
+#include "state.h"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -71,8 +72,11 @@ bool gamedebug = false;
 bool consoleOpen = false;
 char consoleString[100];
 
-// used to track the 
-Uint32 sceneLoadTime;
+// used to track the load time
+Uint32 sceneLoadTime = 0;
+
+// initialize state collection
+StateCollection* stateCollection;
 
 SDL_Color colorwhite = {255, 255, 255, 255};
 SDL_Color colorRed = {255, 0, 0, 255};
@@ -125,7 +129,8 @@ void volumeUp(){
     // update volume-text with "VOLUME%"
     char buffer[100];
     snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
-    //updateText("volume-text",buffer);
+    int id = getState(stateCollection, "volume-text")->intValue;
+    updateText(id,buffer);
     printf("%s",buffer);
     json_t *SAVEDATA = getSaveData("data/savedata.json");
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
@@ -146,7 +151,8 @@ void volumeDown(){
     setVolume(-1,VOLUME);
     char buffer[100];
     snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
-    // updateText("volume-text",buffer);
+    int id = getState(stateCollection, "volume-text")->intValue;
+    updateText(id,buffer);
     printf("%s",buffer);
     json_t *SAVEDATA = getSaveData("data/savedata.json");
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
@@ -293,7 +299,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char buffer[100];
             snprintf(buffer, sizeof(buffer),  "Adding '%s' to tracked objects.\n", identifier);
             logMessage(debug, buffer);
-            // createItem(identifier,TYPE_INT,&created);
+            addState(stateCollection, identifier, (State){.type = STATE_INT, .intValue = created});
         }
 
         // if we created a new json with a refcount for tmp we need to decref it so it deletes
@@ -346,6 +352,9 @@ void loadScene(enum scenes scene){
     // clear all game objects to prep for switching scenes
     clearAll(false);
 
+    // clear our state TODO: should (some) state persist?
+    clearStateCollection(stateCollection);
+
     currentScene = scene;
 
     // load keys and json scenes dict
@@ -388,6 +397,13 @@ void loadScene(enum scenes scene){
         // get our scene objects and render them all
         pObjects = getArray(_scene,"renderObjects");
         constructScene(pObjects,keys,prototypes);
+
+        // update our volume text
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
+        int id = getState(stateCollection, "volume-text")->intValue;
+        updateText(id,buffer);
+        
         break;
     default:
         break;
@@ -410,6 +426,9 @@ int shutdownGame(){
     // update playtime
     updatePlaytime(SDL_GetTicks());
 
+    // destroy state collection
+    destroyStateCollection(stateCollection);
+
     // main game loop has finished: shutdown engine and subsequently the game
     shutdownEngine();
 
@@ -423,6 +442,10 @@ int shutdownGame(){
 int mainFunction(int argc, char *argv[])
 {
     logMessage(info, "Game started.\n");
+
+    // create state collection
+    stateCollection = createStateCollection();
+    logMessage(debug, "State collection created.\n");
 
     // check if we are in debug mode (from console flags)
     for (int i = 1; i < argc; i++) {

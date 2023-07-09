@@ -252,16 +252,19 @@ void saveJSONFile(json_t *data, char *path){
 void writeInt(json_t *parent, char *keyName, int toWrite){
     json_t *newVal = json_integer(toWrite);
     json_object_set(parent, keyName, newVal);
+    json_decref(newVal);
 }
 
 void writeArrayInt(json_t *parent, size_t index, int toWrite){
     json_t *newVal = json_integer(toWrite);
     json_array_set(parent, index, newVal);
+    json_decref(newVal);
 }
 
 void writeString(json_t *parent, char *keyName, char *toWrite){
     json_t *newVal = json_string(toWrite);
     json_object_set(parent, keyName, newVal);
+    json_decref(newVal);
 }
 
 /*
