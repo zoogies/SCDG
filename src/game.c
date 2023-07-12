@@ -289,7 +289,7 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
         }
         else{
             logMessage(error, "Invalid renderObject type in main menu scene.\n");
-            (void)created;
+            created = -1;
         }
 
         // check if our object has a kvp so we can be tracking it
@@ -299,7 +299,9 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
             char buffer[100];
             snprintf(buffer, sizeof(buffer),  "Adding '%s' to tracked objects.\n", identifier);
             logMessage(debug, buffer);
-            addState(stateCollection, identifier, (State){.type = STATE_INT, .intValue = created});
+            if(created > 0){ // NOTE: this will cause issues if this function is used to create engine objects
+                addState(stateCollection, identifier, (State){.type = STATE_INT, .intValue = created});
+            }
         }
 
         // if we created a new json with a refcount for tmp we need to decref it so it deletes
