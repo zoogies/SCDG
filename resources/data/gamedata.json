@@ -16,6 +16,32 @@
       "color":"white"
     }
   },
+  "scene prototypes":{
+    "dialog":{
+      "renderObjects":[
+        {
+          "type":"image",
+          "src":"images/icon.png",
+          "x":0.88,
+          "y":0.03,
+          "w":0.1,
+          "h":0.1,
+          "centered":false,
+          "depth":"ui"
+        },
+        {
+          "type":"image",
+          "src":"images/icon.png",
+          "x":0.5,
+          "y":0.8,
+          "w":0.5,
+          "h":0.3,
+          "centered":true,
+          "depth":"ui"
+        }
+      ]
+    }
+  },
   "keys":{
     "depth":{
       "ui":99,
@@ -74,8 +100,8 @@
           "h":0.1,
           "centered":false,
           "callback":{
-            "type":"loadscene",
-            "scene":"game"
+            "type":"action",
+            "action":"play game"
           }
         },
         {
@@ -290,6 +316,26 @@
             "type":"action",
             "action":"increaseVolume"
           }
+        }
+      ]
+    },
+    "intro":{
+      "music":{
+        "src":"music/intro.mp3",
+        "loops":-1,
+        "channel":"bgm"
+      },
+      "prototype":"dialog",
+      "renderObjects":[
+        {
+          "type":"image",
+          "src":"images/icon.png",
+          "x":0.5,
+          "y":0.5,
+          "w":1,
+          "h":1,
+          "centered":true,
+          "depth":"bg"
         }
       ]
     }

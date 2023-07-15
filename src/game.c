@@ -61,7 +61,7 @@ enum depth {
     background = 0
 };
 
-enum scenes currentScene = mainmenu;
+char* currentScene = "main menu";
 
 bool quit = false; // define quit (extern)
 
@@ -265,11 +265,11 @@ int mainFunction(int argc, char *argv[])
     // initialize color and font that we are using in the game
     pStartupFont = loadFont("fonts/Nunito-Regular.ttf", 500);
 
-    loadScene(mainmenu);
+    loadScene("main menu");
 
     // initialize rich prescence
     if (init_discord_rich_presence() > 0){ // tried to make connection to discord and successfully set activity
-        update_discord_activity("Playing a game", "In the main menu", "mainmenu", "Main Menu");
+        update_discord_activity("Playing a game", "In the main menu", "main menu", "Main Menu");
         logMessage(info, "Discord rich presence initialized.\n");
     }
     else{

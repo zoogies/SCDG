@@ -23,6 +23,10 @@ void actionHandler(struct callbackData *_data){
     if(strcmp(getString(data, "action"), "quit") == 0){
         exit(shutdownGame());
     }
+    else if(strcmp(getString(data, "action"), "play game") == 0){
+        // TODO: mechanism read save data to decide where to resume
+        loadScene("intro");
+    }
     else if(strcmp(getString(data, "action"), "changeWindowMode") == 0){
         char *mode = getString(data,"mode");
         if(strcmp(mode,"windowed") == 0){
@@ -36,19 +40,19 @@ void actionHandler(struct callbackData *_data){
         else{
             logMessage(warning, "Invalid window mode, defaulting to windowed.\n");
             changeWindowMode(SDL_FALSE);
-            loadScene(settings);
+            loadScene("settings");
             return;
         }
         changed_windowMode = true;
         updateGameScreenSize();
-        loadScene(settings);
+        loadScene("settings");
     }
     else if(strcmp(getString(data, "action"), "changeFPS") == 0){
         int cap = getInteger(data, "fps");
         changeFPS(cap);
         new_fpsCap = cap;
         changed_fpsCap = true;
-        loadScene(settings);
+        loadScene("settings");
     }
     else if(strcmp(getString(data, "action"), "increaseVolume") == 0){
         volumeUp();
@@ -90,8 +94,8 @@ void callbackHandler(struct callbackData *data){
         changed_windowMode = false;
         
         // -------------------------------------------------------------------------
-
-        loadScene(getSceneNameEnum(getString(data->pJson, "scene")));
+        char *scene = strdup(getString(data->pJson, "scene"));
+        loadScene(scene);
     }
     else if(strcmp(data->callbackType, "action") == 0){
         actionHandler(data);

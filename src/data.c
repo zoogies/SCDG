@@ -239,6 +239,48 @@ void dumpJSON(json_t *parent){
     printf("\n");
 }
 
+// merge two json objects (or lists) into one (make sure to decref the result)
+json_t* mergeJSON(json_t* obj, json_t* prototype) {
+    if (json_is_array(obj) && json_is_array(prototype)) {
+        json_t* mergedArray = json_array();
+
+        // Merge objects from obj
+        size_t index;
+        json_t* value;
+        json_array_foreach(obj, index, value) {
+            json_array_append(mergedArray, json_incref(value));
+        }
+
+        // Merge objects from prototype
+        json_array_foreach(prototype, index, value) {
+            json_array_append(mergedArray, json_incref(value));
+        }
+
+        return mergedArray;
+    }
+    else {
+        // Merge JSON objects
+        const char* key;
+        json_t* value;
+        
+        json_t* mergedObject = json_object();
+        
+        // iterate through prototype and add all fields that don't exist in obj
+        json_object_foreach(prototype, key, value) {
+            if (!json_object_get(obj, key)) {
+                json_object_set(mergedObject, key, value);
+            }
+        }
+        
+        // iterate through obj and add all fields
+        json_object_foreach(obj, key, value) {
+            json_object_set(mergedObject, key, value);
+        }
+        
+        return mergedObject;
+    }
+}
+
 // ---------------------------------------------------------------------------------------
 // modification functions
 // ---------------------------------------------------------------------------------------

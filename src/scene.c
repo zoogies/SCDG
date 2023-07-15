@@ -15,39 +15,24 @@
 /*
     take in keys, prototypes and renderObjects array and construct the scene
 */
-void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
+void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
     json_t *depthKeys = getObject(keys,"depth");
     json_t *fontKeys = getObject(keys,"font");
 
+    json_t *TMP = NULL;  // Declare a temporary JSON object
+    
     // loop through all renderObjects
-    // TODO: consider making its own method for protype merging
     for(size_t i = 0; i<json_array_size(pObjects); i++){
         json_t *obj = getArrayIndex(pObjects,i);
-        json_t *tmp = NULL;  // Declare a temporary JSON object
 
         // test for prototype field and construct if existant (overwrites obj)
         char *prototypeName = getStringNOWARN(obj,"prototype");
         if(prototypeName != NULL){
-            // new object for merged result
-            json_t *prototype = getObject(protypes,prototypeName);
-
-            const char *key;
-            json_t *value;
-            tmp = json_object();
-
-            // iterate through prototype and add all fields that dont exist in obj
-            json_object_foreach(prototype, key, value) {
-                if (!json_object_get(obj, key)) {
-                    json_object_set(tmp, key, value);
-                }
-            }
-            // iterate through obj and add all fields
-            json_object_foreach(obj, key, value) {
-                json_object_set(tmp, key, value);
-            }
-
+            json_t* prototype = getObject(prototypes, prototypeName);
+            TMP = mergeJSON(obj, prototype);
+            
             // replace obj with tmp
-            obj = tmp;
+            obj = TMP;
         }
 
         char *type = getString(obj,"type");
@@ -157,38 +142,28 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *protypes){
                 addState(stateCollection, identifier, (State){.type = STATE_INT, .intValue = created});
             }
         }
-
-        // if we created a new json with a refcount for tmp we need to decref it so it deletes
-        if (tmp != NULL) {
-            json_decref(tmp);
+        // if we created a new json with a refcount for tmp we need to decref it so it deletes and reset it
+        if(TMP != NULL){
+            json_decref(TMP);
+            TMP = NULL;
         }
     }
 }
 
 /*
-    convert a scene name into its cooresponding enum
-    TODO: this will get really long in the future
+    Handles playing the music for a scene on start
 */
-enum scenes getSceneNameEnum(char *name){
-    if(strcmp(name, "main menu") == 0){
-        return mainmenu;
-    }
-    else if(strcmp(name, "settings") == 0){
-        return settings;
-    }
-    else{
-        char buffer[100];
-        snprintf(buffer, sizeof(buffer),  "COULD NOT CONVERT STRING TO SCENE ENUM '%s'. RETURNING TO MAIN MENU.\n", name);
-        logMessage(error, buffer);
-        return mainmenu;
-    }
+void startSceneMusic(json_t *scene,json_t *keys){
+    json_t *channelKeys = getObject(keys,"channel");
+    json_t *pMusic = getObject(scene,"music");
+    playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
 }
 
 /*
     takes in a scene enum and setup scene
     TODO: could we pop out old renderlist to another thread and free it seperately to speed up construction?
 */
-void loadScene(enum scenes scene){
+void loadScene(char* scene){
     // we are going to start a counter to see how long the scene takes to load
     Uint32 startTime = SDL_GetTicks(); // get the current time (we will use this also to calculate playtime)
 
@@ -200,59 +175,49 @@ void loadScene(enum scenes scene){
     // clear our state TODO: should (some) state persist?
     clearStateCollection(stateCollection);
 
-    currentScene = scene;
-
     // load keys and json scenes dict
     json_t *GAMEDATA = getGameData("data/gamedata.json");
     json_t *scenes = getObject(GAMEDATA,"scenes");
 
-    // TODO: FIXME: MAKE GLOBAL
+    // TODO: FIXME: MAKE GLOBAL -note: WHY?
     json_t *keys = getObject(GAMEDATA,"keys");
-    json_t *channelKeys = getObject(getObject(GAMEDATA,"keys"),"channel");
     json_t *prototypes = getObject(GAMEDATA,"prototypes");
+    json_t *scenePrototypes = getObject(GAMEDATA,"scene prototypes");
+    json_t *_scene = getObject(scenes,scene);
 
-    json_t *_scene;
-    json_t *pMusic;
     json_t *pObjects;
 
+    logMessage(debug, "Loading a scene.\n");
 
-    // TODO: no switch just load from enum string?
-    switch (scene)
-    {
-    case mainmenu:
-        _scene = getObject(scenes,"main menu");
-        logMessage(debug, "Loading main menu scene.\n");
+    startSceneMusic(_scene,keys);
+    
+    // get our scene objects and render them all
+    pObjects = getArray(_scene,"renderObjects");
 
-        // load our music TODO: can be run in every scene
-        pMusic = getObject(_scene,"music");
-        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
+    char *prototypeName = getStringNOWARN(_scene,"prototype");
+    json_t *TMP = NULL;
+    if(prototypeName != NULL){
+        printf("SLKFGJKSFLJJGKLJDFJGKL\n");
+        json_t* prototype = getObject(getObject(scenePrototypes, prototypeName),"renderObjects");
+        TMP = mergeJSON(pObjects,prototype);
+        pObjects = TMP;
+    }
 
-        // get our scene objects and render them all
-        pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,keys,prototypes);
-        break;
-    case settings:
-        _scene = getObject(scenes,"settings");
-        logMessage(debug, "Loading settings scene.\n");
+    constructScene(pObjects,keys,prototypes);
 
-        // load our music TODO: can be run in every scene
-        pMusic = getObject(_scene,"music");
-        playSound(getString(pMusic,"src"),getInteger(channelKeys, getString(pMusic, "channel")),getInteger(pMusic, "loops"));
-
-        // get our scene objects and render them all
-        pObjects = getArray(_scene,"renderObjects");
-        constructScene(pObjects,keys,prototypes);
-
+    if(TMP != NULL){
+        json_decref(TMP);
+    }
+    
+    // catch special scenes with additional setup
+    if(strcmp(scene,"settings") == 0){
         // update our volume text
         char buffer[100];
         snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
         int id = getState(stateCollection, "volume-text")->intValue;
         updateText(id,buffer);
-        
-        break;
-    default:
-        break;
     }
+
     json_decref(GAMEDATA); // free only our ROOT json, everything else is borrowed
 
     Uint32 endTime = SDL_GetTicks();
@@ -264,4 +229,6 @@ void loadScene(enum scenes scene){
     char buffer[100];
     snprintf(buffer, sizeof(buffer),  "Scene loaded in %ums.\n", elapsedTime);
     logMessage(debug, buffer);
+
+    currentScene = scene;
 }

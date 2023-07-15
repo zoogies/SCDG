@@ -70,7 +70,11 @@ void handleEvent(SDL_Event e){
                                 if (strcmp(token, ">load") == 0) {
                                     token = strtok(NULL, " ");
                                     if (token != NULL) {
-                                        loadScene(getSceneNameEnum(token));
+                                        loadScene(token);
+                                    }
+                                } else if (strcmp(token, ">reload") == 0) {
+                                    if (token != NULL) {
+                                        loadScene(currentScene); // reload current scene
                                     }
                                 } else {
                                     logMessage(error, "Invalid command!\n");
