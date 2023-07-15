@@ -3,25 +3,28 @@
 
 #include <stdbool.h>
 
-// initialize a global debug flag at false
+#include <jansson.h>
+
+#include "state.h"
+
+// globals
 extern bool gamedebug;
 extern bool quit;
+extern enum scenes currentScene;
+extern StateCollection* stateCollection;
+extern int VOLUME;
 
-enum scenes {
-    mainmenu = 0,
-    game = 1,
-    settings = 2
-};
+TTF_Font *useFont(char *key);
+
+SDL_Color *useColor(char *key, json_t *keys);
+
+void updatePlaytime(Uint32 startTime);
 
 void volumeUp();
 
 void volumeDown();
 
 void updateGameScreenSize();
-
-void loadScene(enum scenes scene);
-
-enum scenes getSceneNameEnum(char *name);
 
 int shutdownGame();
 

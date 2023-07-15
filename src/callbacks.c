@@ -3,6 +3,7 @@
 #include "engine/graphics.h"
 #include "engine/engine.h"
 #include "data.h"
+#include "scene.h"
 
 // NOTE: when we change a setting like this, its annoying to go through our LL
 // and update screen points, so lets just reload settings
