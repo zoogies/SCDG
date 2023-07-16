@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdbool.h>
 
 #include <jansson.h>
@@ -229,5 +230,5 @@ void loadScene(char* scene){
     snprintf(buffer, sizeof(buffer),  "Scene loaded in %ums.\n", elapsedTime);
     logMessage(debug, buffer);
 
-    currentScene = scene;
+    currentScene = strdup(scene);
 }

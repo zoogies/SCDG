@@ -81,8 +81,7 @@ void handleEvent(SDL_Event e){
                                         else{
                                             /* persist this string so it doesnt get destroyed by
                                             unknown otherworldly powers beyond my comprehension */
-                                            char *scene = strdup(token);
-                                            loadScene(scene);
+                                            loadScene(token);
                                         }
                                     }
                                 } else if (strcmp(token, ">reload") == 0) {

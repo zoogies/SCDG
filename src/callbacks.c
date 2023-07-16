@@ -94,8 +94,7 @@ void callbackHandler(struct callbackData *data){
         changed_windowMode = false;
         
         // -------------------------------------------------------------------------
-        char *scene = strdup(getString(data->pJson, "scene"));
-        loadScene(scene);
+        loadScene(getString(data->pJson, "scene"));
     }
     else if(strcmp(data->callbackType, "action") == 0){
         actionHandler(data);
