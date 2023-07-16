@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <SDL2/SDL.h>
 
 #include "game.h"
@@ -65,16 +67,32 @@ void handleEvent(SDL_Event e){
                                 }
                             }
                         } else {
+                            char buffer[100];
+                            snprintf(buffer, sizeof(buffer), "Recieved command: %s\n", consoleString);
+                            logMessage(debug, buffer);
                             char* token = strtok(consoleString, " ");
                             if (token != NULL) {
                                 if (strcmp(token, ">load") == 0) {
                                     token = strtok(NULL, " ");
-                                    if (token != NULL) {
-                                        loadScene(token);
+                                    if (token != NULL) { // debug print current scene
+                                        if(strcmp(token,"main") == 0){
+                                            loadScene("main menu");
+                                        }
+                                        else{
+                                            /* persist this string so it doesnt get destroyed by
+                                            unknown otherworldly powers beyond my comprehension */
+                                            char *scene = strdup(token);
+                                            loadScene(scene);
+                                        }
                                     }
                                 } else if (strcmp(token, ">reload") == 0) {
                                     if (token != NULL) {
                                         loadScene(currentScene); // reload current scene
+                                    }
+                                }
+                                else if (strcmp(token, ">quit") == 0) {
+                                    if (token != NULL) {
+                                        quit = true;
                                     }
                                 } else {
                                     logMessage(error, "Invalid command!\n");

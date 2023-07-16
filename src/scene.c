@@ -197,7 +197,6 @@ void loadScene(char* scene){
     char *prototypeName = getStringNOWARN(_scene,"prototype");
     json_t *TMP = NULL;
     if(prototypeName != NULL){
-        printf("SLKFGJKSFLJJGKLJDFJGKL\n");
         json_t* prototype = getObject(getObject(scenePrototypes, prototypeName),"renderObjects");
         TMP = mergeJSON(pObjects,prototype);
         pObjects = TMP;

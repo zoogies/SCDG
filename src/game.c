@@ -280,7 +280,11 @@ int mainFunction(int argc, char *argv[])
     // begin event catching
     SDL_Event e; // define new event
 
-    // main game loop, yay!
+    /*
+        Main game loop
+        TODO: some things do not need run every single frame,
+        like discord callbacks and maybe even handling events
+    */
     while(!quit) {
         // something something rich presence updater
         run_discord_callbacks();
