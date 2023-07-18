@@ -165,6 +165,12 @@ void startSceneMusic(json_t *scene,json_t *keys){
     TODO: could we pop out old renderlist to another thread and free it seperately to speed up construction?
 */
 void loadScene(char* scene){
+    /*
+        duplicate our parameter to avoid accessing freed memory
+        and set the global scene value to the current scene
+    */
+    scene = currentScene = strdup(scene);
+
     // we are going to start a counter to see how long the scene takes to load
     Uint32 startTime = SDL_GetTicks(); // get the current time (we will use this also to calculate playtime)
 
@@ -229,6 +235,4 @@ void loadScene(char* scene){
     char buffer[100];
     snprintf(buffer, sizeof(buffer),  "Scene loaded in %ums.\n", elapsedTime);
     logMessage(debug, buffer);
-
-    currentScene = strdup(scene);
 }
