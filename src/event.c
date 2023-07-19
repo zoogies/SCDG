@@ -13,6 +13,7 @@
 // tracks whether the console is open or not
 bool consoleOpen = false;
 char consoleString[100];
+char lastConsoleString[100];
 
 /*
     Takes in an SDL_Event and handles it
@@ -57,7 +58,13 @@ void handleEvent(SDL_Event e){
                                     consoleString[bufferLength - 1] = '\0';
                                     updateText(-902, consoleString);
                                 }
-                            } else {
+                            }
+                            // allow up arrow to recall last command
+                            else if(e.key.keysym.sym == SDLK_UP) {
+                                strcpy(consoleString, lastConsoleString);
+                                updateText(-902, consoleString);
+                            }
+                            else {
                                 if (strlen(consoleString) < 100 - 1) {
                                     strncat(consoleString, (char*)&e.key.keysym.sym, 1);
                                     updateText(-902, consoleString);
@@ -66,7 +73,11 @@ void handleEvent(SDL_Event e){
                                     playSound("sfx/pipe.mp3", -1, 0);
                                 }
                             }
-                        } else {
+                        }
+                        else {
+                            // set last console string to current
+                            strcpy(lastConsoleString, consoleString);
+
                             char buffer[100];
                             snprintf(buffer, sizeof(buffer), "Recieved command: %s\n", consoleString);
                             logMessage(debug, buffer);
