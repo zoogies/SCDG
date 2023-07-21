@@ -64,6 +64,6 @@ gdb: clean debug
 
 # Debug with Valgrind
 valgrind: clean debug
-	valgrind --leak-check=full ./$(BUILD_DIR_LINUX)/game_linux
+	valgrind --leak-check=full --track-origins=yes ./$(BUILD_DIR_LINUX)/game_linux
 
 .PHONY: all dirs clean linux windows copy_resources_windows debug gdb valgrind
