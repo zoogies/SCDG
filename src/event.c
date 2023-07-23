@@ -4,6 +4,7 @@
 
 #include "game.h"
 #include "scene.h"
+#include "data.h"
 
 #include "engine/engine.h"
 #include "engine/graphics.h"
@@ -96,8 +97,19 @@ void handleEvent(SDL_Event e){
                                         }
                                     }
                                 } else if (strcmp(token, ">reload") == 0) {
-                                    if (token != NULL) {
-                                        loadScene(currentScene); // reload current scene
+                                    if (token != NULL) { // TODO: FIXME DOES NOT WORK WITH JANK MEM LEAK GLOBAL GAME AND SAVE DATA
+                                        // cache current scene before its heap is freed
+                                        char* temp = strdup(currentScene);
+
+                                        // reload our game and save data
+                                        shutdownDataManager();
+                                        initializeDataManager();
+
+                                        shutdownSceneManager();
+                                        setupSceneManager();
+                                        
+                                        loadScene(temp); // reload current scene
+                                        free(temp);
                                     }
                                 }
                                 else if (strcmp(token, ">quit") == 0) {

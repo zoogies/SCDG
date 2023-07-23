@@ -137,14 +137,16 @@ void initializeDataManager(){
     // load our keys and prototypes
     gamedata_keys = getObject(GAMEDATA,"keys");
     gamedata_prototypes = getObject(GAMEDATA,"prototypes");
-    gamedata_scene_prototypes = getObject(GAMEDATA,"scene-prototypes");
+    gamedata_scene_prototypes = getObject(GAMEDATA,"scene prototypes");
     logMessage(debug, "Initialized data manager.\n");
 }
 
 void shutdownDataManager(){
     // decref our global json_t objects
     json_decref(GAMEDATA);
+    GAMEDATA = NULL;
     json_decref(SAVEDATA);
+    SAVEDATA = NULL;
     logMessage(debug, "Shutdown data manager.\n");
 }
 

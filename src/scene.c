@@ -43,7 +43,7 @@ int getChannelByKeyName(char *key){
 */
 void advanceScene(){
     if(SCENEEVENTS != NULL){
-        json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex + 1); // TODO: only increment if valid event
+        json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex); // TODO: only increment if valid event
 
         if(event != NULL){
             if(strcmp(getString(event, "type"),"dialog") == 0){
@@ -222,10 +222,15 @@ void loadScene(char* scene){
         duplicate our parameter to avoid accessing freed memory
         and set the global scene value to the current scene
     */
+    
+    // just to be on the mega safe side, we need to ensure that scene is not currentScene
+    // scene = strdup(scene);
+
     if(currentScene != NULL){
         free(currentScene);
     }
-    scene = currentScene = strdup(scene); // TODO: fix this memory leak
+    currentScene = strdup(scene);
+    // free(scene);
 
     // we are going to start a counter to see how long the scene takes to load
     Uint32 startTime = SDL_GetTicks(); // get the current time (we will use this also to calculate playtime)
@@ -241,7 +246,7 @@ void loadScene(char* scene){
     // load keys and json scenes dict
     json_t *scenes = getObject(GAMEDATA,"scenes");
 
-    json_t *_scene = getObject(scenes,scene);
+    json_t *_scene = getObject(scenes,currentScene);
 
     json_t *pObjects;
 
@@ -267,7 +272,7 @@ void loadScene(char* scene){
     }
     
     // catch special scenes with additional setup
-    if(strcmp(scene,"settings") == 0){
+    if(strcmp(currentScene,"settings") == 0){
         // update our volume text
         char buffer[100];
         snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
@@ -298,9 +303,10 @@ void loadScene(char* scene){
 
 void setupSceneManager(){
     // populate our global game data variables
-    gamedata_keys = getObject(GAMEDATA,"keys");
-    gamedata_prototypes = getObject(GAMEDATA,"prototypes");
-    gamedata_scene_prototypes = getObject(GAMEDATA,"scene prototypes");
+    // gamedata_keys = getObject(GAMEDATA,"keys");
+    // gamedata_prototypes = getObject(GAMEDATA,"prototypes");
+    // gamedata_scene_prototypes = getObject(GAMEDATA,"scene prototypes");
+    // duplicate lines from data.c
 }
 
 void teardownScene(){
@@ -315,4 +321,5 @@ void teardownScene(){
 void shutdownSceneManager(){
     teardownScene();
     free(currentScene);
+    currentScene = NULL;
 }

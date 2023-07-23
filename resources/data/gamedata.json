@@ -14,6 +14,13 @@
       "depth":"ui",
       "font":"nunito",
       "color":"white"
+    },
+    "screenwidth":{
+      "centered":true,
+      "x":0.5,
+      "y":0.5,
+      "w":1,
+      "h":1
     }
   },
   "scene prototypes":{
@@ -21,7 +28,7 @@
       "renderObjects":[
         {
           "type":"image",
-          "src":"images/icon.png",
+          "src":"images/ui/hamburger menu.png",
           "x":0.88,
           "y":0.03,
           "w":0.1,
@@ -30,14 +37,26 @@
           "depth":"ui"
         },
         {
-          "type":"image",
-          "src":"images/ui/button-small.png",
-          "x":0.5,
-          "y":0.8,
-          "w":0.5,
-          "h":0.3,
           "centered":true,
+          "type":"image",
+          "x":0.5,
+          "y":0.5,
+          "w":1,
+          "h":1,
+          "src":"images/ui/dialog overlay.png",
+          "identifier":"text box",
           "depth":"ui - 1"
+        },
+        {
+          "centered":true,
+          "type":"image",
+          "x":0.88,
+          "y":0.88,
+          "w":0.1,
+          "h":0.1,
+          "src":"images/ui/text triangle.png",
+          "identifier":"text triangle",
+          "depth":"ui"
         },
         {
           "type":"image",
@@ -53,10 +72,10 @@
         {
           "prototype":"text",
           "text":"CHAR NAME",
-          "x":0.37,
-          "y":0.7,
-          "w":0.2,
-          "h":0.1,
+          "x":0.19,
+          "y":0.68,
+          "w":0.13,
+          "h":0.06,
           "centered":true,
           "identifier":"speaker name"
         },
@@ -368,7 +387,7 @@
     },
     "intro":{
       "music":{
-        "src":"music/intro.mp3",
+        "src":"music/warmpop.mp3",
         "loops":-1,
         "channel":"bgm"
       },

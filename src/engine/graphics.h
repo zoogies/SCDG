@@ -1,5 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
+#include <stdbool.h>
+
 #include <SDL2/SDL_ttf.h>
 #include <jansson.h>
 
@@ -13,6 +15,7 @@ struct callbackData {
 
 // linked list holding pointers towards button render objects
 typedef struct button {
+    bool isObject;
     struct renderObject *pObject;
     struct button *pNext;
     struct callbackData *callbackData;
