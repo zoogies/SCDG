@@ -10,7 +10,6 @@
 // globals
 extern bool gamedebug;
 extern bool quit;
-extern char* currentScene;
 extern StateCollection* stateCollection;
 extern int VOLUME;
 

@@ -13,6 +13,56 @@
 #include "engine/graphics.h"
 #include "engine/audio.h"
 
+// declare some globals
+json_t *SCENEEVENTS = NULL;
+int currentEventIndex = 0;
+char* currentScene = NULL;
+
+/*
+    Returns an integer channel number from a string key,
+    looks up in the global gamedata_keys object
+
+    TODO: should this go into another file? utils.c?
+*/
+int getChannelByKeyName(char *key){
+    return getInteger(getObject(gamedata_keys,"channel"),key);
+}
+
+/*
+    Advances the scene to the next event
+
+    TODO:
+    - pause, play sound, misc events
+    - some predefined behavior when scene ends (stopper event?) default case event too
+    - last scene played or some savedata mechanism in savedata
+
+    THOUGHTS:
+    - maybe this is something that should just be passed to lua ngl
+       - would involve a lot of creating new lua interface methods though, unless we have lua
+         pipeline commands through one C interface function which dispatches them accordingly
+*/
+void advanceScene(){
+    json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex++); // TODO: only increment if valid event
+
+    if(event != NULL){
+        if(strcmp(getString(event, "type"),"dialog") == 0){
+            // update our speaker text
+            updateText(getState(stateCollection, "speaker name")->intValue, getString(event, "speaker"));
+            updateText(getState(stateCollection, "speaker text")->intValue, getString(event, "text"));
+
+            // update our character image
+            // TODO: segfault should have error catching for getstate failures
+            int id = getState(stateCollection, "speaker image")->intValue;
+            updateImage(id, getString(event, "speaker src"));
+
+            // play dialog sfx
+            playSound(getString(event,"speaker sfx"), getChannelByKeyName(getString(event,"track")), 0);
+        }
+    }
+
+    return;
+}
+
 /*
     take in keys, prototypes and renderObjects array and construct the scene
 */
@@ -161,7 +211,7 @@ void startSceneMusic(json_t *scene,json_t *keys){
 }
 
 /*
-    takes in a scene enum and setup scene
+    takes in a scene name and sets up scene
     TODO: could we pop out old renderlist to another thread and free it seperately to speed up construction?
 */
 void loadScene(char* scene){
@@ -169,7 +219,10 @@ void loadScene(char* scene){
         duplicate our parameter to avoid accessing freed memory
         and set the global scene value to the current scene
     */
-    scene = currentScene = strdup(scene);
+    if(currentScene != NULL){
+        free(currentScene);
+    }
+    scene = currentScene = strdup(scene); // TODO: fix this memory leak
 
     // we are going to start a counter to see how long the scene takes to load
     Uint32 startTime = SDL_GetTicks(); // get the current time (we will use this also to calculate playtime)
@@ -183,20 +236,15 @@ void loadScene(char* scene){
     clearStateCollection(stateCollection);
 
     // load keys and json scenes dict
-    json_t *GAMEDATA = getGameData("data/gamedata.json");
     json_t *scenes = getObject(GAMEDATA,"scenes");
 
-    // TODO: FIXME: MAKE GLOBAL -note: WHY?
-    json_t *keys = getObject(GAMEDATA,"keys");
-    json_t *prototypes = getObject(GAMEDATA,"prototypes");
-    json_t *scenePrototypes = getObject(GAMEDATA,"scene prototypes");
     json_t *_scene = getObject(scenes,scene);
 
     json_t *pObjects;
 
     logMessage(debug, "Loading a scene.\n");
 
-    startSceneMusic(_scene,keys);
+    startSceneMusic(_scene,gamedata_keys);
     
     // get our scene objects and render them all
     pObjects = getArray(_scene,"renderObjects");
@@ -204,12 +252,12 @@ void loadScene(char* scene){
     char *prototypeName = getStringNOWARN(_scene,"prototype");
     json_t *TMP = NULL;
     if(prototypeName != NULL){
-        json_t* prototype = getObject(getObject(scenePrototypes, prototypeName),"renderObjects");
+        json_t* prototype = getObject(getObject(gamedata_scene_prototypes, prototypeName),"renderObjects");
         TMP = mergeJSON(pObjects,prototype);
         pObjects = TMP;
     }
 
-    constructScene(pObjects,keys,prototypes);
+    constructScene(pObjects,gamedata_keys,gamedata_prototypes);
 
     if(TMP != NULL){
         json_decref(TMP);
@@ -224,8 +272,10 @@ void loadScene(char* scene){
         updateText(id,buffer);
     }
 
-    json_decref(GAMEDATA); // free only our ROOT json, everything else is borrowed
-
+    // set our scene events (copying it so we can decref GAMEDATA after)
+    teardownScene(); // make sure we free our old scene events
+    SCENEEVENTS = json_deep_copy(getObject(_scene,"events"));
+    
     Uint32 endTime = SDL_GetTicks();
 
     // Calculate the elapsed time
@@ -235,4 +285,28 @@ void loadScene(char* scene){
     char buffer[100];
     snprintf(buffer, sizeof(buffer),  "Scene loaded in %ums.\n", elapsedTime);
     logMessage(debug, buffer);
+    
+    // run our first event
+    advanceScene();
+}
+
+void setupSceneManager(){
+    // populate our global game data variables
+    gamedata_keys = getObject(GAMEDATA,"keys");
+    gamedata_prototypes = getObject(GAMEDATA,"prototypes");
+    gamedata_scene_prototypes = getObject(GAMEDATA,"scene prototypes");
+}
+
+void teardownScene(){
+    // free our scene events
+    if (SCENEEVENTS) {
+        json_decref(SCENEEVENTS);
+        SCENEEVENTS = NULL;
+    }
+    currentEventIndex = 0;
+}
+
+void shutdownSceneManager(){
+    teardownScene();
+    free(currentScene);
 }

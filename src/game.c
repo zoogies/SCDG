@@ -61,8 +61,6 @@ enum depth {
     background = 0
 };
 
-char* currentScene = "main menu";
-
 bool quit = false; // define quit (extern)
 
 TTF_Font *pStartupFont;
@@ -123,10 +121,8 @@ void volumeUp(){
     int id = getState(stateCollection, "volume-text")->intValue;
     updateText(id,buffer);
     printf("%s",buffer);
-    json_t *SAVEDATA = getSaveData("data/savedata.json");
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
     saveJSONFile(SAVEDATA,"data/savedata.json");
-    json_decref(SAVEDATA); // destroy our root json_t*
 }
 
 void volumeDown(){
@@ -145,10 +141,8 @@ void volumeDown(){
     int id = getState(stateCollection, "volume-text")->intValue;
     updateText(id,buffer);
     printf("%s",buffer);
-    json_t *SAVEDATA = getSaveData("data/savedata.json");
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
     saveJSONFile(SAVEDATA,"data/savedata.json");
-    json_decref(SAVEDATA); // destroy our root json_t*
 }
 
 /*
@@ -157,13 +151,11 @@ void volumeDown(){
 */
 void updatePlaytime(Uint32 startTime){
     // add our time played since last scene load to the playtime in savedata
-    json_t *SAVEDATA = getSaveData("data/savedata.json");
     json_t *userdata = getObject(SAVEDATA,"user");
     int currentPlaytime = getInteger(userdata,"playtime");
     currentPlaytime += (int)((float)(startTime - sceneLoadTime) / 1000);
     writeInt(userdata,"playtime",currentPlaytime);
     saveJSONFile(SAVEDATA,"data/savedata.json");
-    json_decref(SAVEDATA); // destroy our root json_t*
     sceneLoadTime = startTime; // update our scene load time
 }
 
@@ -171,6 +163,12 @@ void updatePlaytime(Uint32 startTime){
 int shutdownGame(){
     // update playtime
     updatePlaytime(SDL_GetTicks());
+
+    // shutdown all scene data
+    shutdownSceneManager();
+
+    //shutdown data manager
+    shutdownDataManager();
 
     // destroy state collection
     destroyStateCollection(stateCollection);
@@ -208,11 +206,13 @@ int mainFunction(int argc, char *argv[])
         // other flags can be implemented here in the future
     }
 
+    // initialize data manager
+    initializeDataManager();
+    
     /*
         Get some neccessary values from game data to startup the game
         and create them if not existing
     */
-    json_t *SAVEDATA = getSaveData("data/savedata.json");
 
     // Access the "settings" object
     json_t *settings = getObject(SAVEDATA, "settings");
@@ -246,9 +246,6 @@ int mainFunction(int argc, char *argv[])
 
     // extract the frame cap and validate it
     framecap = getInteger(settings, "framecap");
-    
-    // close our ROOT json
-    json_decref(SAVEDATA);
 
     /*
         Initialize engine, this will cover starting audio as well as splash screen
@@ -265,6 +262,7 @@ int mainFunction(int argc, char *argv[])
     // initialize color and font that we are using in the game
     pStartupFont = loadFont("fonts/Nunito-Regular.ttf", 500);
 
+    setupSceneManager();
     loadScene("main menu");
 
     // initialize rich prescence

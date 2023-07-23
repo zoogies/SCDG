@@ -78,7 +78,10 @@ renderObject *getRenderObject(int identifier);
 
 TTF_Font *loadFont(const char *pFontPath, int fontSize);
 
-// struct holding info on texture creations
+/*
+    struct holding info on texture creations
+    TODO: in the future will we need refcounts for arbitrary cache objects holding more than just their texture?
+*/
 struct textureInfo {
     SDL_Texture *pTexture;
     bool cached;
@@ -102,6 +105,8 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
 int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data);
 
 void updateText(int id, char *pText);
+
+void updateImage(int id, char *pSrc);
 
 // function that clears all non engine render objects (depth >= 0)
 void clearAll(bool freeEngine);

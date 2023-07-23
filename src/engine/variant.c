@@ -55,6 +55,22 @@ void clearVariant(Variant* variant) {
         TTF_CloseFont(variant->fontValue);
     }
     else if(variant->type == VARIANT_TEXTURE) {
+        // printf("freeing variant texture with refcount: %d\n",variant->refcount);
         SDL_DestroyTexture(variant->textureValue);
+    }
+}
+
+/*
+    Remove a variant from its collection by key
+*/
+void removeVariant(VariantCollection* collection, char* key) {
+    KeyValuePair* pair;
+    HASH_FIND_STR(collection->map, key, pair);
+
+    if (pair != NULL) {
+        HASH_DEL(collection->map, pair);
+        clearVariant(&pair->value);
+        free(pair->key);
+        free(pair);
     }
 }

@@ -31,13 +31,57 @@
         },
         {
           "type":"image",
-          "src":"images/icon.png",
+          "src":"images/ui/button-small.png",
           "x":0.5,
           "y":0.8,
           "w":0.5,
           "h":0.3,
           "centered":true,
-          "depth":"ui"
+          "depth":"ui - 1"
+        },
+        {
+          "type":"image",
+          "src":"images/icon.png",
+          "x":0.5,
+          "y":0.5,
+          "w":0.5,
+          "h":1,
+          "centered":true,
+          "depth":"speaker",
+          "identifier":"speaker image"
+        },
+        {
+          "prototype":"text",
+          "text":"CHAR NAME",
+          "x":0.37,
+          "y":0.7,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "identifier":"speaker name"
+        },
+        {
+          "prototype":"text",
+          "text":"CHAR TEXT",
+          "x":0.37,
+          "y":0.85,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "identifier":"speaker text"
+        },
+        {
+          "prototype":"small button",
+          "text":"Next",
+          "x":0.9,
+          "y":0.9,
+          "w":0.2,
+          "h":0.1,
+          "centered":true,
+          "callback":{
+            "type":"action",
+            "action":"next event"
+          }
         }
       ]
     }
@@ -45,6 +89,8 @@
   "keys":{
     "depth":{
       "ui":99,
+      "ui - 1":98,
+      "speaker":90,
       "bg":0
     },
     "font":{
@@ -61,7 +107,8 @@
     },
     "channel":{
       "bgm":0,
-      "bg":0
+      "voice1":1,
+      "alert":2
     } 
   },
   "scenes": {
@@ -336,6 +383,32 @@
           "h":1,
           "centered":true,
           "depth":"bg"
+        }
+      ],
+      "events":[
+        {
+          "type":"dialog",
+          "speaker":"asuka",
+          "text":"feliz jueves",
+          "speaker src":"images/characters/asukaBK.jpeg",
+          "speaker sfx":"voices/jueves.mp3",
+          "track":"voice1"
+        },
+        {
+          "type":"dialog",
+          "speaker":"Low Tier God",
+          "text":"you should kys NOW",
+          "speaker src":"images/characters/LTG.jpeg",
+          "speaker sfx":"voices/kys.mp3",
+          "track":"voice1"
+        },
+        {
+          "type":"dialog",
+          "speaker":"rei ayanami",
+          "text":"*pipes*",
+          "speaker src":"images/characters/rei.png",
+          "speaker sfx":"sfx/pipe.mp3",
+          "track":"voice1"
         }
       ]
     }

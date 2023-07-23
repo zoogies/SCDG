@@ -5,11 +5,18 @@
 
 #include <jansson.h>
 
+extern json_t *GAMEDATA;
+extern json_t *gamedata_keys;
+extern json_t *gamedata_prototypes;
+extern json_t *gamedata_scene_prototypes;
+
+extern json_t *SAVEDATA;
+
 json_t *loadJSONFile(char *path);
 
-json_t *getSaveData(char *path);
+void initializeDataManager();
 
-json_t *getGameData(char *path);
+void shutdownDataManager();
 
 json_t *getObject(json_t *parent, char *key);
 json_t *getObjectNOWARN(json_t *parent, char *key);

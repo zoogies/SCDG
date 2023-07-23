@@ -16,6 +16,7 @@ typedef enum {
 
 typedef struct {
     VariantType type;
+    int refcount;
     union {
         int intValue;
         float floatValue;
@@ -47,5 +48,7 @@ void addVariant(VariantCollection* collection, char* key, Variant variant);
 Variant* getVariant(VariantCollection* collection, char* key);
 
 void clearVariant(Variant* variant);
+
+void removeVariant(VariantCollection* collection, char* key);
 
 #endif /* VARIANT_H */

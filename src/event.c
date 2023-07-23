@@ -70,7 +70,7 @@ void handleEvent(SDL_Event e){
                                     updateText(-902, consoleString);
                                 } else {
                                     logMessage(error, "Buffer at max length!\n");
-                                    playSound("sfx/pipe.mp3", -1, 0);
+                                    playSound("sfx/pipe.mp3", getChannelByKeyName("alert"), 0);
                                 }
                             }
                         }
@@ -106,7 +106,7 @@ void handleEvent(SDL_Event e){
                                     }
                                 } else {
                                     logMessage(error, "Invalid command!\n");
-                                    playSound("sfx/pipe.mp3", -1, 0);
+                                    playSound("sfx/pipe.mp3", getChannelByKeyName("alert"), 0);
                                 }
                             }
                             consoleString[0] = '>';

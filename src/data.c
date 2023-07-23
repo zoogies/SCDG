@@ -16,6 +16,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+// globals for game data information
+json_t *GAMEDATA;
+json_t *gamedata_keys;
+json_t *gamedata_prototypes;
+json_t *gamedata_scene_prototypes;
+
+json_t *SAVEDATA;
+
 /*
     TODO:
     - json functions dont exit(1)
@@ -35,8 +43,15 @@
     you need to VERY CLEARLY notate what is a root json_t and what is just a borrowed value
 */
 
-// load a json file and return its json_t, null if not existant or could not be accessed
-// returns a NEW reference refcount 1
+
+/*
+    load a json file and return its json_t, null if not existant or could not be accessed
+    returns a NEW reference refcount 1
+
+    TODO: fix alleged memory leak.
+    what we know:
+    - does not happen unless you load intro
+*/
 json_t *loadJSONFile(char *path){
     if(access(getPathStatic(path), F_OK) == -1) {
         char buffer[100];
@@ -100,13 +115,37 @@ json_t *getSaveData(char *path) {
     return saveData;
 }
 
-json_t *getGameData(char *path){
-    json_error_t err;
-    json_t *pRoot = json_load_file(getPathStatic(path), 0, &err);
-    if (!pRoot) {
-        logMessage(error, "Error parsing JSON file.\n");
+/*
+    Will create our global data variables and load the game data
+    and save data into them
+*/
+void initializeDataManager(){
+    // load our game data
+    GAMEDATA = loadJSONFile("data/gamedata.json");
+    if(GAMEDATA == NULL){
+        logMessage(error, "Could not load game data.\n");
+        exit(1);
     }
-    return pRoot;
+
+    // load our save data
+    SAVEDATA = getSaveData("data/savedata.json");
+    if(SAVEDATA == NULL){
+        logMessage(error, "Could not load save data.\n");
+        exit(1);
+    }
+
+    // load our keys and prototypes
+    gamedata_keys = getObject(GAMEDATA,"keys");
+    gamedata_prototypes = getObject(GAMEDATA,"prototypes");
+    gamedata_scene_prototypes = getObject(GAMEDATA,"scene-prototypes");
+    logMessage(debug, "Initialized data manager.\n");
+}
+
+void shutdownDataManager(){
+    // decref our global json_t objects
+    json_decref(GAMEDATA);
+    json_decref(SAVEDATA);
+    logMessage(debug, "Shutdown data manager.\n");
 }
 
 // JSON FIELD SPECIFIC ACCESSOR FUNCTIONS: (ALL RETURN BORROWED REFS)

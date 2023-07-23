@@ -18,6 +18,9 @@ bool changed_fpsCap = false;
 char *new_windowMode = "";
 int new_fpsCap = 0;
 
+/*
+    TODO: re-order these if statements so most common actions are first
+*/
 void actionHandler(struct callbackData *_data){
     json_t *data = _data->pJson;
     if(strcmp(getString(data, "action"), "quit") == 0){
@@ -26,6 +29,9 @@ void actionHandler(struct callbackData *_data){
     else if(strcmp(getString(data, "action"), "play game") == 0){
         // TODO: mechanism read save data to decide where to resume
         loadScene("intro");
+    }
+    else if(strcmp(getString(data, "action"), "next event") == 0){
+        advanceScene();
     }
     else if(strcmp(getString(data, "action"), "changeWindowMode") == 0){
         char *mode = getString(data,"mode");
@@ -74,7 +80,6 @@ void callbackHandler(struct callbackData *data){
         // we should only update our save data settings 
         // if the user clicks the exit button when in the settings menu
         // we are waiting for global state to fix this
-        json_t *SAVEDATA = getSaveData("data/savedata.json");
         if(changed_fpsCap){
             writeInt(getObject(SAVEDATA,"settings"),"framecap",new_fpsCap);
         }
@@ -89,7 +94,6 @@ void callbackHandler(struct callbackData *data){
         }
         saveJSONFile(SAVEDATA,"data/savedata.json");
 
-        json_decref(SAVEDATA);
         changed_fpsCap = false;
         changed_windowMode = false;
         

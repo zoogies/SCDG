@@ -407,12 +407,13 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
 
     // try to get it from cache TODO: should we wrap this in if shouldCache?
     Variant *pVariant = getVariant(cache, pPath);
-
     if (pVariant != NULL) { // found in cache
         // logMessage(debug, "Found texture in cache\n");
 
-        struct textureInfo ret = {pVariant->textureValue, true};
+        pVariant->refcount++; // increase refcount
 
+        struct textureInfo ret = {pVariant->textureValue, true};
+        printf("refcount for %s: %d\n",pPath,pVariant->refcount);
         return ret;
     }
     else{ // not found in cache
@@ -451,6 +452,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             Variant variant;
             variant.type = VARIANT_TEXTURE;
             variant.textureValue = pTexture;
+            variant.refcount = 1;
 
             addVariant(cache, pPath, variant);
 
@@ -465,6 +467,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             struct textureInfo ret = {pTexture, true};
             
             // return the created texture
+            printf("refcount for %s: %d\n",pPath,variant.refcount);
             return ret;
 
         }
@@ -567,7 +570,7 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     renderObject staging = {
         global_id,
         depth,
-        renderType_Text,
+        renderType_Image,
         info.pTexture,
         (SDL_Rect){x,y,width,height},
         NULL,
@@ -747,16 +750,50 @@ void updateText(int id, char *pText){
         logMessage(error, "ERROR UPDATING TEXT: RENDER OBJECT IS NOT TEXT\n");
         return;
     }
+    // TODO DESTROY BY REFCOUNTING - should i? text textures are never cached I thought?
     SDL_DestroyTexture(pObj->pTexture);
     pObj->pTexture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor); // TODO: update for outlined text
     pObj->TextData.pText = pText;
 }
 
+/*
+    Will attempt to grab a variant by name, and decrease its refcount, destroying it if it hits 0
+*/
+void imageDecref(char *name){
+    Variant *v = getVariant(cache, name);
+    if(v == NULL){
+        logMessage(error, "ERROR DECREFFING IMAGE: IMAGE NOT FOUND\n");
+        return;
+    }
+    v->refcount--;
+    if(v->refcount <= 0){
+        removeVariant(cache,name); // this is responsible for destroying the texture
+    }
+}
+
+/*
+    Updates an image given its renderObject ID and a path to the new src
+*/
+void updateImage(int id, char *pSrc){
+    renderObject *pObj = getRenderObject(id);
+    if(pObj == NULL){
+        logMessage(error, "ERROR UPDATING IMAGE: RENDER OBJECT NOT FOUND\n");
+        return;
+    }
+    if(pObj->type != renderType_Image){
+        printf("type: %d\n", pObj->type);
+        logMessage(error, "ERROR UPDATING IMAGE: RENDER OBJECT IS NOT IMAGE\n");
+        return;
+    }
+    imageDecref(pObj->ImageData.pPath);
+    struct textureInfo info = createImageTexture(pSrc, true);
+    pObj->ImageData.pPath = pSrc;
+    pObj->pTexture = info.pTexture;
+}
+
 // function that clears all non engine render objects (depth >= 0)
 // TODO: refactor this and removeRenderObject() to send pointers to nodes to another function to genericise this
 void clearAll(bool includeEngine) {
-
-
     // If our render list has zero items
     if (pRenderListHead == NULL) {
         // logMessage(warning, "ERROR CLEARING ALL RENDER OBJECTS: HEAD IS NULL\n");
