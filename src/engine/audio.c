@@ -1,8 +1,10 @@
 /*
     AUDIO TODO:
     - allow channel to be specified or auto assigned
-    - returning out of this file what channel a sound was assigned to so it can be interrupted
-      or maybe even not do this, just let the game play on predefined channels which will auto interrup anyways
+    - if game wants to auto assign a channel, they do it through a special function that gives them
+      the channel int it was assigned to for tracking purposes (this probably wont happen because game has list of tracks
+      it wants to play on already anyways and will interrupt itself)
+    - threading audio so it doesnt block the game
 */
 
 #include <stdio.h>
