@@ -249,8 +249,8 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
     initGraphics(screenWidth,screenHeight,windowMode,framecap);
 
     // load a font for use in engine (value of global in engine.h modified)
-    pEngineFont = loadFont("fonts/Nunito-Bold.ttf", 500);
-    pEngineFont2 = loadFont("fonts/Nunito-Regular.ttf", 500);
+    pEngineFont = loadFont("engine_reserved/RobotoMono-Light.ttf", 500);
+    pEngineFont2 = loadFont("engine_reserved/RobotoMono-Light.ttf", 500);
 
     // allocate memory for and create a pointer to our engineFontColor struct for use in graphics.c
     // TODO: check this later because i'm so tired and perplexed with this workaround to letting the fn go out of scope
@@ -261,9 +261,6 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
     pEngineFontColor->g = 255;
     pEngineFontColor->b = 0;
     pEngineFontColor->a = 255;
-
-    // load a SDL_Color(s) for use in engine debug displays and startup
-    SDL_Color colorWhite = {255, 255, 255, 255};
 
     // if we are in debug mode
     // BUG/INFO: FPS COUNTER MUST ABSOLUTELY BE THE HIGHEST DEPTH OR THE RENDER ORDER FUDGES THE NUMBERS 
@@ -300,12 +297,8 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
     else{
         playSound("sfx/startup.mp3",0,0); // play startup sound
 
-        // create startup logo and title and save their id# into memory to destroy them after startup
-        createImage(0,.5f,.5f,.35f,.4f,"images/enginelogo.png",true);
-
-        createText(0,.5f,.3f,.3f,.1f,"yoyo engine",pEngineFont,&colorWhite,true);
-
-        // createButton(2,.5,.5,.2f,.2f,"test",pEngineFont,&colorWhite,true,getPath("images/ui/button-small.png"));
+        // add startup splash image
+        createImage(0,.5f,.5f,1.0f,1.0f,"engine_reserved/splash.png",true);
 
         // render everything in engine queue
         renderAll(); 

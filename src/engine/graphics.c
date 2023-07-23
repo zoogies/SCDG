@@ -19,9 +19,6 @@
 #include "logging.h"
 #include "variant.h"
 
-// TODO FIXME BAD BAD BAD BAD
-#include "../data.h"
-
 // define globals for file
 SDL_Window *pWindow = NULL;
 SDL_Surface *pScreenSurface = NULL;
@@ -413,7 +410,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
         pVariant->refcount++; // increase refcount
 
         struct textureInfo ret = {pVariant->textureValue, true};
-        printf("refcount for %s: %d\n",pPath,pVariant->refcount);
+        // printf("refcount for %s: %d\n",pPath,pVariant->refcount);
         return ret;
     }
     else{ // not found in cache
@@ -467,7 +464,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             struct textureInfo ret = {pTexture, true};
             
             // return the created texture
-            printf("refcount for %s: %d\n",pPath,variant.refcount);
+            // printf("refcount for %s: %d\n",pPath,variant.refcount);
             return ret;
 
         }
