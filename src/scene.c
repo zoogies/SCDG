@@ -42,21 +42,24 @@ int getChannelByKeyName(char *key){
          pipeline commands through one C interface function which dispatches them accordingly
 */
 void advanceScene(){
-    json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex++); // TODO: only increment if valid event
+    if(SCENEEVENTS != NULL){
+        json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex + 1); // TODO: only increment if valid event
 
-    if(event != NULL){
-        if(strcmp(getString(event, "type"),"dialog") == 0){
-            // update our speaker text
-            updateText(getState(stateCollection, "speaker name")->intValue, getString(event, "speaker"));
-            updateText(getState(stateCollection, "speaker text")->intValue, getString(event, "text"));
+        if(event != NULL){
+            if(strcmp(getString(event, "type"),"dialog") == 0){
+                // update our speaker text
+                updateText(getState(stateCollection, "speaker name")->intValue, getString(event, "speaker"));
+                updateText(getState(stateCollection, "speaker text")->intValue, getString(event, "text"));
 
-            // update our character image
-            // TODO: segfault should have error catching for getstate failures
-            int id = getState(stateCollection, "speaker image")->intValue;
-            updateImage(id, getString(event, "speaker src"));
+                // update our character image
+                // TODO: segfault should have error catching for getstate failures
+                int id = getState(stateCollection, "speaker image")->intValue;
+                updateImage(id, getString(event, "speaker src"));
 
-            // play dialog sfx
-            playSound(getString(event,"speaker sfx"), getChannelByKeyName(getString(event,"track")), 0);
+                // play dialog sfx
+                playSound(getString(event,"speaker sfx"), getChannelByKeyName(getString(event,"track")), 0);
+            }
+            currentEventIndex++;
         }
     }
 
@@ -274,7 +277,10 @@ void loadScene(char* scene){
 
     // set our scene events (copying it so we can decref GAMEDATA after)
     teardownScene(); // make sure we free our old scene events
-    SCENEEVENTS = json_deep_copy(getObject(_scene,"events"));
+    json_t *pEvents = getObjectNOWARN(_scene,"events");
+    if(pEvents != NULL){
+        SCENEEVENTS = json_deep_copy(pEvents);
+    }
     
     Uint32 endTime = SDL_GetTicks();
 
