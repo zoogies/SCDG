@@ -17,6 +17,7 @@
 json_t *SCENEEVENTS = NULL;
 int currentEventIndex = 0;
 char* currentScene = NULL;
+StateCollection* callbackDataCollection;
 
 /*
     Returns an integer channel number from a string key,
@@ -164,7 +165,10 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
             // CREATES A NEW JSON_T WITH REFCOUNT 1
             // we HAVE TO decref this when we are done with it
             json_t *pCallbackCopy = json_deep_copy(pCallback);
-            cb->pJson = pCallbackCopy;
+            cb->pData = (void*)pCallbackCopy;
+
+            // we add this to a state collection so we can clear and free it later on
+            addState(callbackDataCollection,"dummy_irrelivant_keyname",(State){.type = STATE_JSON_T, .jsonValue = pCallbackCopy});
 
             created = createButton(
                 depth,
@@ -265,6 +269,9 @@ void loadScene(char* scene){
         pObjects = TMP;
     }
 
+    // free all our old callback data before constructing new scene
+    clearStateCollection(callbackDataCollection);
+
     constructScene(pObjects,gamedata_keys,gamedata_prototypes);
 
     if(TMP != NULL){
@@ -307,6 +314,9 @@ void setupSceneManager(){
     // gamedata_prototypes = getObject(GAMEDATA,"prototypes");
     // gamedata_scene_prototypes = getObject(GAMEDATA,"scene prototypes");
     // duplicate lines from data.c
+
+    // create collection for heap callback data that we can free when needed
+    callbackDataCollection = createStateCollection();
 }
 
 void teardownScene(){
@@ -322,4 +332,5 @@ void shutdownSceneManager(){
     teardownScene();
     free(currentScene);
     currentScene = NULL;
+    destroyStateCollection(callbackDataCollection);
 }

@@ -3,14 +3,13 @@
 #include <stdbool.h>
 
 #include <SDL2/SDL_ttf.h>
-#include <jansson.h>
 
 // TODO PLEASE PLEASE MOVE TO ENGINE CALLBACK HANDLER STUFF FUNCTION FILE
 
 struct callbackData {
     char *callbackType;
     void (*callback)(struct callbackData *data);
-    json_t *pJson;
+    void *pData;
 };
 
 // linked list holding pointers towards button render objects

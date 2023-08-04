@@ -240,8 +240,7 @@ void removeButton(int id){
             button *pToDelete = pCurrent->pNext;
             pCurrent->pNext = pToDelete->pNext;
 
-            // including jansson pepega code
-            json_decref(pToDelete->callbackData->pJson);
+            // remove callback data (game hadnles its own callbackData)
             free(pToDelete->callbackData->callbackType);
             free(pToDelete->callbackData);
 
@@ -273,7 +272,7 @@ void clearAllButtons(){
             removeRenderObject(pToDelete->pObject->identifier);
             
             // we decref the json_t object inside the callbackData struct, because its a new ref so it will be freed
-            json_decref(pToDelete->callbackData->pJson);
+            // json_decref(pToDelete->callbackData->pJson); TODO: handle callback data leaks
 
             // we free our dynamically allocated fields
             free(pToDelete->callbackData->callbackType); // free the malloced type string
@@ -1044,7 +1043,7 @@ void checkClicked(int x, int y){
             y <= pCurrent->pObject->rect.y + pCurrent->pObject->rect.h + yOffset) 
         {
             // run the buttons callback if its not null
-            if(pCurrent->callbackData->callback != NULL && pCurrent->callbackData != NULL && pCurrent->callbackData->pJson != NULL){
+            if(pCurrent->callbackData->callback != NULL && pCurrent->callbackData != NULL && pCurrent->callbackData->pData != NULL){
                 logMessage(debug, "Button clicked, running callback\n");
                 pCurrent->callbackData->callback(pCurrent->callbackData);
                 logMessage(debug, "Callback finished\n");

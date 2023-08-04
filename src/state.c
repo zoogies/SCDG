@@ -10,15 +10,7 @@ StateCollection* createStateCollection() {
 }
 
 void destroyStateCollection(StateCollection* collection) {
-    StateValuePair* pair, *tmp;
-
-    HASH_ITER(hh, collection->map, pair, tmp) {
-        HASH_DEL(collection->map, pair);
-        clearState(&pair->value);
-        free(pair->key);
-        free(pair);
-    }
-
+    clearStateCollection(collection);
     free(collection);
 }
 
@@ -51,5 +43,9 @@ State* getState(StateCollection* collection, char* key) {
 void clearState(State* state) {
     if (state->type == STATE_STRING) {
         free(state->stringValue);
+    }
+    else if(state->type == STATE_JSON_T) {
+        // TODO: should we always decref here?
+        json_decref(state->jsonValue);
     }
 }

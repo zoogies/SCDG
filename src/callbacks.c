@@ -22,7 +22,7 @@ int new_fpsCap = 0;
     TODO: re-order these if statements so most common actions are first
 */
 void actionHandler(struct callbackData *_data){
-    json_t *data = _data->pJson;
+    json_t *data = (json_t*)_data->pData;
     if(strcmp(getString(data, "action"), "quit") == 0){
         exit(shutdownGame());
     }
@@ -99,7 +99,7 @@ void callbackHandler(struct callbackData *data){
         
         // -------------------------------------------------------------------------
         
-        loadScene(getString(data->pJson, "scene"));
+        loadScene(getString((json_t*)data->pData, "scene"));
     }
     else if(strcmp(data->callbackType, "action") == 0){
         actionHandler(data);

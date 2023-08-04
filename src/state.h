@@ -2,13 +2,17 @@
 #define STATE_H
 
 #include "engine/uthash/uthash.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+
+#include <jansson.h>
 
 typedef enum {
     STATE_INT,
     STATE_FLOAT,
     STATE_STRING,
+    STATE_JSON_T,
 } StateType;
 
 typedef struct {
@@ -17,6 +21,7 @@ typedef struct {
         int intValue;
         float floatValue;
         char* stringValue;
+        json_t* jsonValue;
     };
 } State;
 
