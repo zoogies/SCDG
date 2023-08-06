@@ -5,7 +5,8 @@
       "centered":true,
       "depth":"ui",
       "font":"nunito",
-      "color":"white"
+      "color":"white",
+      "align":"middle center"
     },
     "small button":{
       "type":"button",
@@ -13,14 +14,16 @@
       "centered":true,
       "depth":"ui",
       "font":"nunito",
-      "color":"white"
+      "color":"white",
+      "align":"middle center"
     },
     "screenwidth":{
       "centered":true,
       "x":0.5,
       "y":0.5,
       "w":1,
-      "h":1
+      "h":1,
+      "align":"stretch"
     }
   },
   "scene prototypes":{
@@ -28,6 +31,7 @@
       "renderObjects":[
         {
           "type":"image",
+          "align":"middle center",
           "src":"images/ui/hamburger menu.png",
           "x":0.88,
           "y":0.03,
@@ -38,6 +42,7 @@
         },
         {
           "centered":true,
+          "align":"middle center",
           "type":"image",
           "x":0.5,
           "y":0.5,
@@ -49,6 +54,7 @@
         },
         {
           "centered":true,
+          "align":"middle center",
           "type":"image",
           "x":0.88,
           "y":0.88,
@@ -60,6 +66,7 @@
         },
         {
           "type":"image",
+          "align":"middle center",
           "src":"images/icon.png",
           "x":0.5,
           "y":0.5,
@@ -81,12 +88,13 @@
         },
         {
           "prototype":"text",
-          "text":"CHAR TEXT",
-          "x":0.37,
-          "y":0.85,
-          "w":0.2,
-          "h":0.1,
-          "centered":true,
+          "align":"middle left",
+          "text":"SPEAKER TEXT",
+          "x":0.1,
+          "y":0.72,
+          "w":0.8,
+          "h":0.2,
+          "centered":false,
           "identifier":"speaker text"
         },
         {
@@ -139,6 +147,17 @@
       },
       "renderObjects":[
         {
+          "type":"image",
+          "src":"images/icon.png",
+          "x":0.5,
+          "y":0.8,
+          "w":0.25,
+          "h":0.25,
+          "align":"middle center",
+          "centered":true,
+          "depth":"ui"
+        },
+        {
           "prototype":"text",
           "text":"Stardust Crusaders Dating Sim",
           "x":0,
@@ -148,6 +167,7 @@
           "centered":false
         },
         {
+          "align":"stretch",
           "type":"image",
           "src":"images/backgrounds/people720.png",
           "x":0.5,
@@ -216,12 +236,8 @@
         },
         {
           "type":"image",
+          "prototype":"screenwidth",
           "src":"images/backgrounds/settingsbg.jpg",
-          "x":0.5,
-          "y":0.5,
-          "w":1,
-          "h":1,
-          "centered":true,
           "depth":"bg"
         },
         {
@@ -238,6 +254,7 @@
         },
         {
           "prototype":"text",
+          "align":"middle right",
           "text":"Window:",
           "x":0,
           "y":0.25,
@@ -276,6 +293,7 @@
         {
           "prototype":"text",
           "text":"FPS:",
+          "align":"middle right",
           "x":0,
           "y":0.35,
           "w":0.2,
@@ -340,6 +358,7 @@
         },
         {
           "prototype":"text",
+          "align":"middle right",
           "text":"Volume:",
           "x":0,
           "y":0.45,
@@ -395,12 +414,8 @@
       "renderObjects":[
         {
           "type":"image",
+          "prototype":"screenwidth",
           "src":"images/icon.png",
-          "x":0.5,
-          "y":0.5,
-          "w":1,
-          "h":1,
-          "centered":true,
           "depth":"bg"
         }
       ],

@@ -55,11 +55,20 @@ int yOffset = 0;
 
 bool forceRefresh = false;
 
+// internal state to paint bounds of objects to the screen
+bool paintBounds = false;
+
 int currentResolutionWidth = 1920;
 int currentResolutionHeight = 1080;
 
 // create a cache to hold textures colors and fonts
 VariantCollection* cache;
+
+// toggles painting bounds in graphics
+void togglePaintBounds(){
+    paintBounds = !paintBounds;
+    logMessage(debug, "Toggled paintBounds\n");
+}
 
 // helper function to get renderObjectType as a string from the enum name
 char *getRenderObjectTypeString(renderObjectType type) {
@@ -75,6 +84,32 @@ char *getRenderObjectTypeString(renderObjectType type) {
     }
 }
 
+// converts a relative float to real screen pixel width
+int convertToRealPixelWidth(float in){
+    return (int)((float)in * (float)virtualWidth);
+}
+
+// converts a relative float to real screen pixel height
+int convertToRealPixelHeight(float in){
+    return (int)((float)in * (float)virtualHeight);
+}
+
+// creates a real screen pixel rect from relative float values
+SDL_Rect createRealPixelRect(bool centered, float x, float y, float w, float h) {
+    int realX = convertToRealPixelWidth(x);
+    int realY = convertToRealPixelHeight(y);
+    int realW = convertToRealPixelWidth(w);
+    int realH = convertToRealPixelHeight(h);
+
+    if (centered) {
+        realX -= realW / 2;
+        realY -= realH / 2;
+    }
+
+    SDL_Rect rect = {realX, realY, realW, realH};
+    return rect;
+}
+
 /*
     definitive render object creator.
     will take in a staged render object, will fill out REAL rect coordinate values
@@ -82,22 +117,6 @@ char *getRenderObjectTypeString(renderObjectType type) {
     everything except relative rect coords needs to be filled out in the staging object
 */
 void addRenderObject(renderObject staging) {
-    // translate our relative floats into actual screen coordinates for rendering
-    // TODO: consider genericizing this into a function
-    int objX = (int)(staging.relX * (float)virtualWidth); // + xOffset;
-    int objY = (int)(staging.relY * (float)virtualHeight); // + yOffset;
-    int objWidth = (int)(staging.relW * (float)virtualWidth);
-    int objHeight = (int)(staging.relH * (float)virtualHeight);
-
-    // modify our coordinates if we want to render at its center
-    if(staging.centered){
-        objX = objX - (objWidth / 2);
-        objY = objY - (objHeight / 2);
-    }
-
-    // create real bounding rect from parameters
-    staging.rect = (SDL_Rect){objX, objY, objWidth, objHeight};
-
     // construct and malloc new object
     renderObject *pObj = (renderObject *)malloc(sizeof(renderObject));
 
@@ -526,22 +545,99 @@ SDL_Color *getColor(char *key, SDL_Color color){
     return pColor;
 }
 
+/*
+    Massive function to handle the orientation of an object within a set of bounds
+*/
+void autoFitBounds(SDL_Rect* bounds, SDL_Rect* obj, Alignment alignment){
+    // check if some loser wants to stretch something
+    if(alignment == ALIGN_STRETCH){
+        obj->w = bounds->w;
+        obj->h = bounds->h;
+        obj->x = bounds->x;
+        obj->y = bounds->y;
+        return;
+    }
+
+    // actual orientation handling
+
+    float boundsAspectRatio = (float)bounds->w / (float)bounds->h;
+    float objectAspectRatio = (float)obj->w / (float)obj->h;
+
+    if (objectAspectRatio > boundsAspectRatio) {
+        obj->h = bounds->w / objectAspectRatio;
+        obj->w = bounds->w;
+    } else {
+        obj->w = bounds->h * objectAspectRatio;
+        obj->h = bounds->h;
+    }
+
+    switch(alignment) {
+        case ALIGN_TOP_LEFT:
+            obj->x = bounds->x;
+            obj->y = bounds->y;
+            break;
+        case ALIGN_TOP_CENTER:
+            obj->x = bounds->x + (bounds->w - obj->w) / 2;
+            obj->y = bounds->y;
+            break;
+        case ALIGN_TOP_RIGHT:
+            obj->x = bounds->x + (bounds->w - obj->w);
+            obj->y = bounds->y;
+            break;
+        case ALIGN_MID_LEFT:
+            obj->x = bounds->x;
+            obj->y = bounds->y + (bounds->h - obj->h) / 2;
+            break;
+        case ALIGN_MID_CENTER:
+            obj->x = bounds->x + (bounds->w - obj->w) / 2;
+            obj->y = bounds->y + (bounds->h - obj->h) / 2;
+            break;
+        case ALIGN_MID_RIGHT:
+            obj->x = bounds->x + (bounds->w - obj->w);
+            obj->y = bounds->y + (bounds->h - obj->h) / 2;
+            break;
+        case ALIGN_BOT_LEFT:
+            obj->x = bounds->x;
+            obj->y = bounds->y + (bounds->h - obj->h);
+            break;
+        case ALIGN_BOT_CENTER:
+            obj->x = bounds->x + (bounds->w - obj->w) / 2;
+            obj->y = bounds->y + (bounds->h - obj->h);
+            break;
+        case ALIGN_BOT_RIGHT:
+            obj->x = bounds->x + (bounds->w - obj->w);
+            obj->y = bounds->y + (bounds->h - obj->h);
+            break;
+        default:
+            logMessage(error, "Invalid alignment\n");
+            break;
+    }
+}
+
 // add text to the render queue, returns the engine assigned ID of the object
-int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered){
+int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, Alignment alignment){
+    SDL_Texture *texture = createTextTexture(pText, pFont, pColor);
+
+    // get our real coordinate bounds for the object
+    SDL_Rect bounds = createRealPixelRect(centered, x, y, width, height);
+    
+    int imgWidth, imgHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &imgWidth, &imgHeight);
+    SDL_Rect rect = {0,0,imgWidth,imgHeight};
+    autoFitBounds(&bounds, &rect, alignment);
+    
     // construct a staging object and throw it to addRenderObject()
     renderObject staging = {
         global_id,
         depth,
         renderType_Text,
-        createTextTexture(pText,pFont,pColor),
-        (SDL_Rect){x,y,width,height},
+        texture,
+        rect,
         NULL,
         false, // text textures never cached
-        x,
-        y,
-        width,
-        height,
+        bounds,
         centered,
+        alignment,
         {
             .TextData = {
                 .pFont = pFont,
@@ -558,9 +654,18 @@ int createText(int depth, float x,float y, float width, float height, char *pTex
     return global_id - 1; //return 1 less than after incrementation (id last item was assigned)
 }
 
+
 // add an image to the render queue, returns the engine assigned ID of the object
-int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered){
+int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered, Alignment alignment){
     struct textureInfo info = createImageTexture(pPath,true);
+
+    // get our real coordinate bounds for the object
+    SDL_Rect bounds = createRealPixelRect(centered, x, y, width, height);
+    
+    int imgWidth, imgHeight;
+    SDL_QueryTexture(info.pTexture, NULL, NULL, &imgWidth, &imgHeight);
+    SDL_Rect rect = {0,0,imgWidth,imgHeight};
+    autoFitBounds(&bounds, &rect, alignment);
 
     // construct a staging object and throw it to addRenderObject()
     renderObject staging = {
@@ -568,14 +673,12 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
         depth,
         renderType_Image,
         info.pTexture,
-        (SDL_Rect){x,y,width,height},
+        rect,
         NULL,
         info.cached,
-        x,
-        y,
-        width,
-        height,
+        bounds,
         centered,
+        alignment,
         {
             .ImageData = {
                 .pPath = pPath
@@ -596,12 +699,9 @@ int createImage(int depth, float x, float y, float width, float height, char *pP
     - refactor texture rendering to external function so button textures can be generated and replaced externally in the future, for now buttons are static (maybe that texture can be auto modified by pointer in struct)
     - eventually we need to support outlined text in buttons, think about the best way to accomplish that
 */
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data) {
-    // translate our relative floats into actual screen coordinates for rendering TODO: consider genericizing this into a function
-    // int realX = (int)(x * (float)virtualWidth); // + xOffset;
-    // int realY = (int)(y * (float)virtualHeight); // + yOffset;
-    int realWidth = (int)(width * (float)virtualWidth);
-    int realHeight = (int)(height * (float)virtualHeight);
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data, Alignment alignment) {
+    // get our real coordinate bounds for the object
+    SDL_Rect bounds = createRealPixelRect(centered, x, y, width, height);
 
     SDL_Texture *textTexture = createTextTexture(pText, pFont, pColor);
 
@@ -619,7 +719,12 @@ int createButton(int depth, float x, float y, float width, float height, char *p
         return intFail;
     }
 
-    SDL_Texture* buttonTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, realWidth, realHeight);
+    int imgWidth, imgHeight;
+    SDL_QueryTexture(pImageTexture, NULL, NULL, &imgWidth, &imgHeight);
+    SDL_Rect imgRect = {0,0,imgWidth,imgHeight};
+    autoFitBounds(&bounds, &imgRect, alignment);
+
+    SDL_Texture* buttonTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, imgWidth, imgHeight);
 
     if (buttonTexture == NULL) {
         logMessage(error, "ERROR CREATING BUTTON TEXTURE\n");
@@ -631,15 +736,17 @@ int createButton(int depth, float x, float y, float width, float height, char *p
     SDL_SetRenderTarget(pRenderer, buttonTexture);
 
     // Render the background image onto the new texture
-    SDL_Rect backgroundRect = {0, 0, realWidth, realHeight};
+    SDL_Rect backgroundRect = {0, 0, imgWidth, imgHeight};
     SDL_RenderCopy(pRenderer, pImageTexture, NULL, &backgroundRect);
 
     // Get dimensions of the text texture
     int textWidth, textHeight;
     SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
 
-    float widthRatio = (float)realWidth / textWidth;
-    float heightRatio = (float)realHeight / textHeight;
+    // just text alignement...? ///////////////////////////////////////////
+
+    float widthRatio = (float)imgWidth / textWidth;
+    float heightRatio = (float)imgHeight / textHeight;
     float scale = fminf(widthRatio, heightRatio);
 
     int scaledTextWidth = (int)(textWidth * scale);
@@ -647,10 +754,12 @@ int createButton(int depth, float x, float y, float width, float height, char *p
 
     // Calculate the position of the text to center it within the button
     SDL_Rect textRect;
-    textRect.x = (realWidth - scaledTextWidth) / 2;
-    textRect.y = (realHeight - scaledTextHeight) / 2;
+    textRect.x = (imgWidth - scaledTextWidth) / 2;
+    textRect.y = (imgHeight - scaledTextHeight) / 2;
     textRect.w = scaledTextWidth;
     textRect.h = scaledTextHeight;
+
+    ///////////////////////////////////////////////////////////////////////
 
     // Render the text onto the new texture
     SDL_RenderCopy(pRenderer, textTexture, NULL, &textRect);
@@ -665,14 +774,12 @@ int createButton(int depth, float x, float y, float width, float height, char *p
         depth,
         renderType_Button,
         buttonTexture,
-        (SDL_Rect){x,y,width,height},
+        imgRect,
         NULL,
         false, // total baked button texture should never be cached
-        x,
-        y,
-        width,
-        height,
+        bounds,
         centered,
+        alignment,
         {
             .ButtonData = {
                 .TextData = {
@@ -732,8 +839,19 @@ void updateTextByObj(renderObject *pObj, char *pText){
         return;
     }
     SDL_DestroyTexture(pObj->pTexture);
-    pObj->pTexture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor); // TODO: update for outlined text
+    SDL_Texture *texture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor);
+    
+    // query stuff so we can resize the rect (not bounds)
+    int imgWidth, imgHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &imgWidth, &imgHeight);
+    SDL_Rect rect = {0,0,imgWidth,imgHeight};
+    autoFitBounds(&pObj->bounds, &rect, pObj->alignment);
+
+    pObj->pTexture = texture;
     pObj->TextData.pText = pText;
+    
+    // update rect
+    pObj->rect = rect;
 }
 
 void updateText(int id, char *pText){
@@ -748,8 +866,19 @@ void updateText(int id, char *pText){
     }
     // TODO DESTROY BY REFCOUNTING - should i? text textures are never cached I thought?
     SDL_DestroyTexture(pObj->pTexture);
-    pObj->pTexture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor); // TODO: update for outlined text
+    SDL_Texture *texture = createTextTexture(pText, pObj->TextData.pFont, pObj->TextData.pColor);
+    
+    // query stuff so we can resize the rect (not bounds)
+    int imgWidth, imgHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &imgWidth, &imgHeight);
+    SDL_Rect rect = {0,0,imgWidth,imgHeight};
+    autoFitBounds(&pObj->bounds, &rect, pObj->alignment);
+
+    pObj->pTexture = texture;
     pObj->TextData.pText = pText;
+
+    // update rect
+    pObj->rect = rect;
 }
 
 /*
@@ -967,6 +1096,16 @@ void renderAll() {
         // render our current object
         SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
         
+        if(paintBounds){
+            // draw a red rectangle showing objects bounds
+            SDL_SetRenderDrawColor(pRenderer, 255, 0, 0, 255);
+            SDL_RenderDrawRect(pRenderer, &(pCurrent->bounds));
+
+            // draw a green rectangle showing the rect
+            SDL_SetRenderDrawColor(pRenderer, 0, 255, 0, 255);
+            SDL_RenderDrawRect(pRenderer, &(pCurrent->rect));
+        }
+
         // increment
         pCurrent = pCurrent->pNext;
     }
@@ -989,8 +1128,7 @@ void renderAll() {
                 if (pCurrent->pTexture != NULL) {
                     SDL_DestroyTexture(pCurrent->pTexture);
                 }
-
-                pCurrent->pTexture = createTextTexture(paintTimeString, pEngineFont2, pEngineFontColor);
+                updateTextByObj(pCurrent, paintTimeString);
 
                 // Render the updated paint time texture
                 SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));

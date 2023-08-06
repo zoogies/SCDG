@@ -68,6 +68,47 @@ void advanceScene(){
 }
 
 /*
+    Converts the string gamedata align param to enum needed in engine
+    TODO: MOVEME TO UTILS FILE
+*/
+Alignment getAlignmentFromString(char *str){
+    if(strcmp(str,"stretch") == 0){
+        return ALIGN_STRETCH;
+    }
+    else if(strcmp(str,"middle center") == 0){
+        return ALIGN_MID_CENTER;
+    }
+    else if(strcmp(str,"middle left") == 0){
+        return ALIGN_MID_LEFT;
+    }
+    else if(strcmp(str,"middle right") == 0){
+        return ALIGN_MID_RIGHT;
+    }
+    else if(strcmp(str,"top center") == 0){
+        return ALIGN_TOP_CENTER;
+    }
+    else if(strcmp(str,"top left") == 0){
+        return ALIGN_TOP_LEFT;
+    }
+    else if(strcmp(str,"top right") == 0){
+        return ALIGN_TOP_RIGHT;
+    }
+    else if(strcmp(str,"bottom center") == 0){
+        return ALIGN_BOT_CENTER;
+    }
+    else if(strcmp(str,"bottom left") == 0){
+        return ALIGN_BOT_LEFT;
+    }
+    else if(strcmp(str,"bottom right") == 0){
+        return ALIGN_BOT_RIGHT;
+    }
+    else{
+        logMessage(error, "Invalid alignment string.\n");
+        return ALIGN_STRETCH;
+    }
+}
+
+/*
     take in keys, prototypes and renderObjects array and construct the scene
 */
 void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
@@ -100,6 +141,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
         float h = getFloat(obj,"h");
         bool centered = getBool(obj,"centered");
 
+        Alignment alignment = getAlignmentFromString(getString(obj,"align"));
+
         int created;
         
         if(strcmp(type,"text") == 0){
@@ -120,7 +163,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
                 text,
                 pFont,
                 pColor,
-                centered
+                centered,
+                alignment
             );
         }
         else if(strcmp(type,"image") == 0){
@@ -133,7 +177,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
                 w,
                 h,
                 src,
-                centered
+                centered,
+                alignment
             );
         }
         else if(strcmp(type,"button") == 0){
@@ -181,7 +226,8 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
                 pColor,
                 centered,
                 src,
-                cb
+                cb,
+                alignment
             );
         }
         else{

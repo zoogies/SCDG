@@ -97,7 +97,7 @@ void handleEvent(SDL_Event e){
                                         }
                                     }
                                 } else if (strcmp(token, ">reload") == 0) {
-                                    if (token != NULL) { // TODO: FIXME DOES NOT WORK WITH JANK MEM LEAK GLOBAL GAME AND SAVE DATA
+                                    if (token != NULL) {
                                         // cache current scene before its heap is freed
                                         char* temp = strdup(currentScene);
 
@@ -116,7 +116,14 @@ void handleEvent(SDL_Event e){
                                     if (token != NULL) {
                                         quit = true;
                                     }
-                                } else {
+                                }
+                                else if (strcmp(token, ">toggle") == 0){
+                                    token = strtok(NULL, " ");
+                                    if (strcmp(token, "paintbounds") == 0) {
+                                        togglePaintBounds();
+                                    }
+                                } 
+                                else {
                                     logMessage(error, "Invalid command!\n");
                                     playSound("sfx/pipe.mp3", getChannelByKeyName("alert"), 0);
                                 }

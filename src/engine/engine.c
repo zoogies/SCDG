@@ -119,10 +119,10 @@ void toggleConsole(){
             900,
             renderType_Image,
             info.pTexture,
-            (SDL_Rect){0,0,0,0}, // dummy rect
+            createRealPixelRect(false,0,.9,.4,.1), // dummy rect
             NULL, 
             true, // cache this (eventually between scene loads we will want to keep it, actually we might already)
-            0,.9f,.4f,.1f,
+            createRealPixelRect(false,0,.9,.4,.1),
             false, // not centered
             .ImageData = {
                 "images/ui/dimpanel.png"
@@ -135,12 +135,13 @@ void toggleConsole(){
             -902, // we set ID each time
             901,
             renderType_Text,
-            createTextTexture(">",pEngineFont,pEngineFontColor), // we set texture each time
-            (SDL_Rect){0,0,0,0}, // dummy rect
+            createTextTexture("console init...",pEngineFont,pEngineFontColor), // we set texture each time
+            createRealPixelRect(false,0,.9,.4,.1), // dummy rect
             NULL, 
             false, // no cache
-            0,.9f,.4f,.1f,
+            createRealPixelRect(false,0,.9,.4,.1),
             false, // not centered
+            ALIGN_MID_LEFT,
             .TextData = {
                 pEngineFont2,
                 0,
@@ -151,6 +152,7 @@ void toggleConsole(){
         };
         
         addRenderObject(text);
+        updateText(-902,">");
     }
     consoleOverlay = !consoleOverlay;
 }
@@ -175,10 +177,10 @@ void toggleOverlay(){
             999,
             renderType_Text,
             createTextTexture("fps: 0",pEngineFont,pEngineFontColor), // we set texture each time
-            (SDL_Rect){0,0,0,0}, // dummy rect
+            createRealPixelRect(false,0,0,.12f,.08f), // dummy rect
             NULL, 
             false, // no cache
-            0,0,.12f,.08f,
+            createRealPixelRect(false,0,0,.12f,.08f),
             false, // not centered
             .TextData = {
                 pEngineFont2,
@@ -194,25 +196,29 @@ void toggleOverlay(){
 
         // add object counter (only updates when changed)
         staging.identifier = -2;
-        staging.relY = .07f;
+        staging.rect.y += 75;
+        staging.bounds.y += 75;
         staging.pTexture = createTextTexture("renderObjects: 0",pEngineFont2,pEngineFontColor);
         addRenderObject(staging);
 
         // add audio chunk counter (only updates when changed)
         staging.identifier = -3;
-        staging.relY = .14f;
+        staging.rect.y += 50;
+        staging.bounds.y += 50;
         staging.pTexture = createTextTexture("audio chunks: 0",pEngineFont2,pEngineFontColor);
         addRenderObject(staging);
         
         // add audio chunk counter (only updates when changed)
         staging.identifier = -4;
-        staging.relY = .21f;
+        staging.rect.y += 50;
+        staging.bounds.y += 50;
         staging.pTexture = createTextTexture("log lines: 0",pEngineFont2,pEngineFontColor);
         addRenderObject(staging);
 
         // add audio chunk counter (only updates when changed)
         staging.identifier = -5;
-        staging.relY = .28f;
+        staging.rect.y += 50;
+        staging.bounds.y += 50;
         staging.pTexture = createTextTexture("paint time: 0ms",pEngineFont2,pEngineFontColor);
         addRenderObject(staging);
     
@@ -224,10 +230,10 @@ void toggleOverlay(){
             900,
             renderType_Image,
             info.pTexture,
-            (SDL_Rect){0,0,0,0}, // dummy rect
+            (SDL_Rect){0,0,250,400},
             NULL, 
-            true, // cache this (eventually between scene loads we will want to keep it, actually we might already)
-            0,0,.13f,.4f,
+            false, // cache this (eventually between scene loads we will want to keep it, actually we might already)
+            (SDL_Rect){0,0,250,400},
             false, // not centered
             .ImageData = {
                 "images/ui/dimpanel.png"
@@ -298,7 +304,7 @@ void initEngine(int screenWidth, int screenHeight, bool debugMode, int volume, i
         playSound("sfx/startup.mp3",0,0); // play startup sound
 
         // add startup splash image
-        createImage(0,.5f,.5f,1.0f,1.0f,"engine_reserved/splash.png",true);
+        createImage(0,.5f,.5f,1.0f,1.0f,"engine_reserved/splash.png",true,ALIGN_STRETCH);
 
         // render everything in engine queue
         renderAll(); 

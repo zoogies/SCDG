@@ -22,6 +22,22 @@ typedef struct button {
 
 // SKJDFGLKJSHFGKLFDSGKJHDFKGHDKFJHGKFDJHGKJDFHGKJHSDKHGKFSHGKFDHKGJHDKFJHG
 
+void togglePaintBounds();
+
+int convertToRealPixelWidth(float in);
+
+int convertToRealPixelHeight(float in);
+
+SDL_Rect createRealPixelRect(bool centered, float x, float y, float w, float h);
+
+// used to align things inside bounds
+typedef enum {
+    ALIGN_TOP_LEFT, ALIGN_TOP_CENTER, ALIGN_TOP_RIGHT,
+    ALIGN_MID_LEFT, ALIGN_MID_CENTER, ALIGN_MID_RIGHT,
+    ALIGN_BOT_LEFT, ALIGN_BOT_CENTER, ALIGN_BOT_RIGHT,
+    ALIGN_STRETCH // for cases where we dgaf about alignment and just want to stretch anything to bounds
+} Alignment;
+
 // enum denoting all possible renderObject types
 typedef enum {
     renderType_Text,
@@ -57,12 +73,11 @@ typedef struct renderObject { // TODO: do we have to set each field each time or
     struct renderObject *pNext;
     bool cachedTexture;
 
-    // we want to remember our prior meta for reconstruction
-    float relX;
-    float relY;
-    float relW;
-    float relH;
+    // rect is for actual item location, bounds is for its bounds that its centered in
+    SDL_Rect bounds;
+
     bool centered;
+    Alignment alignment;
 
     // union holding data specific to recreating that renderObject
     union {
@@ -100,11 +115,11 @@ TTF_Font *getFont(char *key);
 
 SDL_Color *getColor(char *key, SDL_Color color);
 
-int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered);
+int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, Alignment alignment);
 
-int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered);
+int createImage(int depth, float x, float y, float width, float height, char *pPath, bool centered, Alignment alignment);
 
-int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data);
+int createButton(int depth, float x, float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, char *pBackgroundPath, struct callbackData *data, Alignment alignment);
 
 void updateText(int id, char *pText);
 
