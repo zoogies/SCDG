@@ -120,7 +120,6 @@ void volumeUp(){
     snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
     int id = getState(stateCollection, "volume-text")->intValue;
     updateText(id,buffer);
-    printf("%s",buffer);
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
     saveJSONFile(SAVEDATA,"data/savedata.json");
 }
@@ -140,7 +139,6 @@ void volumeDown(){
     snprintf(buffer, sizeof(buffer),  "%d%%",(int)((float) VOLUME / 128 * 100));
     int id = getState(stateCollection, "volume-text")->intValue;
     updateText(id,buffer);
-    printf("%s",buffer);
     writeInt(getObject(SAVEDATA,"settings"), "volume",VOLUME);
     saveJSONFile(SAVEDATA,"data/savedata.json");
 }
