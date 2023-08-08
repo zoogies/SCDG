@@ -60,7 +60,7 @@ clean:
 
 # Debug with GDB
 gdb: clean debug
-	gdb ./$(BUILD_DIR_LINUX)/game_linux
+	gdb --args ./$(BUILD_DIR_LINUX)/game_linux --debug --skipintro
 
 # Debug with Valgrind
 valgrind: clean debug
