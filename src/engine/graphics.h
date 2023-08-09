@@ -1,10 +1,17 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
+
 #include <stdbool.h>
 
 #include <SDL2/SDL_ttf.h>
 
-// TODO PLEASE PLEASE MOVE TO ENGINE CALLBACK HANDLER STUFF FUNCTION FILE
+#include "animation.h"
+#include "utils.h"
+
+/*
+    TODO PLEASE PLEASE MOVE TO ENGINE CALLBACK HANDLER STUFF FUNCTION FILE
+    this is simply un-maintainable...
+*/
 
 struct callbackData {
     char *callbackType;
@@ -30,19 +37,12 @@ int convertToRealPixelHeight(float in);
 
 SDL_Rect createRealPixelRect(bool centered, float x, float y, float w, float h);
 
-// used to align things inside bounds
-typedef enum {
-    ALIGN_TOP_LEFT, ALIGN_TOP_CENTER, ALIGN_TOP_RIGHT,
-    ALIGN_MID_LEFT, ALIGN_MID_CENTER, ALIGN_MID_RIGHT,
-    ALIGN_BOT_LEFT, ALIGN_BOT_CENTER, ALIGN_BOT_RIGHT,
-    ALIGN_STRETCH // for cases where we dgaf about alignment and just want to stretch anything to bounds
-} Alignment;
-
 // enum denoting all possible renderObject types
 typedef enum {
     renderType_Text,
     renderType_Image,
     renderType_Button,
+    renderType_Animation
 } renderObjectType;
 
 typedef struct TextData {
@@ -84,6 +84,7 @@ typedef struct renderObject { // TODO: do we have to set each field each time or
         TextData TextData;
         ImageData ImageData;
         ButtonData ButtonData;
+        AnimationData AnimationData;
     };
 } renderObject;
 
@@ -114,6 +115,8 @@ SDL_Texture *createTextTexture(const char *pText, TTF_Font *pFont, SDL_Color *pC
 TTF_Font *getFont(char *key);
 
 SDL_Color *getColor(char *key, SDL_Color color);
+
+void autoFitBounds(SDL_Rect* bounds, SDL_Rect* obj, Alignment alignment);
 
 int createText(int depth, float x,float y, float width, float height, char *pText, TTF_Font *pFont, SDL_Color *pColor, bool centered, Alignment alignment);
 

@@ -12,6 +12,7 @@
 #include "engine/logging.h"
 #include "engine/graphics.h"
 #include "engine/audio.h"
+#include "engine/animation.h"
 
 // declare some globals
 json_t *SCENEEVENTS = NULL;
@@ -230,8 +231,31 @@ void constructScene(json_t *pObjects, json_t *keys, json_t *prototypes){
                 alignment
             );
         }
+        else if(strcmp(type,"animation") == 0){
+            char *root = getString(obj,"src");
+            char *extension = getString(obj,"format");
+
+            int frameCount = getInteger(obj,"frame count");
+            int delay = getInteger(obj,"delay");
+            int loops = getInteger(obj,"loops");
+
+            created = createAnimation(
+                root,
+                extension,
+                frameCount,
+                delay,
+                loops,
+                depth,
+                x,
+                y,
+                w,
+                h,
+                centered,
+                alignment
+            );
+        }
         else{
-            logMessage(error, "Invalid renderObject type in main menu scene.\n");
+            logMessage(error, "Invalid renderObject type.\n");
             created = -1;
         }
 

@@ -445,6 +445,75 @@
           "track":"voice1"
         }
       ]
+    },
+    "animationtest":{
+      "music":{
+        "src":"music/sessions.mp3",
+        "loops":-1,
+        "channel":"bgm"
+      },
+      "renderObjects":[
+        {
+          "type":"animation",
+          "src":"animations/space",
+          "format":".jpg",
+          "x":0.5,
+          "y":0.5,
+          "w":1,
+          "h":1,
+          "centered":true,
+          "depth":"bg",
+          "align":"middle center",
+          "frame count": 120,
+          "delay": 100,
+          "loops":-1
+        },
+        {
+          "type":"animation",
+          "src":"animations/shinji",
+          "format":".jpg",
+          "x":0.75,
+          "y":0.5,
+          "w":0.5,
+          "h":0.5,
+          "centered":true,
+          "depth":"ui",
+          "align":"middle center",
+          "frame count": 30,
+          "delay": 100,
+          "loops":-1
+        },
+        {
+          "type":"animation",
+          "src":"animations/congratulations",
+          "format":".jpg",
+          "x":0.25,
+          "y":0.5,
+          "w":0.5,
+          "h":0.5,
+          "centered":true,
+          "depth":"ui",
+          "align":"middle center",
+          "frame count": 24,
+          "delay": 100,
+          "loops":-1
+        },
+        {
+          "type":"animation",
+          "src":"animations/skelly",
+          "format":".jpg",
+          "x":0.5,
+          "y":0.75,
+          "w":0.5,
+          "h":0.5,
+          "centered":true,
+          "depth":"ui",
+          "align":"middle center",
+          "frame count": 69,
+          "delay": 100,
+          "loops":-1
+        }
+      ]
     }
   }
 }

@@ -158,7 +158,7 @@ void addRenderObject(renderObject staging) {
     
     if(pObj->centered){
         // char buffer[100];
-        // snprintf(buffer, sizeof(buffer),  "Added renderObject %s id#%d centered at (%d,%d) %dx%d\n",getRenderObjectTypeString(type),identifier,objX,objY,objWidth,objHeight);
+        // snprintf(buffer, sizeof(buffer),  "Added renderObject id#%d\n", staging.identifier);
         // logMessage(debug, buffer);
     }
     else{
@@ -190,6 +190,11 @@ void removeRenderObject(int identifier) {
 
         // set our head to the previous 2nd item
         pRenderListHead = pRenderListHead->pNext;
+
+        if(pToDelete->type == renderType_Animation) {
+            // pass the animation data as a void pointer to clear all the frames out
+            destroyAnimation(pToDelete);
+        }
 
         // delete the texture of our previous head (if its not cached)
         if(!pToDelete->cachedTexture){
@@ -436,6 +441,7 @@ struct textureInfo createImageTexture(char *pPath, bool shouldCache) {
             char buffer[100];
             snprintf(buffer, sizeof(buffer),  "Could not access file '%s'.\n", pPath);
             logMessage(error, buffer);
+            return (struct textureInfo){NULL, NULL}; // TODO: give this a placeholder texture for failures
         }
 
         // create surface from loading the image
@@ -940,9 +946,14 @@ void clearAll(bool includeEngine) {
             // char buffer[100];
             // snprintf(buffer, sizeof(buffer),  "Remove render object id#%d\n", pCurrent->identifier);
             // logMessage(debug, buffer);
+            
+            if(pCurrent->type == renderType_Animation) {
+                // pass the animation data as a void pointer to clear all the frames out
+                destroyAnimation(pCurrent);
+            }
 
-            // Delete the texture of our current object (if its not cached)
-            if(!pCurrent->cachedTexture){
+            // Delete the texture of our current object (if its not cached) (also if this is an animation this has already been freed)
+            else if(!pCurrent->cachedTexture){
                 SDL_DestroyTexture(pCurrent->pTexture);
             } // this allows any cache textures to be freed separately
             
@@ -1092,6 +1103,11 @@ void renderAll() {
                 updateTextByObj(pCurrent, strLinCount);
             }
         }
+
+        // if we are an animation, we want to go to the next frame if its available 
+        // TODO: should we hard cap this to not run every frame? how expensive is this if we profile it
+        if(pCurrent->type == renderType_Animation)
+            attemptTickAnimation(pCurrent);
 
         // render our current object
         SDL_RenderCopy(pRenderer, pCurrent->pTexture, NULL, &(pCurrent->rect));
