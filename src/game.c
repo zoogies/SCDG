@@ -54,13 +54,6 @@ int framecap = -1;
 // flag for skipping the intro
 bool skipintro = false;
 
-// enum for general depth values
-enum depth {
-    engineUI = 999,
-    UI = 99,
-    background = 0
-};
-
 bool quit = false; // define quit (extern)
 
 TTF_Font *pStartupFont;
@@ -72,9 +65,6 @@ Uint32 sceneLoadTime = 0;
 
 // initialize state collection (extern)
 StateCollection* stateCollection;
-
-SDL_Color colorwhite = {255, 255, 255, 255};
-SDL_Color colorRed = {255, 0, 0, 255};
 
 // wrapper for engine getFont TODO remove
 TTF_Font *useFont(char *key){
