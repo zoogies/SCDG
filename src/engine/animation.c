@@ -81,7 +81,7 @@ void attemptTickAnimation(void *objPtr) {
     if(current - obj->AnimationData.lastUpdated > (int)obj->AnimationData.frameDelay) {
         obj->AnimationData.currentFrameIndex++; // increment next frame
         // wrap to frame zero if needed
-        if(obj->AnimationData.currentFrameIndex > obj->AnimationData.frameCount - 1){
+        if(obj->AnimationData.currentFrameIndex > (int)obj->AnimationData.frameCount - 1){
             obj->AnimationData.currentFrameIndex = 0;
             if(obj->AnimationData.loops != -1){
                 obj->AnimationData.loops--;

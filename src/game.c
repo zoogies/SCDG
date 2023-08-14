@@ -263,15 +263,20 @@ int mainFunction(int argc, char *argv[])
     setupSceneManager();
     loadScene("main menu");
 
-    // initialize rich prescence
-    if (init_discord_rich_presence() > 0){ // tried to make connection to discord and successfully set activity
-        update_discord_activity("Playing a game", "In the main menu", "main menu", "Main Menu");
-        logMessage(info, "Discord rich presence initialized.\n");
-    }
-    else{
-        // case where user does not have a successful connection to discord
+    // for now, lets only enable rich presence on windows (im using a snap for discord which does not allow the local bridge to work)
+    #ifdef _WIN32
+        // initialize rich prescence
+        if (init_discord_rich_presence() > 0){ // tried to make connection to discord and successfully set activity
+            update_discord_activity("Playing a game", "In the main menu", "main menu", "Main Menu");
+            logMessage(info, "Discord rich presence initialized.\n");
+        }
+        else{
+            // case where user does not have a successful connection to discord
+            logMessage(warning, "Discord rich presence failed to initialize.\n");
+        }
+    #else
         logMessage(warning, "Discord rich presence failed to initialize.\n");
-    }
+    #endif
 
     // begin event catching
     SDL_Event e; // define new event
@@ -282,8 +287,16 @@ int mainFunction(int argc, char *argv[])
         like discord callbacks and maybe even handling events
     */
     while(!quit) {
-        // something something rich presence updater
-        run_discord_callbacks();
+        /*
+            for now, lets only enable rich presence on windows (im using a snap for discord which does not allow the local bridge to work)
+            Also: this probably doesnt need run every frame at all. Investigate whether this needs run just when we update or if the callbacks need
+            made continuously
+        */
+        #ifdef _WIN32
+            // something something rich presence updater
+            run_discord_callbacks();
+        #endif
+        
 
         while (SDL_PollEvent(&e)) {
             handleEvent(e); // event.c
