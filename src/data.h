@@ -24,6 +24,7 @@ json_t *getObjectNOWARN(json_t *parent, char *key);
 int getInteger(json_t *parent, char *key);
 
 bool getBool(json_t *parent, char *key);
+bool getBoolNOWARN(json_t *parent, char *key);
 
 float getFloat(json_t* parent, char* key);
 

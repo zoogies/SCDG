@@ -133,6 +133,7 @@
       }
     },
     "channel":{
+      "auto":-1,
       "bgm":0,
       "voice1":1,
       "alert":2
@@ -443,6 +444,17 @@
           "speaker src":"images/characters/rei.png",
           "speaker sfx":"sfx/pipe.mp3",
           "track":"voice1"
+        },
+        {
+          "type":"play sound",
+          "src":"sfx/startup.mp3",
+          "channel":"auto",
+          "loops":0,
+          "continue":true
+        },
+        {
+          "type":"load scene",
+          "scene":"animationtest"
         }
       ]
     },

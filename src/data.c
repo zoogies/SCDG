@@ -197,6 +197,15 @@ bool getBool(json_t *parent, char *key){
     return json_boolean_value(pObject);
 }
 
+// returns false if theres an error fetching it. will this cause any issues?
+bool getBoolNOWARN(json_t *parent, char *key){
+    json_t *pObject = getObjectNOWARN(parent, key);
+    if (!pObject || !json_is_boolean(pObject)) {
+        return false;
+    }
+    return json_boolean_value(pObject);
+}
+
 float getFloat(json_t* parent, char* key) {
     float value = 0.0;
     json_t* field = json_object_get(parent, key);

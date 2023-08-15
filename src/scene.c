@@ -48,7 +48,8 @@ void advanceScene(){
         json_t *event = getArrayIndex(SCENEEVENTS,currentEventIndex); // TODO: only increment if valid event
 
         if(event != NULL){
-            if(strcmp(getString(event, "type"),"dialog") == 0){
+            char *type = getString(event, "type");
+            if(strcmp(type,"dialog") == 0){
                 // update our speaker text
                 updateText(getState(stateCollection, "speaker name")->intValue, getString(event, "speaker"));
                 updateText(getState(stateCollection, "speaker text")->intValue, getString(event, "text"));
@@ -61,7 +62,16 @@ void advanceScene(){
                 // play dialog sfx
                 playSound(getString(event,"speaker sfx"), getChannelByKeyName(getString(event,"track")), 0);
             }
+            else if(strcmp(type,"load scene") == 0){
+                loadScene(getString(event,"scene"));
+            }
+            else if(strcmp(type,"play sound") == 0){
+                playSound(getString(event,"src"), getChannelByKeyName(getString(event,"channel")), getInteger(event,"loops"));
+            }
             currentEventIndex++;
+            if(getBoolNOWARN(event,"continue")){
+                advanceScene();
+            }
         }
     }
 
@@ -293,9 +303,23 @@ void startSceneMusic(json_t *scene,json_t *keys){
 */
 void loadScene(char* scene){
     /*
-        duplicate our parameter to avoid accessing freed memory
-        and set the global scene value to the current scene
+        Throw up a loading icon. I think if we render all once after, 
+        any subsequent logic happening here will fully finish by the next 
+        renderAll() (we wont have any broken render frames)
+
+        For now, it looks weird to throw this up for a single frame. In the future we can
+        leverage this anywhere its specifically needed, possibly by doing something similar
+        to below: conditionally rendering a loading icon if we are loading a scene that takes
+        a long time to load.
+
+        If we take that route, we should just have a flag in the scene json that specifies if
+        it needs a loading icon or not. This is all subject to change, if we start loading and caching
+        every prototype then maybe we will need this on every scene
     */
+    if(strcmp(scene,"animationtest")==0){
+        createImage(999,.5,.5,1,1,"images/loading.png",true,ALIGN_MID_CENTER);
+        renderAll();
+    }
     
     // just to be on the mega safe side, we need to ensure that scene is not currentScene
     // scene = strdup(scene);
