@@ -13,11 +13,11 @@
 
 #include <jansson.h>
 
-#include "engine.h"
-#include "graphics.h"
-#include "audio.h"
-#include "logging.h"
-#include "variant.h"
+#include "lib/engine.h"
+#include "lib/graphics.h"
+#include "lib/audio.h"
+#include "lib/logging.h"
+#include "lib/variant.h"
 
 // define globals for file
 SDL_Window *pWindow = NULL;

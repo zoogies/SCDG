@@ -11,8 +11,8 @@
 
 #include <SDL2/SDL_mixer.h>
 
-#include "engine.h"
-#include "logging.h"
+#include "lib/engine.h"
+#include "lib/logging.h"
 
 // define the max number of audio channels
 #define MAX_CHANNELS 16

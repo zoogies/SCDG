@@ -13,3 +13,5 @@ resources/*
 *.o
 testing/jansson
 src/engine/uthash/uthash.h
+src/engine/build
+testing/engine link test

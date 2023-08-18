@@ -14,10 +14,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 
-#include "audio.h"
-#include "graphics.h"
-#include "engine.h"
-#include "logging.h"
+#include "lib/audio.h"
+#include "lib/graphics.h"
+#include "lib/engine.h"
+#include "lib/logging.h"
 
 // buffer to hold filepath strings
 // will be modified by getPath()

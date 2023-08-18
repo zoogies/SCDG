@@ -1,8 +1,8 @@
-#include "engine.h"
-#include "graphics.h"
-#include "logging.h"
-#include "animation.h"
-#include "linkedlist.h"
+#include "lib/engine.h"
+#include "lib/graphics.h"
+#include "lib/logging.h"
+#include "lib/animation.h"
+#include "lib/linkedlist.h"
 
 // declared in graphics.c, hold an unused unique increasing integer ID
 extern int global_id;

@@ -1,8 +1,8 @@
 #include <time.h>
 #include <stdio.h>
 
-#include "logging.h"
-#include "engine.h"
+#include "lib/logging.h"
+#include "lib/engine.h"
 
 #ifdef _WIN32
 #include <windows.h>
