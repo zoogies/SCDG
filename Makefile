@@ -1,69 +1,87 @@
-# Variables
-CC = gcc
-CFLAGS = -Wall -Wextra -I./src/discordSDK
-LIBS = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk -Wl,-rpath=./src/discordSDK/lib/x86_64 -lm
-BUILD_DIR_LINUX = build/linux
-BUILD_DIR_WINDOWS = build/windows
+CC := gcc
+CFLAGS := -Wall -Wextra -Ilib
+LDFLAGS := -shared
+SRC_DIR := src
+BUILD_DIR := build
+OBJ_DIR := $(BUILD_DIR)/obj
+BIN_DIR_LINUX := $(BUILD_DIR)/linux/yoyoengine
+BIN_DIR_WINDOWS := $(BUILD_DIR)/windows/yoyoengine
 
-# Windows-specific variables
-CC_WIN = x86_64-w64-mingw32-gcc
-LIBS_WIN = -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -ljansson -L./src/discordSDK/lib/x86_64 -ldiscord_game_sdk
+SOURCES := $(wildcard $(SRC_DIR)/*.c)
+OBJECTS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SOURCES))
 
-# Main target (default: Linux)
-all: dirs linux
+ENGINE_NAME := libyoyoengine
 
-# Create build directories
-dirs:
-	mkdir -p $(BUILD_DIR_LINUX) $(BUILD_DIR_WINDOWS)
+SHARED_LIB_DIR_LINUX := $(SRC_DIR)/dist/linux
+SHARED_LIB_DIR_WINDOWS := $(SRC_DIR)/dist/windows
 
-# Compile game executable for Linux
-linux: CFLAGS += -O2
-linux: dirs $(BUILD_DIR_LINUX)/game_linux
+SHARED_LIB_EXTENSIONS := .so .dll
 
-# Compile game executable for debug (Linux)
-debug: CFLAGS += -g
-debug: dirs $(BUILD_DIR_LINUX)/game_linux
+define find_shared_libs
+$(wildcard $(1)*$(2))
+endef
 
-$(BUILD_DIR_LINUX)/game_linux: $(patsubst src/%.c,$(BUILD_DIR_LINUX)/%.o,$(wildcard src/*.c)) $(patsubst src/engine/%.c,$(BUILD_DIR_LINUX)/%.o,$(wildcard src/engine/*.c))
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
-	rm -f $(BUILD_DIR_LINUX)/*.o
+SHARED_LIBS_LINUX := $(foreach ext,$(SHARED_LIB_EXTENSIONS),$(call find_shared_libs,$(SHARED_LIB_DIR_LINUX),$(ext)))
+SHARED_LIBS_WINDOWS := $(foreach ext,$(SHARED_LIB_EXTENSIONS),$(call find_shared_libs,$(SHARED_LIB_DIR_WINDOWS),$(ext)))
 
-# Compile game executable for Windows
-windows: CC = $(CC_WIN)
-windows: LIBS = $(LIBS_WIN)
-windows: dirs $(BUILD_DIR_WINDOWS)/game_windows.exe copy_resources_windows
+DIST_FILES_LINUX := $(wildcard dist/linux/*)
+DIST_FILES_WINDOWS := $(wildcard dist/windows/*)
 
-$(BUILD_DIR_WINDOWS)/game_windows.exe: $(patsubst src/%.c,$(BUILD_DIR_WINDOWS)/%.o,$(wildcard src/*.c)) $(patsubst src/engine/%.c,$(BUILD_DIR_WINDOWS)/%.o,$(wildcard src/engine/*.c))
-	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
-	rm -f $(BUILD_DIR_WINDOWS)/*.o
+.PHONY: all clean linux windows copy_headers copy_libs help
 
-# Compile object files
-$(BUILD_DIR_LINUX)/%.o: src/%.c src/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+all: help
 
-$(BUILD_DIR_LINUX)/%.o: src/engine/%.c src/engine/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+linux: $(BIN_DIR_LINUX)/$(ENGINE_NAME).so $(BIN_DIR_LINUX)/copy_headers $(BIN_DIR_LINUX)/copy_libs $(BIN_DIR_LINUX)/engine_resources
 
-$(BUILD_DIR_WINDOWS)/%.o: src/%.c src/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+windows: $(BIN_DIR_WINDOWS)/$(ENGINE_NAME).dll $(BIN_DIR_WINDOWS)/dist_files $(BIN_DIR_WINDOWS)/engine_resources
 
-$(BUILD_DIR_WINDOWS)/%.o: src/engine/%.c src/engine/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BIN_DIR_LINUX)/$(ENGINE_NAME).so: $(OBJECTS) $(SHARED_LIBS_LINUX)
+	@mkdir -p $(BIN_DIR_LINUX)
+	$(CC) $(LDFLAGS) -o $@ $^
 
-# Copy resources/dlls to Windows build directory
-copy_resources_windows: 
-	cp -r resources/dlls/* $(BUILD_DIR_WINDOWS)/
+$(BIN_DIR_WINDOWS)/$(ENGINE_NAME).dll: $(OBJECTS) $(SHARED_LIBS_WINDOWS)
+	@mkdir -p $(BIN_DIR_WINDOWS)
+	$(CC) $(LDFLAGS) -o $@ $^
 
-# Clean up build directories
+$(BIN_DIR_LINUX)/dist_files: $(DIST_FILES_LINUX)
+	@mkdir -p $(BIN_DIR_LINUX)/dependencies
+	cp -r $(SRC_DIR)/dist/linux/* $(BIN_DIR_LINUX)/dependencies
+
+$(BIN_DIR_WINDOWS)/dist_files: $(DIST_FILES_WINDOWS)
+	@mkdir -p $(BIN_DIR_WINDOWS)/dependencies
+	cp -r $(SRC_DIR)/dist/windows/* $(BIN_DIR_WINDOWS)/dependencies
+
+$(BIN_DIR_LINUX)/engine_resources: $(DIST_FILES_LINUX)
+	@mkdir -p $(BIN_DIR_LINUX)/engine_resources
+	cp -r $(SRC_DIR)/dist/assets/* $(BIN_DIR_LINUX)/engine_resources
+
+$(BIN_DIR_WINDOWS)/engine_resources: $(DIST_FILES_WINDOWS)
+	@mkdir -p $(BIN_DIR_WINDOWS)/engine_resources
+	cp -r $(SRC_DIR)/dist/assets/* $(BIN_DIR_WINDOWS)/engine_resources
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -fPIC -c -o $@ $<
+
+# Copy header files to the lib folder within the build directory
+$(BIN_DIR_LINUX)/copy_headers: $(DIST_FILES_LINUX)
+	@mkdir -p $(BIN_DIR_LINUX)/lib
+	cp -r $(SRC_DIR)/lib/* $(BIN_DIR_LINUX)/lib
+
+# Copy external libraries to the dependencies folder within the build directory
+$(BIN_DIR_LINUX)/copy_libs: $(DIST_FILES_LINUX)
+	@mkdir -p $(BIN_DIR_LINUX)/dependencies
+	cp -r $(SRC_DIR)/dist/linux/* $(BIN_DIR_LINUX)/dependencies
+
+# Help target
+help:
+	@echo "Available targets:"
+	@echo "  linux         : Build the Linux version"
+	@echo "  windows       : Build the Windows version"
+	@echo "  copy_headers  : Copy header files to lib folder"
+	@echo "  copy_libs     : Copy external libraries to dependencies folder"
+	@echo "  clean         : Clean up build artifacts"
+
+# Clean target
 clean:
-	rm -rf $(BUILD_DIR_LINUX) $(BUILD_DIR_WINDOWS)
-
-# Debug with GDB
-gdb: clean debug
-	gdb --args ./$(BUILD_DIR_LINUX)/game_linux --debug --skipintro
-
-# Debug with Valgrind
-valgrind: clean debug
-	valgrind --leak-check=full --track-origins=yes ./$(BUILD_DIR_LINUX)/game_linux
-
-.PHONY: all dirs clean linux windows copy_resources_windows debug gdb valgrind
+	rm -rf $(BUILD_DIR)

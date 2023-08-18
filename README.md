@@ -1,18 +1,30 @@
-# Stardust Crusaders Dating Game (WIP)
+# Yoyo Engine (WIP)
 
-[![wakatime](https://wakatime.com/badge/user/3e73d21c-9ccb-4e77-ab4d-6f58f0296cfa/project/6f9bf7f2-a63f-480c-ae9d-924c770d6e52.svg)](https://wakatime.com/badge/user/3e73d21c-9ccb-4e77-ab4d-6f58f0296cfa/project/6f9bf7f2-a63f-480c-ae9d-924c770d6e52)
-
-A joke "Dating" game starring friends from a discord server, made as an intro to learning C and SDL2, built on a custom engine.
+A 2D graphics engine (currently framework) written in C using SDL2, SDL2_image, SDL2_ttf, and SDL2_mixer.
 
 ![Drawing](https://github.com/Yoyolick/SCDG/assets/43967290/f98545d1-c4ba-419e-a674-da436f591d23)
 
 ## Dependencies
 
 - [SDL2](https://www.libsdl.org/)
-- [jansson](https://github.com/akheron/jansson)
-- [discord SDK](https://discord.com/developers/docs/game-sdk/sdk-starter-guide)
+- [SDL2_image](https://www.libsdl.org/projects/SDL_image/)
+- [SDL2_ttf](https://www.libsdl.org/projects/SDL_ttf/)
+- [SDL2_mixer](https://www.libsdl.org/projects/SDL_mixer/)
 - [uthash](https://github.com/troydhanson/uthash)
+
+## Documentation
+
+- The docs are a work in progress as I iron out basically everything for this project
+
+## Plans
+
+[X] Text, Images, Animations, Sound, Buttons
+[ ] Documentation website
+[ ] Example projects and tutorials
+[ ] Lua integration
+[ ] Collision detection
+[ ] Networking
 
 ## Credit
 
-- [main menu theme](https://www.youtube.com/watch?v=LGqDB4qmDVM)
+- The dependencies and Jojo's Bizarre Adventure for the bootup screen sound effect.

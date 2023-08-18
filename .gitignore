@@ -1,17 +1,1 @@
-**build
-build-win
-resources/data/savedata.json
-src/discordSDK
-resources/dlls
-resources/data/log.txt
-resources/data/debug.log
-# WE ARE GOING TO IGNORE ALL RESOURCES ADDED UNTIL GAME IS FINALIZED
-# IM REALLY HOPING I DONT FORGET AND SWITCH DISTROS AND LOSE EVERYTHING
-resources/*
-
-# stray object files, most from /testing
-*.o
-testing/jansson
-src/engine/uthash/uthash.h
-src/engine/build
-testing/engine link test
+build
