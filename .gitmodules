@@ -1,0 +1,3 @@
+[submodule "yoyoengine"]
+	path = yoyoengine
+	url = https://github.com/Yoyolick/yoyoengine.git
